@@ -218,8 +218,8 @@ def segment_signal (data_path, window_size, window_step):
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
 X_matrix, Y_vector = segment_signal(data_path, 5, 2.5)
 
-print(X_matrix['Acc_X-AXIS'])
-print(X_matrix['Mag_Y-AXIS'])
+#print(X_matrix['Acc_X-AXIS'])
+#print(X_matrix['Mag_Y-AXIS'])
 
 #לזכור להוסיף מעין תרגום של הזמן של החלון לזמן של הדוגם בפועל
 
