@@ -207,6 +207,7 @@ def segment_signal (data_path, window_size, window_step):
     X_matrix = X_matrix.drop(columns=['Label'])
 
 
+
     #print(X_matrix[(X_matrix["First second of the activity"] != 0) &(X_matrix["Last second of the activity"] != 0)][:1000])
     #print(Y_vector)
 
@@ -214,9 +215,23 @@ def segment_signal (data_path, window_size, window_step):
 
 
 
-    # return X_matrix, Y_vector
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
-X_matrix, Y_vector = segment_signal(data_path, 5, 2.5)
+#We call the function 3 times to get 3 window sizes
+X_matrix_1, Y_vector_1 = segment_signal(data_path, 3, 1.5)
+X_matrix_2, Y_vector_2 = segment_signal(data_path, 10, 3)
+X_matrix_3, Y_vector_3 = segment_signal(data_path, 22, 4)
+
+def combine_matrices (X_matrix_1, Y_vector_1, X_matrix_2, Y_vector_2, X_matrix_3, Y_vector_3):
+    #We add the matrices as concatination of table as they have the same column but just different window times
+    combined_x_matrix = pd.concat([X_matrix_1, X_matrix_2, X_matrix_3], axis=0)
+    combined_y_vector = pd.concat([Y_vector_1, Y_vector_2, Y_vector_3], axis=0)
+    combined_x_matrix = combined_x_matrix.reset_index(drop=True)
+    combined_y_vector = combined_y_vector.reset_index(drop=True)
+    return combined_x_matrix, combined_y_vector
+
+X_matrix, Y_vector =  combine_matrices (X_matrix_1, Y_vector_1, X_matrix_2, Y_vector_2, X_matrix_3, Y_vector_3)
+
+
 
 #print(X_matrix['Acc_X-AXIS'])
 #print(X_matrix['Mag_Y-AXIS'])
@@ -231,16 +246,25 @@ X_matrix, Y_vector = segment_signal(data_path, 5, 2.5)
 def extract_features (data_path, X_matrix):
     data_files = load_data(data_path)
 
-    def fix_baseline_wander (data, sampling_frequency, filter_order, cutoff_frequency = 0.5):
+
+
+    def fix_baseline_wander (data, sampling_frequency, filter_order = 5, cutoff_frequency = 0.5):
+        #The idea is to compute baseline wander in order to create more representative view of the data.
+        #In order to do so, Butterworth HPF is applied on the data, in order to get rid of the low frequencies's noise.
+        #The sampling frequency is known as it was defined by us, and the cutoff_frequency was chosen to be 0.5 as most physiological movement are at 1 Hz and more.
         nyquist_frequency = sampling_frequency * 0.5
         normal_cutoff = cutoff_frequency / nyquist_frequency
-        b, a = butter(order, normal_cutoff, btype='high', analog=False)
+        b, a = butter(filter_order, normal_cutoff, btype='high', analog=False)
         corrected_data = filtfilt(b, a, data)
 
         return corrected_data
 
 
     def normalize_data(data_values, method = 'IQR'):
+
+        if data_values.ndim == 1:
+            #to use the sk function, we need to transform the shape
+            data_values = data_values.reshape(-1, 1)
 
         if method == 'IQR':
             #This is normalization in the robust way, which is less manipulated by outliers.
@@ -258,7 +282,7 @@ def extract_features (data_path, X_matrix):
 
         normalized_data = normalization_meth.fit_transform(data_values)
 
-        return normalized_data
+        return normalized_data. flatten()
 
     columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
                      'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS']
@@ -309,13 +333,16 @@ def extract_features (data_path, X_matrix):
 
                 for ax in ("X-AXIS", "Y-AXIS", "Z-AXIS"):
                     #axis_data = sensor_data[[c for c in sensor_data.columns if ax.split('-')[0].lower() in c.lower()]].values.ravel()
-                    axis_data = sensor_data[ax + unit]
+                    axis_data = sensor_data[ax + unit].values
                     window_data = np.array(axis_data[adjusted_starting_index:adjusted_ending_index])
                     column_name = sensor_name + '_' + ax
-                    X_matrix.at[label, column_name] = window_data
+                    X_matrix.at[label, column_name] = [window_data]
+
+
+
+
 
                     # Extract the window data
-    X_features = copy.deepcopy(X_matrix)
 
 
     for recording in data_files.values():
@@ -330,7 +357,7 @@ def extract_features (data_path, X_matrix):
             elif sensor_name == "Gyro":
                 unit =" (deg/s)".upper()
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
-                axis_data = recording[sensor_name]['data'][axis + unit]
+                axis_data = recording[sensor_name]['data'][axis + unit].values
                 new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
                 if (recording['Participant ID'] == 'A') & (recording['Group number'] == '02') & (recording['Recording number'] == '01'):
                     plt.figure()
@@ -340,10 +367,15 @@ def extract_features (data_path, X_matrix):
                     plt.subplot(1,2,2)
                     plt.title("after baseline wander")
                     plt.plot(recording[sensor_name]['data']['elapsed (s)'.upper()],new_axis_data)
+                    plt.show()
                 new_axis_data = normalize_data(new_axis_data)
                 recording[sensor_name]['data'][axis + unit] = new_axis_data
-        applying_windows(recording, X_features)
+        applying_windows(recording, X_matrix)
 
+
+
+
+    X_features = X_matrix.copy.deepcopy()
 
     return X_features
 
