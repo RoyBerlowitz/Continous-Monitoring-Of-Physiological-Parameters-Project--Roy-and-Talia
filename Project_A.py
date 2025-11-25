@@ -245,7 +245,7 @@ X_matrix, Y_vector =  combine_matrices (X_matrix_1, Y_vector_1, X_matrix_2, Y_ve
 
 def extract_features (data_path, X_matrix):
     data_files = load_data(data_path)
-
+    num_features = 0
 
 
     def fix_baseline_wander (data, sampling_frequency, filter_order = 5, cutoff_frequency = 0.5):
@@ -339,9 +339,6 @@ def extract_features (data_path, X_matrix):
                     X_matrix.at[label, column_name] = [window_data]
 
 
-
-
-
                     # Extract the window data
 
 
@@ -373,13 +370,166 @@ def extract_features (data_path, X_matrix):
         applying_windows(recording, X_matrix)
 
 
+        #X_features = X_matrix.copy.deepcopy() #creating X feature before feature extraction
+        X_features = X_matrix #creating X feature before feature extraction
+
+        def compute_signal_magnitude(sensor_data):
+            #We found that metrics preformed on signal magnitude can be a very good predictor in such things.
+            #We want to calculate the magnitude of all 3 axis.
+            #we sum their squares and then put it in a square
+            sensor_data_x = np.array(sensor_data.iloc[0]).ravel()
+            sensor_data_y = np.array(sensor_data.iloc[1]).ravel()
+            sensor_data_z = np.array(sensor_data.iloc[2]).ravel()
+            Nx = len(sensor_data_x)
+            Ny = len(sensor_data_y)
+            Nz = len(sensor_data_y)
+
+            N = min([Nx,
+                     Ny, Nz])  # We want to have a comparison and for that we will neglect a mistake of 1-2 non- aligned time points by cutting them
+            sensor_data_x = sensor_data_x[:N]
+            sensor_data_y = sensor_data_y[:N]
+            sensor_data_z = sensor_data_z[:N]
+
+            # we check if one of them is NaN
+            is_x_nan = np.isnan(sensor_data_x).all()
+            is_y_nan = np.isnan(sensor_data_y).all()
+            is_z_nan = np.isnan(sensor_data_z).all()
+
+            if is_x_nan or is_y_nan or is_z_nan:
+                return np.nan
+            sensor_data_x = np.array(sensor_data_x)
+            sensor_data_y = np.array(sensor_data_y)
+            # As the sampling frequency of z is two time lower, we get half the points for z
+            # in comparison to the points of x and y. To fix that, we multiply by a factor of 2 the number of points of z
+            # and then assign the unreal points with the value of the points before.
+            # not ideal, but necessary for this metric.
 
 
-    X_features = X_matrix.copy.deepcopy()
+            return np.sqrt(sensor_data_x ** 2 + sensor_data_y ** 2 + sensor_data_z ** 2)
+
+        for sensor_name in ["Acc", "Gyro", "Mag"]:
+            X_features[sensor_name + "_SM"] = X_features[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(compute_signal_magnitude,axis=1)
+            columns_names.append(sensor_name + "_SM")
+
+
+        def add_basic_metrics(df, column_names):
+            #,לשקול להוסיף IQR מקסימום, מינימום, פיק טו פיק ועוד ערכים נוספים
+
+            def calculate_list_mean(data_list):
+               #we try to get the mean of the data of a cell
+                if isinstance(data_list, list) and data_list:
+
+                    return np.mean(data_list)
+                return np.nan
+
+            def calculate_list_median(data_list):
+               #we try to get the median of the data of a cell
+                if isinstance(data_list, list) and data_list:
+                    return np.median(data_list)
+                return np.nan
+
+            def calculate_list_STD(data_list):
+               #we try to get the std of the data of a cell
+                if isinstance(data_list, list) and data_list:
+                    return np.std(data_list)
+                return np.nan
+
+
+            def calculate_list_power(data_list):
+               #we try to get the energy of the data of a cell. we transform it to a numpy array and then calculated the square of the sum of its particles,
+               # and then we divide it by N in order to prevent bias caused because of larger windows.
+                if data_list:
+                    N = len(data_list)
+                    x = np.array(data_list)
+                    x_squared = x**2
+                    power = np.sum(x_squared) / N
+                    return power
+
+                else:
+                    return np.nan
+
+                return np.nan
+
+
+            def calculate_list_RMS(data_list):
+                #לחשוב על זה
+                if data_list:
+                    power = calculate_list_power(data_list)
+                    RMS = np.sqrt(power)
+                    return RMS
+
+                else:
+                    return np.nan
+
+                return np.nan
+
+            def calculate_sensor_RMS(sensor_data):
+                #The function recieves as an input of sensor fata -  3 cells of the axes data
+                #We want to calculate the RMS of all 3 axis.
+                #we pass the function the data from all three axes and try to get the RMS of the combined array, that take the points from all axes into considerations
+                sensor_data_x = np.array(sensor_data.iloc[0]).ravel()
+                sensor_data_y = np.array(sensor_data.iloc[1]).ravel()
+                sensor_data_z = np.array(sensor_data.iloc[2]).ravel()
+                Nx = len(sensor_data_x)
+                Ny = len(sensor_data_y)
+                Nz = len(sensor_data_z)
+                N = min([Nx, Ny, Nz]) #We want to have a comparison and for that we will neglect a mistake of 1-2 non- aligned time points by cutting them
+                sensor_data_x = sensor_data_x[:N]
+                sensor_data_y = sensor_data_y[:N]
+                sensor_data_z = sensor_data_z[:N]
+
+                #we check if one of them is NaN
+                is_x_nan = np.isnan(sensor_data_x).all()
+                is_y_nan = np.isnan(sensor_data_y).all()
+                is_z_nan = np.isnan(sensor_data_z).all()
+
+                if is_x_nan or is_y_nan or is_z_nan:
+                    return np.nan
+
+
+                RMS = np.sqrt(np.sum(sensor_data_x ** 2 + sensor_data_y ** 2 + sensor_data_z ** 2)/N)
+                return RMS
+
+
+
+
+            for column in column_names:
+                df[column + '_mean'] = df[column].apply(calculate_list_mean)
+                print(f"added {column + '_mean'} column")
+                print(df[column + '_mean'])
+                df[column + '_std'] = df[column].apply(calculate_list_STD)
+                print(f"added {column + '_std'} column")
+                print(df[column + '_std'])
+                df[column + '_median'] = df[column].apply(calculate_list_median)
+                print(f"added {column + '_median'} column")
+                print(df[column + '_median'])
+                df[column + '_RMS'] = df[column].apply(calculate_list_RMS)
+                print(f"added {column + '_RMS'} column")
+                print(df[column + '_RMS'])
+                # df[column + '_power'] = df[column].apply(calculate_list_power) # it will be used for finding power afterwards, and then be deleted
+                # print("added power column")
+
+            #let's calculate the RMS of every axis for every sensor
+            for sensor_name in ["Acc", "Gyro", "Mag"]:
+                    df[sensor_name + '_RMS_Total'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_sensor_RMS,axis=1)
+                    print(f"added {sensor_name + '_RMS_Total'} column")
+                    print(df[sensor_name + '_RMS_Total'])
+
+    add_basic_metrics(X_features, columns_names)
+
+
+
+
+
+
+
+
 
     return X_features
 
 X_features = extract_features (data_path, X_matrix)
+
+print(X_features)
 ##-------Part C: Train & Test -------
 
 ##-------Part D: Feature Correlation Analysis -------
