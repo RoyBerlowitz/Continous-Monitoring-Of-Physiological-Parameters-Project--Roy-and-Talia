@@ -270,14 +270,14 @@ def extract_features (data_path, X_matrix):
             data_values = data_values.reshape(-1, 1)
 
         if method == 'IQR':
-            """
-            This is normalization in the robust way, which is less manipulated by outliers.
-            the IQR method allows choosing normalization the do not depend on the radical values
-            so we decided to go for normalization between the 1% percentile and 99% percentile,
-            considering the highest 1% lowest and highest values to be outliers.
-            it also takes the median that is less dependant on extreme values but rater on the entire data distribution.
-            normalization_meth = sk.preprocessing.RobustScaler(quantile_range=(1.0, 99.0))
-            """
+            #This is normalization in the robust way, which is less manipulated by outliers.
+            #the IQR method allows choosing normalization the do not depend on the radical values
+            #so we decided to go for normalization between the 1% percentile and 99% percentile,
+            #considering the highest 1% lowest and highest values to be outliers.
+            #it also takes the median that is less dependant on extreme values but rater on the entire data distribution.
+
+         normalization_meth = sk.preprocessing.RobustScaler(quantile_range=(1.0, 99.0))
+
 
         elif method == 'standard':
             normalization_meth = sk.preprocessing.StandardScaler()
