@@ -550,7 +550,12 @@ def EMD_properties(df, column_list, num_features) :
                         'imf2 std']
     for column in column_list:
         # For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
-        features_series = df[column].apply(find_imfs_properties)
+        features_series = df[column].apply(
+            lambda x: pd.Series(
+                find_imfs_properties(x),
+                index=feature_suffixes  #  defining the name of returned columns
+            )
+        )
         # adding to the dict
         for suffix in feature_suffixes:
             col_name = f"{column}_{suffix}"
