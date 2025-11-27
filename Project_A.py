@@ -270,14 +270,14 @@ def extract_features (data_path, X_matrix):
             data_values = data_values.reshape(-1, 1)
 
         if method == 'IQR':
-            """
-            This is normalization in the robust way, which is less manipulated by outliers.
-            the IQR method allows choosing normalization the do not depend on the radical values
-            so we decided to go for normalization between the 1% percentile and 99% percentile,
-            considering the highest 1% lowest and highest values to be outliers.
-            it also takes the median that is less dependant on extreme values but rater on the entire data distribution.
-            normalization_meth = sk.preprocessing.RobustScaler(quantile_range=(1.0, 99.0))
-            """
+            #This is normalization in the robust way, which is less manipulated by outliers.
+            #the IQR method allows choosing normalization the do not depend on the radical values
+            #so we decided to go for normalization between the 1% percentile and 99% percentile,
+            #considering the highest 1% lowest and highest values to be outliers.
+            #it also takes the median that is less dependant on extreme values but rater on the entire data distribution.
+
+         normalization_meth = sk.preprocessing.RobustScaler(quantile_range=(1.0, 99.0))
+
 
         elif method == 'standard':
             normalization_meth = sk.preprocessing.StandardScaler()
@@ -783,8 +783,16 @@ def extract_features (data_path, X_matrix):
                 return slew_rate
             else:
                 return np.nan
+        def calculate_area_under_graph(data_list, dt):
+            #we try to find the area under graph
+            data_list = safe_unwrap(data_list)  # making the check about the data list
+            if data_list is not None:
+                abs_vector = np.abs(data_list)
+                area = np.sum(abs_vector*dt)
+                return area
+            else:
+                return np.nan
 
-        #def calculate_area_under_absolute_values(data_list):
 
         # def calculate_rise_time(data_list):
         #     #we calculate the rise time, which is the time took the signal get from the 10% percentile value to 90% percentile value
@@ -800,14 +808,6 @@ def extract_features (data_path, X_matrix):
         #         return rise_time
         #     else:
         #         return np.nan
-    def EMD_properties(df, column_list, num_features):
-        def find_imfs(data_list):
-            data_list = safe_unwrap(data_list)  # making the check about the data list
-            if data_list is not None:
-                imfs = PyEMD.EMD(data_list)
-                return imfs
-            else:
-                return np.nan
 
         def find_imfs_properties(data_list):
             #It seems like the main factors are the std and relative energy of the imfs, so this will be our focus
@@ -828,7 +828,7 @@ def extract_features (data_path, X_matrix):
                             'imf2 std']
         for column in column_list:
             # For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
-            features_series = df[column].apply(find_imfs_properties,index=feature_suffixes)
+            features_series = df[column].apply(find_imfs_properties)
             # adding to the dict
             for suffix in feature_suffixes:
                 col_name = f"{column}_{suffix}"
