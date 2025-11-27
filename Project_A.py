@@ -32,9 +32,9 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     )
 
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
-data_path = r"/Users/talia/Downloads/02 copy 3"
-run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
-# run_part_a(data_path)
+# data_path = r"/Users/talia/Downloads/02 copy 3"
+# run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
+run_part_a(data_path)
 
 
 ##-------Part A: Segmentation-------
