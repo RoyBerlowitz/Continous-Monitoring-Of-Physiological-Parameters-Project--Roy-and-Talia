@@ -1,7 +1,7 @@
 from sklearn.model_selection import train_test_split
 import numpy as np
 
-def split_data(X_features, Y_samples, groups, recording_type):
+def split_data(X_features, Y_samples): #, groups, recording_type):
 
     """
     Split the dataset in two ways:
@@ -38,7 +38,7 @@ def split_data(X_features, Y_samples, groups, recording_type):
 
     # Containers for final training/testing sets
     X_train_1, X_test_1, Y_train_1, Y_test_1 = [], [], [], []
-
+    return
     # Iterate over each unique group (participant)
     for g in np.unique(groups):
 
