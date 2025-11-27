@@ -362,16 +362,12 @@ def add_time_dependent_features(df, column_list, num_features):
             #as the sampling rate is different
             dt = 0.4
         #adding area under graph
-        new_columns[column +"_area_under_graph"] = df[column].apply(
-            lambda x: pd.Series(
-                calculate_frequency_domain_features(x, dt),
-            )
-        )
+        new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: (calculate_area_under_graph(x, dt),)).values
         print(new_columns[column + '_area_under_graph'])
         num_features += 1
 
         #adding slew rate
-        new_columns[column +"_slew_rate"] = df[column].apply(calculate_slew_rate())
+        new_columns[column +"_slew_rate"] = df[column].apply(calculate_slew_rate).values
         print(new_columns[column + '_slew_rate'])
         num_features += 1
 
@@ -523,15 +519,27 @@ def find_imfs_properties(data_list):
     imfs = emd(data_list)
     #We compute the total enery of all the IMFs
     total_energy = np.sum(imfs ** 2)
-    imfs_std = []
-    relative_imf_energy = []
 
-    for i in range(2):
-    #we find the standard deviation of each IMF
-      imfs_std.append(np.std(imfs[i,:]))
-    # we find the relative energy of each IMF - it can show how this imf is significant in relation to other
-    relative_imf_energy.append(np.sum(imfs[i,:]**2 / total_energy))
-    return imfs_std[0],imfs_std[1], relative_imf_energy[0], relative_imf_energy[1]
+    if len(imfs) > 1:
+        imfs_std = []
+        relative_imf_energy = []
+        for i in range(2):
+            #we find the standard deviation of each IMF
+            imfs_std.append(np.std(imfs[i,:]))
+            # we find the relative energy of each IMF - it can show how this imf is significant in relation to other
+            imf_energy = np.sum(imfs[i,:] ** 2)
+            relative_imf_energy.append(imf_energy / total_energy)
+        return pd.Series(imfs_std[0],imfs_std[1], relative_imf_energy[0], relative_imf_energy[1])
+    else:
+        #Now we deal with the case of only one imf - which may also indicate about the activity and be helpful
+        imf_std = np.std(imfs[0,:])
+        imf_energy = np.sum(imfs[0,:] ** 2)
+        relative_imf_energy = (imf_energy / total_energy)
+        #we choose to pass zero and not NaN in order to be able to let the model distinguish based on numbers,
+        # as we assume no IMF will get energy and std == 0 (and if so - it won't be the handwashing)
+        return pd.Series(imf_std, 0, relative_imf_energy, 0)
+
+
 
 def EMD_properties(df, column_list, num_features) :
     #Now - we try to find EMD properties that will help us.

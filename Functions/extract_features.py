@@ -6,7 +6,6 @@ from .load_data import load_data
 ##-------Main function - extract features-------##
 def extract_features (data_path, X_matrix):
     print('============================ Extracting features again :)))')
-
     data_files = load_data(data_path)
     num_features = 0
 
