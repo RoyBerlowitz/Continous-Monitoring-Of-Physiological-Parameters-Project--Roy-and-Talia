@@ -1,38 +1,40 @@
 import pandas as pd
 import os
 
-from Functions import segment_signal, extract_features
+from Functions import segment_signal, extract_features, split_data, load_cache_or_compute
 
 #cosnts
-segment_signal_x_filename = "X_matrix_1.pkl"
-segment_signal_y_filename = "Y_matrix_1.pkl"
+#todo change before handing in
+is_dev = True #False
 
-def run_part_a(data_path, use_csv=False, remake_csv=False):
-    ##-------Part A: Segmentation-------
-    X_matrix_1, Y_matrix_1 = None, None
+def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True):
+    ##--------------- Part A: Segmentation ----------------##
+    X_matrix, Y_vector = load_cache_or_compute(
+        "segment_output.pkl",
+        lambda: segment_signal(data_path, 3, 1.5),
+        force_recompute=force_recompute_seg,
+        save=is_dev
+    )
+    ##--------------- Part B: Feature Extraction -----------##
+    X_features = load_cache_or_compute(
+        "X_features.pkl",
+        lambda: extract_features(data_path, X_matrix),
+        force_recompute=force_recompute_features,
+        save=is_dev
+    )
 
-    if use_csv and not remake_csv:
-        if os.path.exists(segment_signal_x_filename):
-            X_matrix_1 = pd.read_pickle(segment_signal_x_filename)
-        if os.path.exists(segment_signal_y_filename):
-            Y_matrix_1 = pd.read_pickle(segment_signal_y_filename)
-
-    if X_matrix_1 is None or Y_matrix_1 is None:
-        X_matrix_1, Y_vector_1 = segment_signal(data_path, 3, 1.5)
-
-        if use_csv:
-            X_matrix_1.to_pickle(segment_signal_x_filename)
-            Y_vector_1.to_pickle(segment_signal_y_filename)
-
-    # return
-    ##-------Part B: Feaature Extraction-------
-    X_features = extract_features(data_path, X_matrix_1)
-    X_features.to_excel("X_features.xlsx", index=False)
+    ##-------Part C: Train & Test -------
+    splits = load_cache_or_compute(
+        "splits.pkl",
+        lambda: split_data(X_features, Y_vector),
+        force_recompute=force_recompute_splits,
+        save=is_dev
+    )
 
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
-# data_path = r"/Users/talia/Downloads/02 copy 3"
-# run_part_a(data_path, use_csv=True, remake_csv=False)
-run_part_a(data_path)
+data_path = r"/Users/talia/Downloads/02 copy 3"
+run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
+# run_part_a(data_path)
 
 
 ##-------Part A: Segmentation-------
