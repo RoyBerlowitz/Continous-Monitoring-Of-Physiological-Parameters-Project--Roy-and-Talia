@@ -4,6 +4,8 @@ import pandas as pd
 import numpy as np
 import PyEMD
 
+##-------Part B: Feature Extraction - Helper Functions-------
+
 #we will define the methods that calculate the features outside the maing extract_features function for clarity and time-reducing, and then call it in the function
 
 ##-------Preprocessing functions-------
@@ -362,7 +364,7 @@ def add_time_dependent_features(df, column_list, num_features):
             #as the sampling rate is different
             dt = 0.4
         #adding area under graph
-        new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: (calculate_area_under_graph(x, dt),)).values
+        new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: (calculate_area_under_graph(x, dt))).values
         print(new_columns[column + '_area_under_graph'])
         num_features += 1
 
@@ -424,13 +426,13 @@ def add_disribution_features(df, column_list, num_features):
     # in order to achieve better running time, we will add a dict containing all the new columns, and then add them together
     new_columns = {}
     for column in column_list:
-        new_columns[column + '_kurtosis'] = df[column].apply(compute_skewness)
-        print(f"added {column + '_kurtosis'} column")
-        print(new_columns[column + '_kurtosis'])
-        num_features += 1
-        new_columns[column + '_skewness'] = df[column].apply(compute_kurtosis)
+        new_columns[column + '_skewness'] = df[column].apply(compute_skewness)
         print(f"added {column + '_skewness'} column")
         print(new_columns[column + '_skewness'])
+        num_features += 1
+        new_columns[column + '_kurtosis'] = df[column].apply(compute_kurtosis)
+        print(f"added {column + '_kurtosis'} column")
+        print(new_columns[column + '_kurtosis'])
         num_features += 1
     #Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)

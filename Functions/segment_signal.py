@@ -67,7 +67,6 @@ def segment_signal(data_path, window_size, window_step):
             if window_ending_time > recording_end:
                 # in case we pass the limit of the end of recording with the new end of window,
                 # the end point will be the actual ending of the recording
-                # להתייעץ על זה
                 window_ending_points.append(recording_end)
                 break
             window_ending_points.append(window_ending_time)
@@ -75,37 +74,22 @@ def segment_signal(data_path, window_size, window_step):
 
         return window_starting_points, window_ending_points
 
-    def assign_label_to_window(window_starting_time, window_ending_time, referance_timing_list):
-        # להתייעץ על זה
+    def assign_label_to_window(window_starting_time, window_ending_time, reference_timing_list):
         # the intention of this function is to assign the window into a certain label.
-        # as rule of decision, we decided that if the majority of the window (meaning 50% or above) is Handwashing, it will be considered as handwashing. other wise,  it will be labeled as zero.
-        for timing in referance_timing_list:
-            if timing[0] <= window_starting_time <= timing[1] and timing[0] <= window_ending_time <= timing[1]:
-                # in this case the entire windows is between the handwashing edgepoints
+        # as rule of decision, we decided that if the majority of the window (meaning 50% or above) is Handwashing, it will be considered as handwashing. other wise, it will be labeled as zero.
+        window_length = window_ending_time - window_starting_time
+        # we try to find the overlap, which there can be 4 cases:
+        # a. window is completely included in the period between the time points
+        # b. the period between the time points includes the entire window
+        # c. there is an overlap that starts with the start of time point periods and ends with the window's end
+        # d. there is an overlap that starts with the start of the window periods and ends with the end point of the period
+        # therefore, we calculate overlap in a way that take all of them into consideration, and assign the label if the overlap is at leat 50% of the window
+        for timing in reference_timing_list:
+            overlap_start = max(window_starting_time, timing[0])
+            overlap_end = min(window_ending_time, timing[1])
+            overlap_length = max(0, overlap_end - overlap_start)
+            if overlap_length >= 0.5 * window_length:
                 return 1
-            elif timing[0] <= window_starting_time <= timing[1] and timing[1] <= window_ending_time:
-                # in this case the windows starts between the handwashing edgepoints but ends afterwards.
-                # So if more than 50% of it is handwashing, the label will be 1. otherwise, 0.
-                if timing[1] - window_starting_time >= window_ending_time - timing[1]:
-                    return 1
-                else:
-                    continue
-            elif window_starting_time <= timing[0] and timing[0] <= window_ending_time <= timing[1]:
-                # in this case the windows starts before the handwashing events but ends between the handwashing edgepoints.
-                # So if more than 50% of it is handwashing, the label will be 1. otherwise, 0.
-                if timing[0] - window_starting_time >= window_ending_time - timing[0]:
-                    return 1
-            elif window_starting_time <= timing[0] and timing[1] <= window_ending_time:
-                # in this case, the handwashing is shorter than the window and included inside it.
-                # so if it is more than 50% of the window we consider it as handwashing.
-                if window_ending_time - window_starting_time <= 2 * (timing[1] - timing[0]):
-                    return 1
-                else:
-                    # i get continue in any case of mismatch because there can be more than one event.
-                    # after all, i get zero.
-                    continue
-            elif window_ending_time <= timing[0] or timing[1] <= window_starting_time:
-                continue
         return 0
 
     columns_names = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number',

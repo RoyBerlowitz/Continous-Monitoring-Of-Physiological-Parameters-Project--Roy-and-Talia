@@ -3,9 +3,10 @@ import copy
 from .extract_features_helper_functions import *
 from .load_data import load_data
 
+##-------Part B: Feature Extraction - Helper Functions-------
 ##-------Main function - extract features-------##
+
 def extract_features (data_path, X_matrix):
-    print('============================ Extracting features again :)))')
     data_files = load_data(data_path)
     num_features = 0
 
@@ -58,7 +59,7 @@ def extract_features (data_path, X_matrix):
 
 
     #At this point, the frequency domain features will be extracted.
-    X_features, num_features = add_frequency_domain_features(X_features, columns_names, num_features)
+    #X_features, num_features = add_frequency_domain_features(X_features, columns_names, num_features)
 
     #Normalization may change frequency domain behaviour, as it includes scaling.
     #Thus, normalization will be conducted later
@@ -88,16 +89,16 @@ def extract_features (data_path, X_matrix):
         num_features += 1
 
     #We extract the basic metrics - STD, mean, median, max, min, peak-to-peak difference, RMS, zero-crossing, IQR
-    X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
+    #X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
 
     #We extract statistical metrics - Kortusis and Skewness - our article-based features
     X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
 
     #We extract the SR, Area Under Graph, etc
-    X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
+    #X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
 
-    #adding the imf traits
-    X_features, num_features = EMD_properties(X_features, columns_names, num_features)
+    # #adding the imf traits
+    # X_features, num_features = EMD_properties(X_features, columns_names, num_features)
 
     #getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)
