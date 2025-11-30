@@ -271,6 +271,35 @@ def calculate_sensor_RMS(sensor_data):
         RMS = np.sqrt(np.sum(sensor_data_x ** 2 + sensor_data_y ** 2 + sensor_data_z ** 2)/N)
         return RMS
 
+def calculate_mean_distance_between_axes(sensor_data):
+    # we calculate the mean distance between axes
+    # a feature meant for calculating the variance in direction
+    sensor_data_x = np.array(sensor_data.iloc[0]).ravel()
+    sensor_data_y = np.array(sensor_data.iloc[1]).ravel()
+    sensor_data_z = np.array(sensor_data.iloc[2]).ravel()
+    Nx = len(sensor_data_x)
+    Ny = len(sensor_data_y)
+    Nz = len(sensor_data_z)
+    N = min([Nx, Ny,
+             Nz])  # We want to have a comparison and for that we will neglect a mistake of 1-2 non- aligned time points by cutting them
+    sensor_data_x = sensor_data_x[:N]
+    sensor_data_y = sensor_data_y[:N]
+    sensor_data_z = sensor_data_z[:N]
+
+    # we check if one of them is NaN
+    is_x_nan = np.isnan(sensor_data_x).all()
+    is_y_nan = np.isnan(sensor_data_y).all()
+    is_z_nan = np.isnan(sensor_data_z).all()
+
+    if is_x_nan or is_y_nan or is_z_nan:
+        return np.nan
+
+    #let's check for the mean distance between the axes
+    x_y_dist = np.abs(sensor_data_x - sensor_data_y)
+    z_y_dist = np.abs(sensor_data_z - sensor_data_y)
+    x_z_dist = np.abs(sensor_data_x - sensor_data_z)
+    mean_dist = np.mean((x_y_dist+ z_y_dist+ x_z_dist) / 3)
+    return mean_dist
 
 def add_basic_metrics(df, column_names, num_features):
     #This method meant to find basic time dependent metrics to evaluate the data, in align with the functions
@@ -280,39 +309,39 @@ def add_basic_metrics(df, column_names, num_features):
     for column in column_names:
             new_columns[column + '_mean'] = df[column].apply(calculate_list_mean)
             print(f"added {column + '_mean'} column")
-            print(new_columns[column + '_mean'])
+            # print(new_columns[column + '_mean'])
             num_features += 1
             new_columns[column + '_std'] = df[column].apply(calculate_list_STD)
-            print(f"added {column + '_std'} column")
+            #print(f"added {column + '_std'} column")
             print(new_columns[column + '_std'])
             num_features += 1
             new_columns[column + '_median'] = df[column].apply(calculate_list_median)
-            print(f"added {column + '_median'} column")
+            #print(f"added {column + '_median'} column")
             print(new_columns[column + '_median'])
             num_features += 1
             new_columns[column + '_RMS'] = df[column].apply(calculate_list_RMS)
-            print(f"added {column + '_RMS'} column")
+            #print(f"added {column + '_RMS'} column")
             print(new_columns[column + '_RMS'])
             num_features += 1
 
             new_columns[column + '_IQR'] = df[column].apply(calculate_list_IQR)
             print(f"added {column + '_IQR'} column")
-            print(new_columns[column + '_IQR'])
+            #print(new_columns[column + '_IQR'])
             num_features += 1
 
             new_columns[column + '_max'] = df[column].apply(calculate_list_max)
             print(f"added {column + '_max'} column")
-            print(new_columns[column + '_max'])
+            # print(new_columns[column + '_max'])
             num_features += 1
 
             new_columns[column + '_min'] = df[column].apply(calculate_list_min)
             print(f"added {column + '_min'} column")
-            print(new_columns[column + '_min'])
+            # print(new_columns[column + '_min'])
             num_features += 1
 
             new_columns[column + '_peak_to_peak'] = df[column].apply(calculate_peak_to_peak_difference)
             print(f"added {column + '_peak_to_peak'} column")
-            print(new_columns[column + '_peak_to_peak'])
+            # print(new_columns[column + '_peak_to_peak'])
             num_features += 1
 
             new_columns[column + '_number_of_zero_crossing'] = df[column].apply(calculate_zero_crossing)
@@ -327,7 +356,11 @@ def add_basic_metrics(df, column_names, num_features):
     for sensor_name in ["Acc", "Gyro", "Mag"]:
                 new_columns[sensor_name + '_RMS_Total'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_sensor_RMS,axis=1)
                 print(f"added {sensor_name + '_RMS_Total'} column")
-                print(new_columns[sensor_name + '_RMS_Total'])
+                # print(new_columns[sensor_name + '_RMS_Total'])
+                num_features += 1
+                new_columns[sensor_name + '_mean_dist_between_axes'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_mean_distance_between_axes,axis=1)
+                print(f"added {sensor_name + '_RMS_Total'} column")
+                # print(new_columns[sensor_name + '_RMS_Total'])
                 num_features += 1
 
     #Now we concatenate the newly created dict to the df - just one addition
@@ -353,6 +386,21 @@ def calculate_area_under_graph(data_list, dt):
         return area
     else:
         return np.nan
+def calculate_peak_to_peak_time_variables (data_list, dt, absolute = True):
+    from scipy.signal import find_peaks
+    data_list = safe_unwrap(data_list)  # making the check about the data list
+    if data_list is not None:
+        if absolute:
+            #this will be used for finding also the time between peaks including lows, which not showing the frequencies but rather the change rate
+            data_list = np.abs(data_list)
+        peaks_indices, _ = find_peaks(data_list, distance=5)
+        if len(peaks_indices) <2:
+            #if there is only one peak - we return the entire window time
+            return len(data_list) * dt
+        time_differences = np.diff(peaks_indices) * dt #we find the indices differences between them and then normalize it to time
+        return np.mean(time_differences)
+    else:
+        return np.nan
 
 def add_time_dependent_features(df, column_list, num_features):
     #this function meant for finding the more complex time dependent features mentioned abouve -Slew Rate, Area Under Graph
@@ -365,13 +413,19 @@ def add_time_dependent_features(df, column_list, num_features):
             dt = 0.4
         #adding area under graph
         new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: (calculate_area_under_graph(x, dt))).values
-        print(new_columns[column + '_area_under_graph'])
+        # print(new_columns[column + '_area_under_graph'])
         num_features += 1
 
         #adding slew rate
         new_columns[column +"_slew_rate"] = df[column].apply(calculate_slew_rate).values
-        print(new_columns[column + '_slew_rate'])
+        # print(new_columns[column + '_slew_rate'])
         num_features += 1
+
+        #adding mean time between peaks
+        new_columns[column + "mean_peak_to_peak_time"] = df[column].apply(lambda x: calculate_peak_to_peak_time_variables(x, dt, absolute=False)).values
+
+        #adding mean time between peaks and lows - helpful for non harmonic behaviour
+        new_columns[column + "mean_peak_to_peak_time"] = df[column].apply(lambda x: calculate_peak_to_peak_time_variables(x, dt, absolute=True)).values
 
     # Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -418,6 +472,21 @@ def compute_kurtosis(data_list):
     else:
         return np.nan
 
+def compute_AbsCV(data_list, retrun=None):
+    #Here, we calculate coefficient of variation of the absolute value of the signal.
+    #helps the model identify signals with similar power but different variety
+    data_list = safe_unwrap(data_list)
+    if data_list is not None:
+        data_list = np.abs(data_list)
+        mean_abs = np.mean(data_list)
+        std_abs = np.std(data_list)
+        if mean_abs == 0:
+            return 0.0
+        else:
+            return mean_abs/std_abs
+    else:
+        return np.nan
+
 def add_disribution_features(df, column_list, num_features):
     #This function is meant to find features which are connected to the distribution.
     #it receives as input a dataframe to conduct the calculation on and to add the features to,
@@ -428,11 +497,13 @@ def add_disribution_features(df, column_list, num_features):
     for column in column_list:
         new_columns[column + '_skewness'] = df[column].apply(compute_skewness)
         print(f"added {column + '_skewness'} column")
-        print(new_columns[column + '_skewness'])
+        # print(new_columns[column + '_skewness'])
         num_features += 1
         new_columns[column + '_kurtosis'] = df[column].apply(compute_kurtosis)
         print(f"added {column + '_kurtosis'} column")
-        print(new_columns[column + '_kurtosis'])
+        # print(new_columns[column + '_kurtosis'])
+        num_features += 1
+        new_columns[column + "_AbsCV"] = df[column].apply(compute_AbsCV)
         num_features += 1
     #Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -480,7 +551,11 @@ def calculate_frequency_domain_features(data_list, sampling_rate=50):
         # let's find the frequency variance, which show wide is the spectrum
         freq_variance = np.sum(((frequencies - freq_centroid) ** 2) * psd) / np.sum(psd)
 
-    return spectral_entropy, total_energy, freq_centroid, dominant_freq, freq_variance
+        #Let's calculate kurtosis and skewness of the PSD also to examine its distribution
+        psd_skewness = compute_skewness(norm_psd)
+        psd_kurtosis = compute_kurtosis(norm_psd)
+
+    return spectral_entropy, total_energy, freq_centroid, dominant_freq, freq_variance, psd_skewness, psd_kurtosis
 
 def add_frequency_domain_features(df, column_list, num_features):
     # This function is meant to find features dependent on the frequency domain.
@@ -489,7 +564,7 @@ def add_frequency_domain_features(df, column_list, num_features):
 
     new_columns = {}
     feature_suffixes = ['spectral_entropy', 'total_energy', 'frequency_centroid',
-                        'dominant_frequency', 'frequency_variance']
+                        'dominant_frequency', 'frequency_variance','psd_skewness' , 'psd_kurtosis']
     for column in column_list:
         #For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
         sampling_frequency = 50

@@ -1,12 +1,16 @@
 #-------Part D: Feature Correlation Analysis -------
-from .segment_signal import segment_signal
-from extract_features import extract_features
+from Functions.segment_signal import segment_signal
+from Functions.extract_features import extract_features
 from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
-import npeet_plus
 from npeet_plus import mi
 import time
+
+import pandas as pd
+
+
+data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
 
 #As we wasn't sure what is the best way to divide the windows, and the full data from all participants was not yet available
 # we decided to make some kind of heuristic check on our data to identify the candidates for the ideal time for the window.
@@ -29,6 +33,8 @@ def feature_correlation(X_features, Y_vector):
         df[sensor + "_SM_" + "kurtosis"] = (df[sensor + "_SM_" + "kurtosis"] - df[sensor + "_SM_" + "kurtosis"].mean()) / df[sensor + "_SM_" + "kurtosis"].std()
         df[sensor + "_SM_" + "skewness"] = (df[sensor + "_SM_" + "skewness"] - df[sensor + "_SM_" + "skewness"].mean()) / df[sensor + "_SM_" + "skewness"].std()
         X = np.column_stack([df[sensor + "_SM_" + "kurtosis"], df[sensor + "_SM_" + "skewness"]])
+        X = np.nan_to_num(X, nan=0.0, posinf=0.0, neginf=0.0)
+        print("found_MI")
         MI += mi(X, Y_vector, k=7)
     #we'll take the average
     MI = 0.5 * MI
@@ -36,7 +42,7 @@ def feature_correlation(X_features, Y_vector):
 
 # We took 3 sub categories of the window length - short, medium, and long - and try to see which time periods out of the possibilities inside them operates the best
 # The idea is to take the best time from those categories and preform more limited search on the entire data based on those times
-short_window_duration_options = np.linspace(0.2, 1, 9)
+short_window_duration_options = np.linspace(0.2, 1, 5)
 medium_window_duration_options = np.linspace(1.5, 7.5, 13)
 long_window_duration_options = np.linspace(8, 20, 13)
 
