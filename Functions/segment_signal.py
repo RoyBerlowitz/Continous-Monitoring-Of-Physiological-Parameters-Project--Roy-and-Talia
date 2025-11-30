@@ -104,7 +104,7 @@ def segment_signal(data_path, window_size, window_step):
             window_ending_time = window_ending_points[i]
             label = assign_label_to_window(window_starting_time=window_starting_time,
                                            window_ending_time=window_ending_time,
-                                           referance_timing_list=recording['Handwashing time'])
+                                           reference_timing_list=recording['Handwashing time'])
 
             # Now, creating the dict that will be added to the DF
             row_dict = {'First second of the activity': window_starting_time,

@@ -62,6 +62,10 @@ def extract_features (data_path, X_matrix):
     #X_features, num_features = add_frequency_domain_features(X_features, columns_names, num_features)
 
     #Normalization may change frequency domain behaviour, as it includes scaling.
+
+    #We extract statistical metrics - Kurtosis and Skewness - our article-based features - we do it because we want to see how data behaves and normalization may change it.
+    #Their formulas standardize the data so we give them the 'raw' data
+    X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
     #Thus, normalization will be conducted later
 
     #we go over the recording to get the normalize data for the entire axis
@@ -91,8 +95,6 @@ def extract_features (data_path, X_matrix):
     #We extract the basic metrics - STD, mean, median, max, min, peak-to-peak difference, RMS, zero-crossing, IQR
     #X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
 
-    #We extract statistical metrics - Kortusis and Skewness - our article-based features
-    X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
 
     #We extract the SR, Area Under Graph, etc
     #X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)

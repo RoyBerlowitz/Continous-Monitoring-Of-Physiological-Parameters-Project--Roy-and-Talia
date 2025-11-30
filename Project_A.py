@@ -11,7 +11,7 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     ##--------------- Part A: Segmentation ----------------##
     X_matrix, Y_vector = load_cache_or_compute(
         "segment_output.pkl",
-        lambda: segment_signal(data_path, 3, 1.5),
+        lambda: segment_signal(data_path, 10, 1.5),
         force_recompute=force_recompute_seg,
         save=is_dev
     )
@@ -24,6 +24,8 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
         save=is_dev
     )
 
+    print("completed")
+
     ##-------Part C: Train & Test -------
     splits = load_cache_or_compute(
         "splits.pkl",
@@ -34,8 +36,7 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
 
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
 # data_path = r"/Users/talia/Downloads/02"
-# run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
-run_part_a(data_path)
+run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
 
 
 ##-------Part A: Segmentation-------
