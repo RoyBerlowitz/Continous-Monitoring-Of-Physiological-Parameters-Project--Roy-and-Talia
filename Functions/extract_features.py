@@ -95,12 +95,17 @@ def extract_features (data_path, X_matrix):
     #We extract the basic metrics - STD, mean, median, max, min, peak-to-peak difference, RMS, zero-crossing, IQR
     #X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
 
-
     #We extract the SR, Area Under Graph, etc
     #X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
 
     # #adding the imf traits
     # X_features, num_features = EMD_properties(X_features, columns_names, num_features)
+
+    # We find the Cosum feature - we do it only for for the Acc and Gyro as the changes in Mag is much less trackable and significant
+    # for column in columns_names:
+    #     if not "Mag" in column:
+    #         X_features = find_comsum(X_features, column)
+    #         num_features += 1
 
     #getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)

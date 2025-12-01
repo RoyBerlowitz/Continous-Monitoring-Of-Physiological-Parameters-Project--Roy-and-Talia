@@ -472,7 +472,7 @@ def compute_kurtosis(data_list):
     else:
         return np.nan
 
-def compute_AbsCV(data_list, retrun=None):
+def compute_AbsCV(data_list):
     #Here, we calculate coefficient of variation of the absolute value of the signal.
     #helps the model identify signals with similar power but different variety
     data_list = safe_unwrap(data_list)
@@ -486,6 +486,48 @@ def compute_AbsCV(data_list, retrun=None):
             return mean_abs/std_abs
     else:
         return np.nan
+
+
+
+def calculate_cusum(series, target, slack):
+    #לעדכן מלל
+    cusum_list = []
+    current_cusum = 0
+    for value in series:
+        current_cusum = max(0, current_cusum + (value - target) - slack)
+        cusum_list.append(current_cusum)
+    return cusum_list
+
+def find_comsum(df, column):
+    #לעדכן מלל!!!!
+    df = df.copy()  # למניעת אזהרות
+
+    df['Mean_Shift'] = np.nan
+    df['CUSUM_Feature'] = np.nan
+
+    grouped = df.groupby(['Group number', 'Participant ID', 'Recording number'])
+
+    for (group, pid, rec), new_df in grouped:
+        mean_mean = new_df[column + "_mean"].mean()
+        mean_std = new_df[column + "_mean"].std()
+        K_slack = 0.5 * mean_std
+
+        # חישוב Mean shift
+        mean_shift = new_df[column + "_mean"] - new_df[column + "_mean"].shift(1).fillna(new_df[column + "_mean"].iloc[0])
+
+        # CUSUM
+        cusum_values = calculate_cusum(
+            new_df[column + "_mean"],
+            mean_mean,
+            K_slack
+        )
+
+        # ⬅️ כתיבה חזרה ל-df המקורי לפי האינדקסים של new_df
+        df.loc[new_df.index, 'CUSUM_Feature'] = cusum_values
+
+    return df
+
+
 
 def add_disribution_features(df, column_list, num_features):
     #This function is meant to find features which are connected to the distribution.
