@@ -68,23 +68,40 @@ def feature_correlation(X_features, Y_vector, case = "MI"):
         MI = 0.5 * MI
         return MI
     elif case == "Frequency":
-        feature_suffixes = ['spectral_entropy', 'total_energy', 'frequency_centroid',
-                            'dominant_frequency', 'frequency_variance']
+        #As explained above, this section is intended for the search after the best window length using Frequency-domain features.
+        #At this stage, as there are more than 2 features - we use relief metric, as it can be helpful in more than 2D space.
+        #we initialize the relief score to zero.
         relief_score = 0
+        #we do the calculation separately for each significant sensor (out of Acc and Gyro), and return their average
         for sensor in ["Acc", "Gyro"]:
+            #We use the signal magnitude as the reference axis for it takes into account all 4 axes
             feature_prefix = sensor + "_SM_"
-            new_df =  X.groupby([feature_prefix + 'spectral_entropy', feature_prefix + 'total_energy', feature_prefix + 'frequency_centroid',
-                            feature_prefix + 'dominant_frequency', feature_prefix + 'frequency_variance'])
-            num_features = new_df.shape[1]
+            #Those are the frequency-domain features that will be se for the calculation
+            cols = [
+                feature_prefix + 'spectral_entropy',
+                feature_prefix + 'total_energy',
+                feature_prefix + 'frequency_centroid',
+                feature_prefix + 'dominant_frequency',
+                feature_prefix + 'frequency_variance'
+            ]
+            #we take only those columns
+            X = X_features[cols]
+            num_features = X.shape[1]
+            #Here we define the Relief check. We tell it to select n features, and it is calculated by 10 neighbors.
             fs = ReliefF(
                 n_features_to_select=num_features,
                 n_neighbors=10
             )
-            fs.fit(new_df.values, Y_vector.values)
+            #We find the relief score for each feature
+            fs.fit(X.values, Y_vector.values)
             feature_scores = pd.Series(fs.feature_importances_, index=X.columns)
             #sorted_scores = feature_scores.sort_values(ascending=False)
+            #
+            #we get the mean score
             mean_score = np.mean(feature_scores)
+            #we add it to the total relief score
             relief_score += mean_score
+        #we compute the average between the scores
         relief_score /= 2
         return relief_score
 
@@ -99,17 +116,18 @@ medium_window_duration_options = np.linspace(1.5, 7.5, 13)
 long_window_duration_options = np.linspace(8, 20, 13)
 
 def run_single_search(data_path, duration, overlap, case = "MI"):
-    #This function is intended to preform all the required stages for every search
+    #This function is intended to preform all the required stages for every search.
+    # It takes the data path in order to import the data, the duration and over lap that the test is conducted on, and the case in order to differentiate between MI and Relief as a score
     # segmentation
     X_matrix, Y_vector = segment_signal(data_path, duration, overlap * duration)
 
     # feature extraction
     X_features = extract_features(data_path, X_matrix)
 
-    # MI
-    MI = feature_correlation(X_features, Y_vector, case)
+    # we find the score - based on MI or Relief
+    score = feature_correlation(X_features, Y_vector, case)
 
-    return (duration, overlap, MI)
+    return (duration, overlap, score)
 
 def find_best_windows(data_path, window_duration_options, n, case = "MI"):
     #This function recieves as an input data path which is crucial for the creation of the matrices, the option for window duration, and the number n of n best option we want to take
@@ -147,14 +165,14 @@ def find_best_windows(data_path, window_duration_options, n, case = "MI"):
 start_time = time.time()
 #Now we conducted the check over the different possibilites.
 #We exported to excel in order to be able to see the results with our eyes - relevant in case of a very similar results or unexpected results, so in this case we can view the entire data
-top_items_long, best_duration_and_overlap_long = find_best_windows(data_path, long_window_duration_options, n = 1)
-best_duration_and_overlap_long.to_excel("best_duration_and_overlap_long.xlsx", index=False)
-
-top_items_medium, best_duration_and_overlap_medium = find_best_windows(data_path, medium_window_duration_options, n = 3)
-best_duration_and_overlap_medium.to_excel("best_duration_and_overlap_medium.xlsx", index=False)
-
-top_items_short, best_duration_and_overlap_short = find_best_windows(data_path, short_window_duration_options, n = 2)
-best_duration_and_overlap_short.to_excel("best_duration_and_overlap_short.xlsx", index=False)
+# top_items_long, best_duration_and_overlap_long = find_best_windows(data_path, long_window_duration_options, n = 1)
+# best_duration_and_overlap_long.to_excel("best_duration_and_overlap_long.xlsx", index=False)
+#
+# top_items_medium, best_duration_and_overlap_medium = find_best_windows(data_path, medium_window_duration_options, n = 3)
+# best_duration_and_overlap_medium.to_excel("best_duration_and_overlap_medium.xlsx", index=False)
+#
+# top_items_short, best_duration_and_overlap_short = find_best_windows(data_path, short_window_duration_options, n = 2)
+# best_duration_and_overlap_short.to_excel("best_duration_and_overlap_short.xlsx", index=False)
 
 # print("for the short periods:")
 # for i, (key, value) in enumerate(top_items_short):
@@ -166,12 +184,14 @@ best_duration_and_overlap_short.to_excel("best_duration_and_overlap_short.xlsx",
 # for i, (key, value) in enumerate(top_items_long):
 #     print(f"number {i+1} - {key} with MI of {value}")
 
-
-#
-# new_windows_options = long_window_duration_options + medium_window_duration_options
-# top_relief_result, full_relief_result  = find_best_windows(data_path, new_windows_options, n = 5, case = "Frequency")
-# full_relief_result.to_excel("best_duration_and_overlap_freq.xlsx", index=False)
-# end_time = time.time()
-# # we show the total time the code ran
-# elapsed_time = end_time - start_time
-# print(f"the code ran for {elapsed_time/ (60^2):.2f}  hours")
+#now we try to find the results of which window is the best based on the window lengths, if we are judging base on frequency features.
+# We took the medium and long options, as the short discovered to be irrelevant.
+new_windows_options = np.concatenate((long_window_duration_options,medium_window_duration_options))
+# We estimate the results by their Relief score.
+top_relief_result, full_relief_result  = find_best_windows(data_path, new_windows_options, n = 5, case = "Frequency")
+#We export the results to excell sheet in order to be able to see the results clearly.
+full_relief_result.to_excel("best_duration_and_overlap_freq.xlsx", index=False)
+end_time = time.time()
+# we show the total time the code ran
+elapsed_time = end_time - start_time
+print(f"the code ran for {elapsed_time:.2f}  seconds")

@@ -412,7 +412,7 @@ def add_time_dependent_features(df, column_list, num_features):
             #as the sampling rate is different
             dt = 0.4
         #adding area under graph
-        new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: (calculate_area_under_graph(x, dt))).values
+        new_columns[column +"_area_under_graph"] = df[column].apply(lambda x: calculate_area_under_graph(x, dt)).values
         # print(new_columns[column + '_area_under_graph'])
         num_features += 1
 
