@@ -144,7 +144,7 @@ def find_best_windows(data_path, window_duration_options, n, case = "MI"):
 
     # we get the results by running in parallel
     results = Parallel(n_jobs=-1, verbose=10)(
-        delayed(run_single_search)(data_path, duration, overlap, case)
+        delayed(run_single_search)(data_path, duration, overlap, data_files, case)
         for (duration, overlap) in tasks
     )
 
