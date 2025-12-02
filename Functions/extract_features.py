@@ -100,14 +100,14 @@ def extract_features (data_path, X_matrix , data_files):
     # #adding the imf traits
     # X_features, num_features = EMD_properties(X_features, columns_names, num_features)
 
-    # We find the Cosum feature - we do it only for for the Acc and Gyro as the changes in Mag is much less trackable and significant
+    #We find the COSUM feature - we do it only for for the Acc and Gyro as the changes in Mag is much less trackable and significant
     # for column in columns_names:
     #     if not "Mag" in column:
-    #         X_features = find_comsum(X_features, column)
-    #         num_features += 1
-
-    #getting rid of the columns with the vectors of values
-    X_features = X_features.drop(labels=columns_names, axis=1)
+    #         X_features = add_Cosum_metrics(X_features, column)
+    #         num_features += 3
+    #
+    # #getting rid of the columns with the vectors of values
+    # X_features = X_features.drop(labels=columns_names, axis=1)
 
     print(f"added {num_features} columns")
 

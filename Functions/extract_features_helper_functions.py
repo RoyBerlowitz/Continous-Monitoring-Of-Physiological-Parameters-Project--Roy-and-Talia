@@ -312,8 +312,8 @@ def add_basic_metrics(df, column_names, num_features):
             # print(new_columns[column + '_mean'])
             num_features += 1
             new_columns[column + '_std'] = df[column].apply(calculate_list_STD)
-            #print(f"added {column + '_std'} column")
-            print(new_columns[column + '_std'])
+            print(f"added {column + '_std'} column")
+            #print(new_columns[column + '_std'])
             num_features += 1
             new_columns[column + '_median'] = df[column].apply(calculate_list_median)
             #print(f"added {column + '_median'} column")
@@ -346,7 +346,7 @@ def add_basic_metrics(df, column_names, num_features):
 
             new_columns[column + '_number_of_zero_crossing'] = df[column].apply(calculate_zero_crossing)
             print(f"added {column + '_number_of_zero_crossing'} column")
-            print(new_columns[column + '_number_of_zero_crossing'])
+            #print(new_columns[column + '_number_of_zero_crossing'])
             num_features += 1
 
             # df[column + '_power'] = df[column].apply(calculate_list_power) # it will be used for finding power afterwards, and then be deleted
@@ -490,40 +490,61 @@ def compute_AbsCV(data_list):
 
 
 def calculate_cusum(series, target, slack):
-    #לעדכן מלל
+    #CUSUM is a metric intended to find how the mean changes over time.
+    #CUSUM accumulates the small deviations from the expected average, and when this accumulation reaches a threshold, it signals that the process average is shifting.
+    #COSUM hint how the data fluctuate over time and by that reflects the change in movement
+    #Here, the function recieves PD series, target which represents a traget mean, and a slack which is the reference value.
+    # target
     cusum_list = []
     current_cusum = 0
     for value in series:
+        #Here we find the COSUM in order to track rise in it.
+        #to track fall in COSUM, we will add -value + target - slack
         current_cusum = max(0, current_cusum + (value - target) - slack)
         cusum_list.append(current_cusum)
     return cusum_list
 
-def find_comsum(df, column):
-    #לעדכן מלל!!!!
-    df = df.copy()  # למניעת אזהרות
+def add_Cosum_metrics (df, column):
+    #this function calculate the Cosum of a df[column].
 
-    df['Mean_Shift'] = np.nan
-    df['CUSUM_Feature'] = np.nan
+    df = df.copy()  # In order to prevent warnings
 
+    #we create the columns that will be added
+    df[column+'_Mean_Shift'] = np.nan
+    df[column+'_CUSUM+_Feature'] = np.nan
+    df[column+'_CUSUM-_Feature'] = np.nan
+
+    #Cosum is tracking the movement in the window, but we do not want to compare separate recordings.
+    # This metric is preformed on a normalize data and each recording was normalize separately, so we group each recording by using its identifiers.
     grouped = df.groupby(['Group number', 'Participant ID', 'Recording number'])
-
     for (group, pid, rec), new_df in grouped:
-        mean_mean = new_df[column + "_mean"].mean()
+        #The slack will be 0.5 of the std of the mean, so we find the standard deviation of the "mean" column
         mean_std = new_df[column + "_mean"].std()
         K_slack = 0.5 * mean_std
 
-        # חישוב Mean shift
+        # here we calculate the mean shift between adjacent time points
         mean_shift = new_df[column + "_mean"] - new_df[column + "_mean"].shift(1).fillna(new_df[column + "_mean"].iloc[0])
 
-        # CUSUM
-        cusum_values = calculate_cusum(
+        # We find the Cosum based on the "mean" column, with the found slack and target = 0 -
+        # the data is normalized so the overall average mean should be 0 - this is the target.
+        cusum_pos_values = calculate_cusum(
             new_df[column + "_mean"],
-            mean_mean,
+            0,
             K_slack
         )
 
-        # ⬅️ כתיבה חזרה ל-df המקורי לפי האינדקסים של new_df
-        df.loc[new_df.index, 'CUSUM_Feature'] = cusum_values
+        cusum_neg_values = calculate_cusum(
+            -new_df[column + "_mean"],
+            -0,
+            -K_slack
+        )
+
+        # We insert the data to the df
+        df.loc[new_df.index, column+'_CUSUM+_Feature'] = cusum_pos_values
+        df.loc[new_df.index, column+'_CUSUM-_Feature'] = cusum_neg_values
+        df.loc[new_df.index, column+'_Mean_Shift'] = mean_shift
+    print(f"added {column} COSUM metrics")
+
 
     return df
 
