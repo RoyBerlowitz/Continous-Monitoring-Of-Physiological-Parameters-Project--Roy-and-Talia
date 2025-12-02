@@ -5,6 +5,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+from .vet_features_healper_functions import *
+
 """
 הערות לעצמי לקראת הביצוע:
 - לא לשכוח נורמליזציה
@@ -15,7 +17,23 @@ import matplotlib.pyplot as plt
 - לא לשכוח לשמור את הממוצעים של הנרמול לטובת הפעולה הזו
 """
 
-#def feature_normalization()
+#consts
+columns_not_to_normalize = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
+
+def feature_normalization(X_train,X_test,method='IQR'):
+    features = [col for col in X_train.columns if col not in columns_not_to_normalize]
+
+    #train norm
+    norm_train, scaler = normalize_fit(X_train[features].values, method)
+    X_train_norm = X_train.copy()
+    X_train_norm[features] = norm_train.reshape(-1, len(features)) #this reshape makes the num of rows automatic (-1) and columns len of features. reshapes if flatten happened
+
+    #test norm
+    norm_test = normalize_transform(X_test[features].values, scaler)
+    X_test_norm = X_test.copy()
+    X_test_norm[features] = norm_test.reshape(-1, len(features))
+
+    return X_train_norm, X_test_norm
 
 def find_best_features_to_label_combination (X_train, Y_train, administrative_features, N=20, K= 10, threshold=0.8):
     #This function tries to find the 20 best features by using a filter method with the Relief metric.
