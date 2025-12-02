@@ -7,7 +7,7 @@ from Functions.vet_features import vet_features
 #cosnts
 #todo change before handing in
 is_dev = True #False
-def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True):
+def run_part_a(data_path, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=True):
     data_files = load_data(data_path)
 
     ##--------------- Part A: Segmentation ----------------##
@@ -37,6 +37,10 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     )
 
     return X_features, Y_vector
+# אלו השוורת שצריכות להופיע בסוף כדי שיהיה לנו את הpath הנכון
+# script_path = os.path.abspath(__file__)
+# script_directory = os.path.dirname(script_path)
+# data_path = script_directory + "/data"
 
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
 # data_path = r"/Users/talia/Downloads/02"

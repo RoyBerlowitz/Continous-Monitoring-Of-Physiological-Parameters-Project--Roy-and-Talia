@@ -658,6 +658,9 @@ def find_imfs_properties(data_list):
     emd = PyEMD.EMD()
     #we find the list of Imfs
     imfs = emd(data_list)
+    # we check what happen where there are no IMFs
+    if imfs.shape[0] == 0:
+        return pd.Series([0.0, 0.0, 0.0, 0.0, 0.0])
     #We compute the total enery of all the IMFs
     total_energy = np.sum(imfs ** 2)
 
