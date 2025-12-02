@@ -3,7 +3,7 @@ import os
 
 ##As loading data happens in both Part A and Part B, we define a function named Load data.
 #This function get data path and return dict that include all of the CSV data of recording from all sensor, alongside the identifiers
-
+#We Load the data just once - avoid loading each time which damage the run time.
 def load_data(data_path):
     all_items = os.listdir(data_path)
     data_files = {}
