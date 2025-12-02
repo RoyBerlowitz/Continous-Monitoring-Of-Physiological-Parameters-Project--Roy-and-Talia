@@ -101,8 +101,6 @@ def split_data(X_features, Y_samples):
 
     split1 = [split1_X_tests,split1_X_tests,split1_Y_trains,split1_Y_tests]
 
-    print('finished split 1')
-
 #split 2 Leave-Group-Out
     # 80% of participants go to TRAIN, 20% to TEST
     # For train participants → include all their rows (Protocol + Routine)

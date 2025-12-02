@@ -39,8 +39,9 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     return X_features, Y_vector
 
 data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
-# data_path = r"/Users/talia/Downloads/02"
+# data_path = r"/Users/talia/Downloads/02 copy 2"
+# X_features, Y_vector = run_part_a(data_path)
 X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True)
-#X_features.to_excel("test.xlsx",index=False)
+# X_features.to_excel("test.xlsx",index=False)
 
 #final_x = vet_features(X_features, Y_vector, split_name = "Individual Normalization", N=3, K= 10, threshold=0.8)
