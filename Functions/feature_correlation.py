@@ -1,6 +1,8 @@
 #-------Part D: Feature Correlation Analysis -------
+from Functions import load_data
 from Functions.segment_signal import segment_signal
 from Functions.extract_features import extract_features
+from Functions.load_data import load_data
 from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
@@ -97,10 +99,10 @@ def feature_correlation(X_features, Y_vector, case = "MI"):
             feature_scores = pd.Series(fs.feature_importances_, index=X.columns)
             #sorted_scores = feature_scores.sort_values(ascending=False)
             #
-            #we get the mean score
-            mean_score = np.mean(feature_scores)
+            #we get the sum of all the scores
+            sum_scores = np.sum(feature_scores)
             #we add it to the total relief score
-            relief_score += mean_score
+            relief_score += sum_scores
         #we compute the average between the scores
         relief_score /= 2
         return relief_score
@@ -115,14 +117,14 @@ short_window_duration_options = np.linspace(0.2, 1, 5)
 medium_window_duration_options = np.linspace(1.5, 7.5, 13)
 long_window_duration_options = np.linspace(8, 20, 13)
 
-def run_single_search(data_path, duration, overlap, case = "MI"):
+def run_single_search(data_path, duration, overlap, data_files, case = "MI"):
     #This function is intended to preform all the required stages for every search.
     # It takes the data path in order to import the data, the duration and over lap that the test is conducted on, and the case in order to differentiate between MI and Relief as a score
     # segmentation
-    X_matrix, Y_vector = segment_signal(data_path, duration, overlap * duration)
+    X_matrix, Y_vector = segment_signal(data_path, duration, overlap * duration, data_files)
 
     # feature extraction
-    X_features = extract_features(data_path, X_matrix)
+    X_features = extract_features(data_path, X_matrix, data_files)
 
     # we find the score - based on MI or Relief
     score = feature_correlation(X_features, Y_vector, case)
@@ -132,7 +134,7 @@ def run_single_search(data_path, duration, overlap, case = "MI"):
 def find_best_windows(data_path, window_duration_options, n, case = "MI"):
     #This function recieves as an input data path which is crucial for the creation of the matrices, the option for window duration, and the number n of n best option we want to take
     # The setup of the function is meant to use all CPU cores and run a parallel search that will aceelarate time
-
+    data_files = load_data(data_path)
     # We wanted to not only check for the best length but also for the best overlap/delay - so for each time we preform the search over 3 possibilities of overlap - 25%, 50% and 75%
     tasks = [
         (duration, overlap)

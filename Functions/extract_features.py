@@ -6,8 +6,7 @@ from .load_data import load_data
 ##-------Part B: Feature Extraction - Helper Functions-------
 ##-------Main function - extract features-------##
 
-def extract_features (data_path, X_matrix):
-    data_files = load_data(data_path)
+def extract_features (data_path, X_matrix , data_files):
     num_features = 0
 
     #defining the names of columns in which the data of each window is going to be saved into

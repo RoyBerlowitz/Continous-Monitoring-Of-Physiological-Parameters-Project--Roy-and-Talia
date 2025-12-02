@@ -4,9 +4,9 @@ import numpy as np
 from .load_data import load_data
 
 # Window step is the delay between each window. it can be chosen in various ways, for overlapping or not.
-def segment_signal(data_path, window_size, window_step):
+def segment_signal(data_path, window_size, window_step, data_files, ):
     print('============================ Segmenting signal again :)))')
-    data_files = load_data(data_path)
+
 
     hand_washing_duration_list = []
     keys = data_files.keys()
