@@ -1,13 +1,12 @@
 import pandas as pd
 import os
 
-from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features, load_data
-from Functions.vet_features import vet_features
+from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features, vet_features_split1, load_data
 
 #cosnts
 #todo change before handing in
 is_dev = True #False
-def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True):
+def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features=True):
     data_files = load_data(data_path)
 
     ##--------------- Part A: Segmentation ----------------##
@@ -28,13 +27,35 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
 
     print("completed")
 
-    #-------Part C: Train & Test -------
+    #--------------- Part C: Train & Test ---------------##
     splits = load_cache_or_compute(
         "splits.pkl",
         lambda: split_data(X_features, Y_vector),
         force_recompute=force_recompute_splits,
         save=is_dev
     )
+
+    # --------------- Part E: Vetting & Normalization ---------------##
+    split1, split2 = splits
+    #split1
+    split1_vet_features = load_cache_or_compute(
+        "split1_vet_features.pkl",
+        lambda: vet_features_split1(split1),
+        force_recompute=force_recompute_vet_features,
+        save=is_dev
+    )
+
+    #split2
+    X_train, X_test, y_train, y_test = split2
+    split2_vet_features = load_cache_or_compute(
+        "split2_vet_features.pkl",
+        lambda: vet_features(X_train, X_test, y_train),
+        force_recompute=force_recompute_vet_features,
+        save=is_dev
+    )
+    split2_vet_features.append(y_train)
+    split2_vet_features.append(y_test)
+
 
     return X_features, Y_vector
 
