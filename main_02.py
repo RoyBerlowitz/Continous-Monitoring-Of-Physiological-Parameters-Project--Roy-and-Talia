@@ -12,7 +12,7 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     ##--------------- Part A: Segmentation ----------------##
     X_matrix, Y_vector = load_cache_or_compute(
         "segment_output.pkl",
-        lambda: segment_signal(data_path, 50, 25, data_files),
+        lambda: segment_signal(data_path, 20, 10, data_files),
         force_recompute=force_recompute_seg,
         save=is_dev
     )
