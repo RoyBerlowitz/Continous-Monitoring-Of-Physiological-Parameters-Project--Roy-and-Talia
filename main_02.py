@@ -53,9 +53,9 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
         force_recompute=force_recompute_vet_features,
         save=is_dev
     )
+    split2_vet_features = list(split2_vet_features)
     split2_vet_features.append(y_train)
     split2_vet_features.append(y_test)
-
 
     return X_features, Y_vector
 

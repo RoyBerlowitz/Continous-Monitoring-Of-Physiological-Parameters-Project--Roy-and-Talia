@@ -107,7 +107,7 @@ def extract_features (data_path, X_matrix , data_files):
     #         num_features += 3
     #
     # #getting rid of the columns with the vectors of values
-    # X_features = X_features.drop(labels=columns_names, axis=1)
+    X_features = X_features.drop(labels=columns_names, axis=1)
 
     print(f"added {num_features} columns")
 

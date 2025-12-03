@@ -21,6 +21,10 @@ from .vet_features_healper_functions import *
 columns_not_to_normalize = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
 
 def feature_normalization(X_train,X_test,method='IQR'):
+    # features = [
+    #     col for col in X_train.columns
+    #     if col not in columns_not_to_normalize and X_train[col].dtype != 'object'
+    # ]
     features = [col for col in X_train.columns if col not in columns_not_to_normalize]
 
     #train norm
@@ -124,6 +128,7 @@ def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalizatio
     X_vetting, X_test_norm = feature_normalization(X_train,X_test,method='IQR')
     #X_vetting = add here feature_normalization
 
+    # return X_vetting, X_test_norm
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     if "__participant_key__"  in X_train.columns:
         administrative_features.append("__participant_key__")
