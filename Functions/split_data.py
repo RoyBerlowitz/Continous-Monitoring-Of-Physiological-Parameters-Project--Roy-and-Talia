@@ -99,9 +99,7 @@ def split_data(X_features, Y_samples):
         split1_Y_trains.append(pd.concat(Y_train_list, ignore_index=True))
         split1_Y_tests.append(pd.concat(Y_test_list, ignore_index=True))
 
-    split1 = [split1_X_tests,split1_X_tests,split1_Y_trains,split1_Y_tests]
-
-    print('finished split 1')
+    split1 = [split1_X_trains,split1_X_tests,split1_Y_trains,split1_Y_tests]
 
 #split 2 Leave-Group-Out
     # 80% of participants go to TRAIN, 20% to TEST
