@@ -3,6 +3,7 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import PyEMD
+from joblib import Parallel, delayed
 
 ##-------Part B: Feature Extraction - Helper Functions-------
 
@@ -657,6 +658,9 @@ def find_imfs_properties(data_list):
     emd = PyEMD.EMD()
     #we find the list of Imfs
     imfs = emd(data_list)
+    # we check what happen where there are no IMFs
+    if imfs.shape[0] == 0:
+        return pd.Series([0.0, 0.0, 0.0, 0.0, 0.0])
     #We compute the total enery of all the IMFs
     total_energy = np.sum(imfs ** 2)
 
@@ -669,7 +673,7 @@ def find_imfs_properties(data_list):
             # we find the relative energy of each IMF - it can show how this imf is significant in relation to other
             imf_energy = np.sum(imfs[i,:] ** 2)
             relative_imf_energy.append(imf_energy / total_energy)
-        return pd.Series(imfs_std[0],imfs_std[1], relative_imf_energy[0], relative_imf_energy[1])
+        return pd.Series([imfs_std[0],imfs_std[1], relative_imf_energy[0], relative_imf_energy[1], total_energy])
     else:
         #Now we deal with the case of only one imf - which may also indicate about the activity and be helpful
         imf_std = np.std(imfs[0,:])
@@ -677,29 +681,33 @@ def find_imfs_properties(data_list):
         relative_imf_energy = (imf_energy / total_energy)
         #we choose to pass zero and not NaN in order to be able to let the model distinguish based on numbers,
         # as we assume no IMF will get energy and std == 0 (and if so - it won't be the handwashing)
-        return pd.Series(imf_std, 0, relative_imf_energy, 0)
+        return pd.Series([imf_std, 0, relative_imf_energy, 0, total_energy])
 
 
 
-def EMD_properties(df, column_list, num_features) :
+def EMD_properties(df, column_list, num_features, n_jobs=-1) :
     #Now - we try to find EMD properties that will help us.
     #We use only the first and second IMFs, as we don't want to take all the Imfs to reduce complexity
     #and on the hand - those are the functions that express the changes the most.
     new_columns = {}
-    feature_suffixes = ['imf1 relative energy', 'imf2 relative energy', 'imf1 std',
-                        'imf2 std']
+    feature_suffixes = ['imf1 std', 'imf2 std', 'imf1 relative energy',
+                        'imf2 relative energy', 'total_EMD_energy']
+
+
     for column in column_list:
         # For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
-        features_series = df[column].apply(
-            lambda x: pd.Series(
-                find_imfs_properties(x),
-                index=feature_suffixes  #  defining the name of returned columns
-            )
-        )
+        #As we have seen those features are extremely time consuming, we use Parallel to operate parallel searches and by that accelerate the calculations
+        # results_list = Parallel(n_jobs=n_jobs)(
+        #     delayed(find_imfs_properties)(data) for data in df[column]
+        # )
+        results_list = [find_imfs_properties(data) for data in df[column]]
+
+        features_df = pd.DataFrame(results_list, index=df[column].index, columns=feature_suffixes)
+
         # adding to the dict
         for suffix in feature_suffixes:
             col_name = f"{column}_{suffix}"
-            new_columns[col_name] = features_series[suffix]
+            new_columns[col_name] = features_df[suffix]
             print(f"added {col_name} column")
 
         num_features += len(feature_suffixes)

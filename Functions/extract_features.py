@@ -53,7 +53,6 @@ def extract_features (data_path, X_matrix , data_files):
 
     for sensor_name in ["Acc", "Gyro", "Mag"]:
         X_features[sensor_name + "_SM"] = X_features[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(compute_signal_magnitude,axis=1)
-        columns_names.append(sensor_name + "_SM")
         num_features += 1
 
 
@@ -97,8 +96,8 @@ def extract_features (data_path, X_matrix , data_files):
     #We extract the SR, Area Under Graph, etc
     #X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
 
-    # #adding the imf traits
-    # X_features, num_features = EMD_properties(X_features, columns_names, num_features)
+    # adding the imf traits
+    #X_features, num_features = EMD_properties(X_features, columns_names, num_features)
 
     #We find the COSUM feature - we do it only for for the Acc and Gyro as the changes in Mag is much less trackable and significant
     # for column in columns_names:
