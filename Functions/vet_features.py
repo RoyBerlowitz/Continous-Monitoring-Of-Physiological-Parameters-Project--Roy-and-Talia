@@ -108,9 +108,20 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             break
     return best_features, results_log
 
+def vet_features_split1(split1):
+    split1_X_trains, split1_X_tests, split1_Y_trains, split1_Y_tests = split1
+    new_dfs = []
 
-def vet_features(X_train, Y_train, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
-    X_vetting = copy.deepcopy(X_train) #טליה - צריך להוריד את זה אחרי שעושים את הנורמליזציה
+    for i in range(len(split1_X_trains)):
+        X_train, X_test, y_train, y_test = split1_X_trains[i], split1_X_tests[i], split1_Y_trains[i], split1_Y_tests[i]
+        X_train, X_test = vet_features(X_train, X_test, y_train)
+        new_dfs.append([X_train, X_test, y_train, y_test])
+
+    return new_dfs
+
+def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
+    # X_vetting = copy.deepcopy(X_train) #טליה - צריך להוריד את זה אחרי שעושים את הנורמליזציה
+    X_vetting, X_test_norm = feature_normalization(X_train,X_test,method='IQR')
     #X_vetting = add here feature_normalization
 
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
@@ -128,5 +139,5 @@ def vet_features(X_train, Y_train, split_name = "Individual Normalization", N=20
     sns.pairplot(pd.concat([X_vetting[best_features], Y_train.rename("Label")], axis=1), hue="Label")
     plt.show()
 
-    return X_vetting
+    return X_vetting, X_test_norm
 
