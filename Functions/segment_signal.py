@@ -11,8 +11,6 @@ def segment_signal(data_path, window_size, window_step, data_files):
     for key in data_files.keys():
         recording = data_files[key]['label']['data']
         # we get the label table
-        print(key)
-        print(recording.keys())
 
         if recording['End (Seconds from Recording Start)'.upper()].iloc[-1] < 330:
             data_files[key]["Protocol"] += 1

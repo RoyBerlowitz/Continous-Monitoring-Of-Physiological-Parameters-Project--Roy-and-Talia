@@ -15,7 +15,7 @@ import time
 import pandas as pd
 
 
-data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
+data_path = r"C:\Users\nirei\PycharmProjects\Continous monitoring\data"
 
 """
 As we were not sure what is the best way to divide the windows, and the full data from all participants was not yet available - 
@@ -53,7 +53,7 @@ def feature_correlation(X_features, Y_vector, case = "distribution"):
         MI = 0
         #CASE 1: by the connection between MI and the features of the article - Skewness and Kurtosis
         if case == "distribution":
-            cols_suffixes = ["kurtosis, skewness"]
+            cols_suffixes = ["kurtosis", "skewness"]
         #CASE 2 As explained above, this section is intended for the search after the best window length using Frequency-domain features.
         elif case == "Frequency":
             cols_suffixes = ['spectral_entropy','total_energy', 'frequency_centroid','dominant_frequency', 'frequency_variance']
@@ -144,7 +144,7 @@ def run_single_search(data_path, duration, overlap, case = "distribution"):
 
     return (duration, overlap, score)
 
-def find_best_windows(data_path, window_duration_options, n, case = "distribution"):
+def find_best_windows(data_path, window_duration_options, overlap_options, n, case = "distribution"):
     #This function recieves as an input data path which is crucial for the creation of the matrices, the option for window duration, and the number n of n best option we want to take
     # The setup of the function is meant to use all CPU cores and run a parallel search that will aceelarate time
 
@@ -152,7 +152,7 @@ def find_best_windows(data_path, window_duration_options, n, case = "distributio
     tasks = [
         (duration, overlap)
         for duration in window_duration_options
-        for overlap in [0.25, 0.5, 0.75]
+        for overlap in overlap_options
     ]
 
     # we get the results by running in parallel
@@ -176,27 +176,39 @@ def find_best_windows(data_path, window_duration_options, n, case = "distributio
 
     return top_items, output_df
 
+overlap_options = [0.25, 0.5, 0.75]
 #We wanted to check how much time it took
 start_time = time.time()
 #Now we conducted the check over the different possibilites.
 #We exported to excel in order to be able to see the results with our eyes - relevant in case of a very similar results or unexpected results, so in this case we can view the entire data
-# top_items_long, best_duration_and_overlap_long = find_best_windows(data_path, long_window_duration_options, n = 1)
+# top_items_long, best_duration_and_overlap_long = find_best_windows(data_path, long_window_duration_options,overlap_options, n = 1)
 # best_duration_and_overlap_long.to_excel("best_duration_and_overlap_long.xlsx", index=False)
 
-# top_items_medium, best_duration_and_overlap_medium = find_best_windows(data_path, medium_window_duration_options, n = 3)
+# top_items_medium, best_duration_and_overlap_medium = find_best_windows(data_path, medium_window_duration_options, overlap_options, n = 3)
 # best_duration_and_overlap_medium.to_excel("best_duration_and_overlap_medium.xlsx", index=False)
 
-# top_items_short, best_duration_and_overlap_short = find_best_windows(data_path, short_window_duration_options, n = 2)
+# top_items_short, best_duration_and_overlap_short = find_best_windows(data_path, short_window_duration_options,overlap_options, n = 2)
 # best_duration_and_overlap_short.to_excel("best_duration_and_overlap_short.xlsx", index=False)
 
 #now we try to find the results of which window is the best based on the window lengths, if we are judging base on frequency features.
 # We took the medium and long options, as the short discovered to be irrelevant.
 new_windows_options = np.concatenate((long_window_duration_options,medium_window_duration_options))
 # We estimate the results by their MI score.
-top_frequency_result, full_freq_result  = find_best_windows(data_path, new_windows_options, n = 1, case = "Frequency")
+# top_frequency_result, full_freq_result  = find_best_windows(data_path, new_windows_options,overlap_options, n = 1, case = "Frequency")
 #We export the results to excell sheet in order to be able to see the results clearly.
-full_freq_result.to_excel("best_duration_and_overlap_freq.xlsx", index=False)
-end_time = time.time()
-# we show the total time the code ran
-elapsed_time = end_time - start_time
-print(f"the code ran for {elapsed_time:.2f}  seconds")
+# full_freq_result.to_excel("best_duration_and_overlap_freq.xlsx", index=False)
+# end_time = time.time()
+# # we show the total time the code ran
+# elapsed_time = end_time - start_time
+# print(f"the code ran for {elapsed_time:.2f}  seconds")
+
+new_windows_options = np.linspace(40,50,2)
+overlap_options = [0.25]
+#top_full_data_freq_results, full_data_freq_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "Frequency")
+top_full_data_stat_results, full_data_stat_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "distribution")
+#full_data_freq_results.to_excel("whole results - freq_results.xlsx", index=False)
+full_data_stat_results.to_excel("whole results - stat_results.xlsx", index=False)
+
+
+
+

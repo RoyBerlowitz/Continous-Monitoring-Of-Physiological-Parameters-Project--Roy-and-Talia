@@ -3,7 +3,7 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import PyEMD
-from joblib import Parallel, delayed
+#from joblib import Parallel, delayed
 
 ##-------Part B: Feature Extraction - Helper Functions-------
 
@@ -168,6 +168,18 @@ def calculate_list_STD(data_list):
            return np.nan
 
 
+def calculate_list_MAD(data_list):
+    # As the handwashing event is relatively rare, the STD may not be ideal.
+    # Thus we use MAD- Median Absolute Deviation
+    # it is calculated as the median of the diff between the absolute value and the median
+    data_list = safe_unwrap(data_list)  # making the check about the data list
+    if data_list is not None:
+        median_value = np.median(np.mean(data_list))
+        abs_values = np.abs(median_value)
+        return np.median(abs_values - median_value)
+    else:
+        return np.nan
+
 def calculate_list_power(data_list):
        #we try to get the energy of the data of a cell. we transform it to a numpy array and then calculated the square of the sum of its particles,
        #and then we divide it by N in order to prevent bias caused because of larger windows.
@@ -320,10 +332,11 @@ def add_basic_metrics(df, column_names, num_features):
             #print(f"added {column + '_median'} column")
             print(new_columns[column + '_median'])
             num_features += 1
-            new_columns[column + '_RMS'] = df[column].apply(calculate_list_RMS)
-            #print(f"added {column + '_RMS'} column")
-            print(new_columns[column + '_RMS'])
-            num_features += 1
+            if not "SM" in column:
+                new_columns[column + '_RMS'] = df[column].apply(calculate_list_RMS)
+                #print(f"added {column + '_RMS'} column")
+                print(new_columns[column + '_RMS'])
+                num_features += 1
 
             new_columns[column + '_IQR'] = df[column].apply(calculate_list_IQR)
             print(f"added {column + '_IQR'} column")
@@ -350,6 +363,11 @@ def add_basic_metrics(df, column_names, num_features):
             #print(new_columns[column + '_number_of_zero_crossing'])
             num_features += 1
 
+            new_columns[column + '_MAD'] = df[column].apply(calculate_list_MAD)
+            print(f"added {column + '_MAD'} column")
+            #print(new_columns[column + '_MAD'])
+            num_features += 1
+
             # df[column + '_power'] = df[column].apply(calculate_list_power) # it will be used for finding power afterwards, and then be deleted
             # print("added power column")
 
@@ -360,8 +378,8 @@ def add_basic_metrics(df, column_names, num_features):
                 # print(new_columns[sensor_name + '_RMS_Total'])
                 num_features += 1
                 new_columns[sensor_name + '_mean_dist_between_axes'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_mean_distance_between_axes,axis=1)
-                print(f"added {sensor_name + '_RMS_Total'} column")
-                # print(new_columns[sensor_name + '_RMS_Total'])
+                print(f"added {sensor_name + '_mean_dist_between_axes'} column")
+                # print(new_columns[sensor_name + '_mean_dist_between_axes'])
                 num_features += 1
 
     #Now we concatenate the newly created dict to the df - just one addition
@@ -426,7 +444,7 @@ def add_time_dependent_features(df, column_list, num_features):
         new_columns[column + "mean_peak_to_peak_time"] = df[column].apply(lambda x: calculate_peak_to_peak_time_variables(x, dt, absolute=False)).values
 
         #adding mean time between peaks and lows - helpful for non harmonic behaviour
-        new_columns[column + "mean_peak_to_peak_time"] = df[column].apply(lambda x: calculate_peak_to_peak_time_variables(x, dt, absolute=True)).values
+        new_columns[column + "mean_abs_peak_to_abs_peak_time"] = df[column].apply(lambda x: calculate_peak_to_peak_time_variables(x, dt, absolute=True)).values
 
     # Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -488,7 +506,29 @@ def compute_AbsCV(data_list):
     else:
         return np.nan
 
+def add_disribution_features(df, column_list, num_features):
+    #This function is meant to find features which are connected to the distribution.
+    #it receives as input a dataframe to conduct the calculation on and to add the features to,
+    #a list of columns to calculate based on them, and at last - num_features that will be used for tracking the number of features addded.
 
+    # in order to achieve better running time, we will add a dict containing all the new columns, and then add them together
+    new_columns = {}
+    for column in column_list:
+        new_columns[column + '_skewness'] = df[column].apply(compute_skewness)
+        print(f"added {column + '_skewness'} column")
+        # print(new_columns[column + '_skewness'])
+        num_features += 1
+        new_columns[column + '_kurtosis'] = df[column].apply(compute_kurtosis)
+        print(f"added {column + '_kurtosis'} column")
+        # print(new_columns[column + '_kurtosis'])
+        num_features += 1
+        new_columns[column + "_AbsCV"] = df[column].apply(compute_AbsCV)
+        print(f"added {column + '_AbsCV'} column")
+
+        num_features += 1
+    #Now we concatenate the newly created dict to the df - just one addition
+    df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
+    return df_new, num_features
 
 def calculate_cusum(series, target, slack):
     #CUSUM is a metric intended to find how the mean changes over time.
@@ -519,12 +559,21 @@ def add_Cosum_metrics (df, column):
     # This metric is preformed on a normalize data and each recording was normalize separately, so we group each recording by using its identifiers.
     grouped = df.groupby(['Group number', 'Participant ID', 'Recording number'])
     for (group, pid, rec), new_df in grouped:
-        #The slack will be 0.5 of the std of the mean, so we find the standard deviation of the "mean" column
-        mean_std = new_df[column + "_mean"].std()
-        K_slack = 0.5 * mean_std
+        #We get the median of the mean column
+        median_val = np.median(new_df[column + "_mean"])
+        # As the handwashing event is relatively rare, the STD may not be ideal.
+        # Thus we use MAD- Median Absolute Deviation. the slack will be 0.5 of that
+        median_abs_deviation = np.median(np.abs(new_df[column + "_mean"] - median_val))
 
-        # here we calculate the mean shift between adjacent time points
+        # In standard deviation, 1.486 is the ratio between Std to MAD
+        ROBUST_STD = median_abs_deviation * 1.4826
+
+        # we define the STD
+        K_slack = 0.5 * ROBUST_STD
+
+        # here we calculate the mean shift and the stdshift between adjacent time points
         mean_shift = new_df[column + "_mean"] - new_df[column + "_mean"].shift(1).fillna(new_df[column + "_mean"].iloc[0])
+        std_relative_shift = (new_df[column + "_std"] - new_df[column + "_std"].shift(1)) / new_df[column + "_std"].shift(1).fillna(new_df[column + "_std"].iloc[0])
 
         # We find the Cosum based on the "mean" column, with the found slack and target = 0 -
         # the data is normalized so the overall average mean should be 0 - this is the target.
@@ -533,45 +582,26 @@ def add_Cosum_metrics (df, column):
             0,
             K_slack
         )
-
-        cusum_neg_values = calculate_cusum(
-            -new_df[column + "_mean"],
-            -0,
-            -K_slack
-        )
+        if not "SM" in column:
+            # we will not get under the zero values which makes it irrelevant
+            cusum_neg_values = calculate_cusum(
+                -new_df[column + "_mean"],
+                -0,
+                K_slack
+            )
 
         # We insert the data to the df
         df.loc[new_df.index, column+'_CUSUM+_Feature'] = cusum_pos_values
-        df.loc[new_df.index, column+'_CUSUM-_Feature'] = cusum_neg_values
+        if not "SM" in column:
+            df.loc[new_df.index, column+'_CUSUM-_Feature'] = cusum_neg_values
         df.loc[new_df.index, column+'_Mean_Shift'] = mean_shift
+        df.loc[new_df.index, column+'_Relative_STD_Shift'] = std_relative_shift
+
     print(f"added {column} COSUM metrics")
 
 
     return df
 
-
-
-def add_disribution_features(df, column_list, num_features):
-    #This function is meant to find features which are connected to the distribution.
-    #it receives as input a dataframe to conduct the calculation on and to add the features to,
-    #a list of columns to calculate based on them, and at last - num_features that will be used for tracking the number of features addded.
-
-    # in order to achieve better running time, we will add a dict containing all the new columns, and then add them together
-    new_columns = {}
-    for column in column_list:
-        new_columns[column + '_skewness'] = df[column].apply(compute_skewness)
-        print(f"added {column + '_skewness'} column")
-        # print(new_columns[column + '_skewness'])
-        num_features += 1
-        new_columns[column + '_kurtosis'] = df[column].apply(compute_kurtosis)
-        print(f"added {column + '_kurtosis'} column")
-        # print(new_columns[column + '_kurtosis'])
-        num_features += 1
-        new_columns[column + "_AbsCV"] = df[column].apply(compute_AbsCV)
-        num_features += 1
-    #Now we concatenate the newly created dict to the df - just one addition
-    df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
-    return df_new, num_features
 
 ##-------Frequency-domain features-------##
 

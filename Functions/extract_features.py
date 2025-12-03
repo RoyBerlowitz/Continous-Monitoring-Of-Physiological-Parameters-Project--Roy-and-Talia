@@ -53,7 +53,8 @@ def extract_features (data_path, X_matrix , data_files):
 
     for sensor_name in ["Acc", "Gyro", "Mag"]:
         X_features[sensor_name + "_SM"] = X_features[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(compute_signal_magnitude,axis=1)
-        num_features += 1
+        columns_names.append(sensor_name + "_SM")
+
 
 
     #At this point, the frequency domain features will be extracted.
@@ -87,8 +88,7 @@ def extract_features (data_path, X_matrix , data_files):
     #Now, let's find the magnitude again, this time normalized.
     for sensor_name in ["Acc", "Gyro", "Mag"]:
         X_features[sensor_name + "_SM"] = X_features[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(compute_signal_magnitude,axis=1)
-        columns_names.append(sensor_name + "_SM")
-        num_features += 1
+
 
     #We extract the basic metrics - STD, mean, median, max, min, peak-to-peak difference, RMS, zero-crossing, IQR
     #X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
@@ -99,12 +99,14 @@ def extract_features (data_path, X_matrix , data_files):
     # adding the imf traits
     #X_features, num_features = EMD_properties(X_features, columns_names, num_features)
 
-    #We find the COSUM feature - we do it only for for the Acc and Gyro as the changes in Mag is much less trackable and significant
+    #We find the COSUM feature - we do it only for  the Acc and Gyro as the changes in Mag is much less trackable and significant
     # for column in columns_names:
     #     if not "Mag" in column:
     #         X_features = add_Cosum_metrics(X_features, column)
-    #         num_features += 3
-    #
+    #         num_features += 4
+    #         if "SM" in column:
+    #             num_features -= 1
+
     # #getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)
 
