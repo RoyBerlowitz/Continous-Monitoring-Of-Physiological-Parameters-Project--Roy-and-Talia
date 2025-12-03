@@ -38,13 +38,14 @@ def run_part_a(data_path, force_recompute_seg=False, force_recompute_features=Tr
 
     return X_features, Y_vector
 # אלו השוורת שצריכות להופיע בסוף כדי שיהיה לנו את הpath הנכון
-# script_path = os.path.abspath(__file__)
-# script_directory = os.path.dirname(script_path)
-# data_path = script_directory + "/data"
+script_path = os.path.abspath(__file__)
+script_directory = os.path.dirname(script_path)
+data_path = script_directory + "\data"
 
-data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
-# data_path = r"/Users/talia/Downloads/02"
-X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True)
-X_features.to_excel("test.xlsx",index=False)
+if __name__ == "__main__":
+    #data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
+    # data_path = r"/Users/talia/Downloads/02"
+    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=False, force_recompute_splits=False)
+    #X_features.to_excel("test.xlsx",index=False)
 
-#final_x = vet_features(X_features, Y_vector, split_name = "Individual Normalization", N=3, K= 10, threshold=0.8)
+    #final_x = vet_features(X_features, Y_vector, split_name = "Individual Normalization", N=3, K= 10, threshold=0.8)

@@ -690,14 +690,18 @@ def EMD_properties(df, column_list, num_features, n_jobs=-1) :
     #We use only the first and second IMFs, as we don't want to take all the Imfs to reduce complexity
     #and on the hand - those are the functions that express the changes the most.
     new_columns = {}
-    feature_suffixes = ['imf1 relative energy', 'imf2 relative energy', 'imf1 std',
-                        'imf2 std', 'total_EMD_energy']
+    feature_suffixes = ['imf1 std', 'imf2 std', 'imf1 relative energy',
+                        'imf2 relative energy', 'total_EMD_energy']
+
+
     for column in column_list:
         # For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
         #As we have seen those features are extremely time consuming, we use Parallel to operate parallel searches and by that accelerate the calculations
-        results_list = Parallel(n_jobs=n_jobs)(
-            delayed(find_imfs_properties)(data) for data in df[column]
-        )
+        # results_list = Parallel(n_jobs=n_jobs)(
+        #     delayed(find_imfs_properties)(data) for data in df[column]
+        # )
+        results_list = [find_imfs_properties(data) for data in df[column]]
+
         features_df = pd.DataFrame(results_list, index=df[column].index, columns=feature_suffixes)
 
         # adding to the dict
