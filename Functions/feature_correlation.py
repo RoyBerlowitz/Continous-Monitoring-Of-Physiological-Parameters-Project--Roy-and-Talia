@@ -146,7 +146,7 @@ def run_single_search(data_path, duration, overlap, case = "distribution"):
 
 def find_best_windows(data_path, window_duration_options, overlap_options, n, case = "distribution"):
     #This function recieves as an input data path which is crucial for the creation of the matrices, the option for window duration, and the number n of n best option we want to take
-    # The setup of the function is meant to use all CPU cores and run a parallel search that will aceelarate time
+    # The setup of the function is meant to use all CPU cores and run a parallel search that will accelarate time
 
     # We wanted to not only check for the best length but also for the best overlap/delay - so for each time we preform the search over 3 possibilities of overlap - 25%, 50% and 75%
     tasks = [
@@ -156,7 +156,7 @@ def find_best_windows(data_path, window_duration_options, overlap_options, n, ca
     ]
 
     # we get the results by running in parallel
-    results = Parallel(n_jobs=-1, verbose=10)(
+    results = Parallel(n_jobs=2, verbose=10)(
         delayed(run_single_search)(data_path, duration, overlap, case)
         for (duration, overlap) in tasks
     )
@@ -202,12 +202,12 @@ new_windows_options = np.concatenate((long_window_duration_options,medium_window
 # elapsed_time = end_time - start_time
 # print(f"the code ran for {elapsed_time:.2f}  seconds")
 
-new_windows_options = np.linspace(40,50,2)
 overlap_options = [0.25]
-#top_full_data_freq_results, full_data_freq_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "Frequency")
-top_full_data_stat_results, full_data_stat_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "distribution")
-#full_data_freq_results.to_excel("whole results - freq_results.xlsx", index=False)
-full_data_stat_results.to_excel("whole results - stat_results.xlsx", index=False)
+new_windows_options = np.linspace(5, 14, 10)
+top_full_data_freq_results, full_data_freq_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "Frequency")
+#top_full_data_stat_results, full_data_stat_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "distribution")
+full_data_freq_results.to_excel("whole results - freq_results.xlsx", index=False)
+#full_data_stat_results.to_excel("whole results - stat_results.xlsx", index=False)
 
 
 

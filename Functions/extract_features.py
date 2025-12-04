@@ -64,7 +64,7 @@ def extract_features (data_path, X_matrix , data_files):
 
     #We extract statistical metrics - Kurtosis and Skewness - our article-based features - we do it because we want to see how data behaves and normalization may change it.
     #Their formulas standardize the data so we give them the 'raw' data
-    # X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
+    #X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
     #Thus, normalization will be conducted later
 
     #we go over the recording to get the normalize data for the entire axis
