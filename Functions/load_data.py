@@ -52,7 +52,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 #We Load the data just once - avoid loading each time which damage the run time.
 
 #This function is meant for the reading of the CSV files, so we can read them in parallel and by that reduce time
-def read_csv_parallel(path):
+def read_csv(path):
     df = pd.read_csv(path)
     mapping_dict = {
         'START': 'START (SECONDS FROM RECORDING START)',
@@ -98,7 +98,7 @@ def load_data(data_path):
     loaded = {}
     #Here, we run a parallel process to load all the data psv files for later use
     with ProcessPoolExecutor() as executor:
-        futures = {executor.submit(read_csv_parallel, p): p for p in csv_paths}
+        futures = {executor.submit(read_csv, p): p for p in csv_paths}
         for future in as_completed(futures):
             full_path, df = future.result()
             loaded[full_path] = df
@@ -113,7 +113,6 @@ def load_data(data_path):
 
             if file_path.lower().endswith('.csv') and os.path.isfile(full_path):
                 file_name = os.path.basename(file_path)
-                print(file_name)
 
                 # Here, we extract the basic identifires of the data.
 
