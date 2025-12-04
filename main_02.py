@@ -71,7 +71,7 @@ if __name__ == "__main__":
     start_time = time.time()
     #data_path = r"C:\Users\nirei\OneDrive\Desktop\Bachelors Degree - Biomedical Engineering And Neuroscience\Year 4\Semester A\Continuous Monitoring of Physiological Parameters\PythonProject7\02"
     # data_path = r"/Users/talia/Downloads/02"
-    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=False ) #,force_recompute_vet_features=False)
+    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=False, force_recompute_splits=False ) #,force_recompute_vet_features=False)
     X_features.to_excel("all_samp_features.xlsx",index=False)
     end_time = time.time()
     print(f"Total time: {end_time - start_time}")
