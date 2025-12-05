@@ -114,14 +114,27 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
 
 def vet_features_split1(split1):
     split1_X_trains, split1_X_tests, split1_Y_trains, split1_Y_tests = split1
-    new_dfs = []
+    all_X_trains = []
+    all_X_tests = []
+    all_Y_trains = []
+    all_Y_tests = []
 
     for i in range(len(split1_X_trains)):
         X_train, X_test, y_train, y_test = split1_X_trains[i], split1_X_tests[i], split1_Y_trains[i], split1_Y_tests[i]
-        X_train, X_test = vet_features(X_train, X_test, y_train)
-        new_dfs.append([X_train, X_test, y_train, y_test])
+        # X_train, X_test = vet_features(X_train, X_test, y_train)
+        all_X_trains.append(X_train)
+        all_X_tests.append(X_test)
+        all_Y_trains.append(y_train)
+        all_Y_tests.append(y_test)
+        # new_dfs.append([X_train, X_test, y_train, y_test])
 
-    return new_dfs
+    all_X_trains = pd.concat(all_X_trains)
+    all_X_tests = pd.concat(all_X_tests)
+    all_Y_trains = pd.concat(all_Y_trains)
+
+    all_X_vetted, X_test_norm = vet_features(all_X_trains, all_X_tests, all_Y_trains)
+
+    return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests)]
 
 def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
     # X_vetting = copy.deepcopy(X_train) #טליה - צריך להוריד את זה אחרי שעושים את הנורמליזציה
