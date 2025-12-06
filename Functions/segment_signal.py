@@ -5,7 +5,7 @@ import numpy as np
 # Window step is the delay between each window. it can be chosen in various ways, for overlapping or not.
 def segment_signal(data_path, window_size, window_step, data_files):
     print('============================ Segmenting signal again :)))')
-
+    handwahses_dict = {}
     hand_washing_duration_list = []
     keys = data_files.keys()
     for key in data_files.keys():
@@ -14,15 +14,20 @@ def segment_signal(data_path, window_size, window_step, data_files):
 
         if recording['End (Seconds from Recording Start)'.upper()].iloc[-1] < 330:
             data_files[key]["Protocol"] += 1
-        # now let's have only the phases of hand washing. a check is conducted to make sure no miss-labeling
-        relevant_phases = recording[(recording["Label".upper()] == 1) & (recording['Description'.upper()].isin(
-            ['HandWashing', 'Hand Washing', 'Handwashing', 'washing', 'Washing']))]
-        phases_by_name = recording[(recording['Description'.upper()].isin(
-            ['HandWashing', 'Hand Washing', 'Handwashing', 'washing', 'Washing']))]
-        phases_by_number = recording[(recording["Label".upper()] == 1)]
-        if not ((relevant_phases.equals(phases_by_name)) or (relevant_phases.equals(phases_by_number))):
-            raise ValueError(
-                f"invalid recording {data_files[key]['Group number']}_{data_files[key]['Recording number']}_{data_files[key]['Participant ID']} - Label do not match actual action")
+        #recording['Description'.upper()].fillna('Washing Hands', inplace=True)
+
+        # # now let's have only the phases of hand washing.We wanted to run a check to make sure no miss-labeling, with all the found combination - it was not approved
+        # relevant1_phases = recording[(recording["Label".upper()] == 1) & (recording['Description'.upper()].str.upper().str.replace(" ","").isin(
+        #     ['HandWashing'.upper(),'HandsWashing'.upper(), 'Washing'.upper(), 'WashingHands'.upper()]))]
+        # phases_by_name = recording[(recording['Description'.upper()].str.upper().str.replace(" ","").isin(
+        #     ['HandWashing'.upper(),'HandsWashing'.upper(), 'Washing'.upper(), 'WashingHands'.upper()]))]
+        # phases_by_number = recording[(recording["Label".upper()] == 1)]
+        # if not ((relevant_phases.equals(phases_by_name)) or (relevant_phases.equals(phases_by_number))):
+        #     raise ValueError(
+        #         f"invalid recording {data_files[key]['Group number']}_{data_files[key]['Recording number']}_{data_files[key]['Participant ID']} - Label do not match actual action")
+
+        relevant_phases = recording[(recording["Label".upper()] == 1)]
+
 
         for index, row in relevant_phases.iterrows():
             # we extract the times of handwashing activities, and also see the Mean and Std to effectively declare windows
@@ -35,10 +40,13 @@ def segment_signal(data_path, window_size, window_step, data_files):
 
             hand_washing_duration_list.append(total_duration)
             data_files[key]['Handwashing time'].append((start, end))
+            print(f"Handwashing recording times for {key}: {(start, end)}, {total_duration} seconds")
+            handwahses_dict[f"{data_files[key]['Group number']}_{data_files[key]['Participant ID']}"] = handwahses_dict.get(f"{data_files[key]['Group number']}_{data_files[key]['Participant ID']}", 0) +1
 
     # print(len(hand_washing_duration_list))
     print(f"the average hand washing duration is: {np.mean(hand_washing_duration_list):3.2f}")
     print(f"the standard deviation of hand washing duration is: {np.std(hand_washing_duration_list):3.2f}")
+    print (handwahses_dict)
 
     def create_window(window_size, window_step, recording):
         # at first, we commit check that each recording starts with 0. if not, we "normalize" the data by creating a reset to zero
@@ -128,7 +136,8 @@ def segment_signal(data_path, window_size, window_step, data_files):
                         'Recording number': recording['Recording number'], 'Protocol': recording['Protocol'],
                         'Label': label}
             X_matrix.loc[len(X_matrix.index)] = row_dict
-            print(f"row {len(X_matrix.index) - 1} has been added")
+            if (len(X_matrix.index) - 1) % 1000 == 0:
+                print(f"row {len(X_matrix.index) - 1} has been added")
 
     #Creating the labels vector
     Y_vector = X_matrix['Label']

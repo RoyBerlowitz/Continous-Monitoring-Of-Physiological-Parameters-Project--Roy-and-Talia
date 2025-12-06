@@ -20,6 +20,7 @@ data_path = r"C:\Users\nirei\PycharmProjects\Continous monitoring\data"
 """
 As we were not sure what is the best way to divide the windows, and the full data from all participants was not yet available - 
 we decided to make some kind of heuristic check on our data to identify the candidates for the ideal time for the window.
+It should be noted that we left in # comment all the checks and runs we have done, for the checker to understand the entire process.
 
 We started by dividing the potential time periods into 3 ranges -
 
@@ -41,9 +42,17 @@ Secondly, long windows are not ideal in order to deal with the task of identifyi
 Lastly, Kurtosis and Skewness are metric that may operate better with entire movements and not fractions, so it makes sense that longer windows that allows capturing the whole movement are best.
 but other features may not benefit from the same conclusions.
 
-So afterwards, we conducted the same check on Frequency-domain features, with taking the relief weight of them - in order to see how well their space operates with differnet window lengths.
-This resulted in a much better MI for all the examined window, with no definitive result regarding the size of the windowץ
+So afterwards, we conducted the same check on Frequency-domain features, with taking the MI of them - in order to see how well their space operates with different window lengths.
+This resulted in a much better MI for all the examined window, with no definitive result regarding the size of the window.
 However, a clear preference for 75% overlap was observed (represented here by 0.25 since this is multiplied by the window size to indicate the next starting point)
+
+We saw that there is less difference in the MI after the rise from 14 to 20 seconds window, and also that window with length less than 5% operates in a much less effectiveness.
+So we conducted a check over the lengths of 5 to 14 seconds, with overlap of 75%.
+
+We got that the longer window operates better. 
+
+However, for the task of classification of the specific times in which the Handwashing took place, not only the correlation is important but also the resolution.
+Thus, we decided to choose window of duration = 7 seconds, which is not far after the best windows, but also will allow quite good resolution in afterwards classification.
 """
 
 
@@ -79,47 +88,6 @@ def feature_correlation(X_features, Y_vector, case = "distribution"):
         #we'll take the average
         MI = 0.5 * MI
         return MI
-    # elif case == "Frequency":
-    #     #As explained above, this section is intended for the search after the best window length using Frequency-domain features.
-    #     #At this stage, as there are more than 2 features - we use relief metric, as it can be helpful in more than 2D space.
-    #     #we initialize the relief score to zero.
-    #     relief_score = 0
-    #     #we do the calculation separately for each significant sensor (out of Acc and Gyro), and return their average
-    #     for sensor in ["Acc", "Gyro"]:
-    #         #We use the signal magnitude as the reference axis for it takes into account all 4 axes
-    #         feature_prefix = sensor + "_SM_"
-    #         #Those are the frequency-domain features that will be se for the calculation
-    #         cols = [
-    #             feature_prefix + 'spectral_entropy',
-    #             feature_prefix + 'total_energy',
-    #             feature_prefix + 'frequency_centroid',
-    #             feature_prefix + 'dominant_frequency',
-    #             feature_prefix + 'frequency_variance'
-    #         ]
-    #         #we take only those columns
-    #         X = X_features[cols]
-    #         num_features = X.shape[1]
-    #         #Here we define the Relief check. We tell it to select n features, and it is calculated by 10 neighbors.
-    #         fs = ReliefF(
-    #             n_features_to_select=num_features,
-    #             n_neighbors=10
-    #         )
-    #         #We find the relief score for each feature
-    #         fs.fit(X.values, Y_vector.values)
-    #         feature_scores = pd.Series(fs.feature_importances_, index=X.columns)
-    #         #sorted_scores = feature_scores.sort_values(ascending=False)
-    #         #
-    #         #we get the sum of all the scores
-    #         sum_scores = np.sum(feature_scores)
-    #         #we add it to the total relief score
-    #         relief_score += sum_scores
-    #     #we compute the average between the scores
-    #     relief_score /= 2
-    #     return relief_score
-
-
-
-
 
 # We took 3 sub categories of the window length - short, medium, and long - and try to see which time periods out of the possibilities inside them operates the best
 # The idea is to take the best time from those categories and preform more limited search on the entire data based on those times
@@ -146,7 +114,7 @@ def run_single_search(data_path, duration, overlap, case = "distribution"):
 
 def find_best_windows(data_path, window_duration_options, overlap_options, n, case = "distribution"):
     #This function recieves as an input data path which is crucial for the creation of the matrices, the option for window duration, and the number n of n best option we want to take
-    # The setup of the function is meant to use all CPU cores and run a parallel search that will aceelarate time
+    # The setup of the function is meant to use all CPU cores and run a parallel search that will accelarate time
 
     # We wanted to not only check for the best length but also for the best overlap/delay - so for each time we preform the search over 3 possibilities of overlap - 25%, 50% and 75%
     tasks = [
@@ -156,7 +124,7 @@ def find_best_windows(data_path, window_duration_options, overlap_options, n, ca
     ]
 
     # we get the results by running in parallel
-    results = Parallel(n_jobs=-1, verbose=10)(
+    results = Parallel(n_jobs=2, verbose=10)(
         delayed(run_single_search)(data_path, duration, overlap, case)
         for (duration, overlap) in tasks
     )
@@ -179,7 +147,7 @@ def find_best_windows(data_path, window_duration_options, overlap_options, n, ca
 overlap_options = [0.25, 0.5, 0.75]
 #We wanted to check how much time it took
 start_time = time.time()
-#Now we conducted the check over the different possibilites.
+#Now we conducted the check over the different possibilities.
 #We exported to excel in order to be able to see the results with our eyes - relevant in case of a very similar results or unexpected results, so in this case we can view the entire data
 # top_items_long, best_duration_and_overlap_long = find_best_windows(data_path, long_window_duration_options,overlap_options, n = 1)
 # best_duration_and_overlap_long.to_excel("best_duration_and_overlap_long.xlsx", index=False)
@@ -202,12 +170,15 @@ new_windows_options = np.concatenate((long_window_duration_options,medium_window
 # elapsed_time = end_time - start_time
 # print(f"the code ran for {elapsed_time:.2f}  seconds")
 
-new_windows_options = np.linspace(40,50,2)
 overlap_options = [0.25]
+new_windows_options = np.linspace(5, 14, 10)
+
+#Here are the final checks on both sets of features to decide on the best window duration
+
 #top_full_data_freq_results, full_data_freq_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "Frequency")
-top_full_data_stat_results, full_data_stat_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "distribution")
+#top_full_data_stat_results, full_data_stat_results  = find_best_windows(data_path, new_windows_options,overlap_options, n = 3, case = "distribution")
 #full_data_freq_results.to_excel("whole results - freq_results.xlsx", index=False)
-full_data_stat_results.to_excel("whole results - stat_results.xlsx", index=False)
+#full_data_stat_results.to_excel("whole results - stat_results.xlsx", index=False)
 
 
 

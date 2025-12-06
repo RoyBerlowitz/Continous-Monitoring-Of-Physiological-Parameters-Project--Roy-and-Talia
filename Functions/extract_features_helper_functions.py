@@ -313,6 +313,46 @@ def calculate_mean_distance_between_axes(sensor_data):
     x_z_dist = np.abs(sensor_data_x - sensor_data_z)
     mean_dist = np.mean((x_y_dist+ z_y_dist+ x_z_dist) / 3)
     return mean_dist
+def calculate_correlation_between_axes(sensor_data):
+    # we calculate the correlation coefficients between axes
+    # we also look at the mean correlation as the relation between it and the other metric may hint hidden relationship
+    sensor_data_x = np.array(sensor_data.iloc[0]).ravel()
+    sensor_data_y = np.array(sensor_data.iloc[1]).ravel()
+    sensor_data_z = np.array(sensor_data.iloc[2]).ravel()
+    Nx = len(sensor_data_x)
+    Ny = len(sensor_data_y)
+    Nz = len(sensor_data_z)
+    N = min([Nx, Ny,
+             Nz])  # We want to have a comparison and for that we will neglect a mistake of 1-2 non- aligned time points by cutting them
+    sensor_data_x = sensor_data_x[:N]
+    sensor_data_y = sensor_data_y[:N]
+    sensor_data_z = sensor_data_z[:N]
+
+    # we check if one of them is NaN
+    is_x_nan = np.isnan(sensor_data_x).all()
+    is_y_nan = np.isnan(sensor_data_y).all()
+    is_z_nan = np.isnan(sensor_data_z).all()
+
+    if is_x_nan or is_y_nan or is_z_nan:
+        return [np.nan, np.nan, np.nan, np.nan]
+
+    # we find the correlation coefficient of each two axes and the mean correlation.
+    # we get the correlation matrix but we look for the correlation coefficient which is in the [0,1]
+    if np.std(sensor_data_x) ==0 or np.std(sensor_data_y) == 0:
+        x_y_corr = 0
+    else:
+        x_y_corr = np.corrcoef(sensor_data_x, sensor_data_y)[0, 1]
+    if np.std(sensor_data_y) ==0 or np.std(sensor_data_z) == 0:
+        y_z_corr = 0
+    else:
+        y_z_corr =np.corrcoef(sensor_data_z, sensor_data_y)[0, 1]
+    if np.std(sensor_data_z) ==0 or np.std(sensor_data_x) == 0:
+        x_z_corr = 0
+    else:
+        x_z_corr =np.corrcoef(sensor_data_x, sensor_data_z)[0, 1]
+    mean_corr = np.mean(y_z_corr, x_z_corr, x_y_corr)
+    return [x_y_corr, y_z_corr, x_z_corr, mean_corr]
+
 
 def add_basic_metrics(df, column_names, num_features):
     #This method meant to find basic time dependent metrics to evaluate the data, in align with the functions
@@ -368,21 +408,46 @@ def add_basic_metrics(df, column_names, num_features):
             #print(new_columns[column + '_MAD'])
             num_features += 1
 
-            # df[column + '_power'] = df[column].apply(calculate_list_power) # it will be used for finding power afterwards, and then be deleted
-            # print("added power column")
+            #this column is calculated for later extracting the dominant power column, and will be soon deleted
+            df[column + '_power'] = df[column].apply(calculate_list_power) # it will be used for finding power afterwards, and then be deleted
+
 
         #let's calculate the RMS of every axis for every sensor
     for sensor_name in ["Acc", "Gyro", "Mag"]:
+
+                #computing RMS
                 new_columns[sensor_name + '_RMS_Total'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_sensor_RMS,axis=1)
                 print(f"added {sensor_name + '_RMS_Total'} column")
                 # print(new_columns[sensor_name + '_RMS_Total'])
                 num_features += 1
+                # computing mean distance between axes
                 new_columns[sensor_name + '_mean_dist_between_axes'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_mean_distance_between_axes,axis=1)
                 print(f"added {sensor_name + '_mean_dist_between_axes'} column")
                 # print(new_columns[sensor_name + '_mean_dist_between_axes'])
                 num_features += 1
+                # we also add a column which have the dominant axis energy
+                # computing dominant axis energy
+                power_columns = df[[sensor_name + '_' + "X-AXIS"+ '_power', sensor_name + '_' + "Y-AXIS"+ '_power', sensor_name + '_' + "Z-AXIS"+ '_power']]
+                new_columns[sensor_name + '_dominant_axis_energy'] = power_columns.max(axis=1)
+                num_features += 1
+                df = df.drop(columns=[sensor_name + '_' + "X-AXIS"+ '_power', sensor_name + '_' + "Y-AXIS"+ '_power', sensor_name + '_' + "Z-AXIS"+ '_power'])
 
-    #Now we concatenate the newly created dict to the df - just one addition
+                #computing correlation coefficient between axes
+                feature_suffixes = ['X_Y_CORR', 'Z_Y_CORR', 'X_Z_CORR', 'MEAN_CORR']
+                features_series = df[column].apply(
+                    lambda x: pd.Series(
+                        calculate_correlation_between_axes(x),
+                        index=feature_suffixes  #  defining the name of returned columns
+                    )
+                )
+                #adding to the dict
+                for suffix in feature_suffixes:
+                    col_name = f"{column}_{suffix}"
+                    new_columns[col_name] = features_series[suffix]
+                    print(f"added {col_name} column")
+                    num_features += 4
+
+                #Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new,num_features
 
