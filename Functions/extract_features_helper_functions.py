@@ -89,7 +89,6 @@ def applying_windows(recording, X_matrix, ):
             adjusted_ending_index = find_closest_neighbor(time_series, ending_point)
 
             for ax in ("X-AXIS", "Y-AXIS", "Z-AXIS"):
-                #axis_data = sensor_data[[c for c in sensor_data.columns if ax.split('-')[0].lower() in c.lower()]].values.ravel()
                 axis_data = sensor_data[ax + unit].values
                 window_data = np.array(axis_data[adjusted_starting_index:adjusted_ending_index])
                 column_name = sensor_name + '_' + ax
@@ -350,7 +349,7 @@ def calculate_correlation_between_axes(sensor_data):
         x_z_corr = 0
     else:
         x_z_corr =np.corrcoef(sensor_data_x, sensor_data_z)[0, 1]
-    mean_corr = np.mean(y_z_corr, x_z_corr, x_y_corr)
+    mean_corr = np.mean([y_z_corr, x_z_corr, x_y_corr])
     return [x_y_corr, y_z_corr, x_z_corr, mean_corr]
 
 
@@ -362,50 +361,43 @@ def add_basic_metrics(df, column_names, num_features):
     for column in column_names:
             new_columns[column + '_mean'] = df[column].apply(calculate_list_mean)
             print(f"added {column + '_mean'} column")
-            # print(new_columns[column + '_mean'])
             num_features += 1
+
             new_columns[column + '_std'] = df[column].apply(calculate_list_STD)
             print(f"added {column + '_std'} column")
-            #print(new_columns[column + '_std'])
+
             num_features += 1
             new_columns[column + '_median'] = df[column].apply(calculate_list_median)
-            #print(f"added {column + '_median'} column")
-            print(new_columns[column + '_median'])
+            print(f"added {column + '_median'} column")
+
             num_features += 1
             if not "SM" in column:
                 new_columns[column + '_RMS'] = df[column].apply(calculate_list_RMS)
-                #print(f"added {column + '_RMS'} column")
-                print(new_columns[column + '_RMS'])
+                print(f"added {column + '_RMS'} column")
                 num_features += 1
 
             new_columns[column + '_IQR'] = df[column].apply(calculate_list_IQR)
             print(f"added {column + '_IQR'} column")
-            #print(new_columns[column + '_IQR'])
             num_features += 1
 
             new_columns[column + '_max'] = df[column].apply(calculate_list_max)
             print(f"added {column + '_max'} column")
-            # print(new_columns[column + '_max'])
             num_features += 1
 
             new_columns[column + '_min'] = df[column].apply(calculate_list_min)
             print(f"added {column + '_min'} column")
-            # print(new_columns[column + '_min'])
             num_features += 1
 
             new_columns[column + '_peak_to_peak'] = df[column].apply(calculate_peak_to_peak_difference)
             print(f"added {column + '_peak_to_peak'} column")
-            # print(new_columns[column + '_peak_to_peak'])
             num_features += 1
 
             new_columns[column + '_number_of_zero_crossing'] = df[column].apply(calculate_zero_crossing)
             print(f"added {column + '_number_of_zero_crossing'} column")
-            #print(new_columns[column + '_number_of_zero_crossing'])
             num_features += 1
 
             new_columns[column + '_MAD'] = df[column].apply(calculate_list_MAD)
             print(f"added {column + '_MAD'} column")
-            #print(new_columns[column + '_MAD'])
             num_features += 1
 
             #this column is calculated for later extracting the dominant power column, and will be soon deleted
@@ -418,12 +410,12 @@ def add_basic_metrics(df, column_names, num_features):
                 #computing RMS
                 new_columns[sensor_name + '_RMS_Total'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_sensor_RMS,axis=1)
                 print(f"added {sensor_name + '_RMS_Total'} column")
-                # print(new_columns[sensor_name + '_RMS_Total'])
+
                 num_features += 1
                 # computing mean distance between axes
                 new_columns[sensor_name + '_mean_dist_between_axes'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_mean_distance_between_axes,axis=1)
                 print(f"added {sensor_name + '_mean_dist_between_axes'} column")
-                # print(new_columns[sensor_name + '_mean_dist_between_axes'])
+
                 num_features += 1
                 # we also add a column which have the dominant axis energy
                 # computing dominant axis energy
@@ -433,8 +425,8 @@ def add_basic_metrics(df, column_names, num_features):
                 df = df.drop(columns=[sensor_name + '_' + "X-AXIS"+ '_power', sensor_name + '_' + "Y-AXIS"+ '_power', sensor_name + '_' + "Z-AXIS"+ '_power'])
 
                 #computing correlation coefficient between axes
-                feature_suffixes = ['X_Y_CORR', 'Z_Y_CORR', 'X_Z_CORR', 'MEAN_CORR']
-                features_series = df[column].apply(
+                feature_suffixes = ['X_Y_CORR', 'Z_Y_CORR', 'X_Z_CORR', 'MEAN_AXES_CORR']
+                features_series = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(
                     lambda x: pd.Series(
                         calculate_correlation_between_axes(x),
                         index=feature_suffixes  #  defining the name of returned columns
@@ -442,10 +434,10 @@ def add_basic_metrics(df, column_names, num_features):
                 )
                 #adding to the dict
                 for suffix in feature_suffixes:
-                    col_name = f"{column}_{suffix}"
+                    col_name = f"{sensor_name}_{suffix}"
                     new_columns[col_name] = features_series[suffix]
                     print(f"added {col_name} column")
-                    num_features += 4
+                    num_features += 1
 
                 #Now we concatenate the newly created dict to the df - just one addition
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -515,20 +507,7 @@ def add_time_dependent_features(df, column_list, num_features):
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new, num_features
 
-    # def calculate_rise_time(data_list):
-    #     #we calculate the rise time, which is the time took the signal get from the 10% percentile value to 90% percentile value
-    #     data_list = safe_unwrap(data_list)  # making the check about the data list
-    #     if data_list is not None:
-    #         point_of_10 = np.percentile(data_list, 0.1)
-    #         point_of_90 = np.percentile(data_list, 0.9)
-    #         index_of_10 = np.where(data_list == point_of_10)
-    #         index_of_90 = np.where(data_list == point_of_90)
-    #
-    #         rise_time = abs(index_of_90 - index_of_10)
-    #
-    #         return rise_time
-    #     else:
-    #         return np.nan
+
 ##-------statistical-based features-------##
 def compute_skewness(data_list):
     from scipy.stats import skew
@@ -745,7 +724,62 @@ def add_frequency_domain_features(df, column_list, num_features):
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new, num_features
 
-##-------EMD features-------##
+#------ Derivative features------##
+
+def compute_derivatives(data_list, sampling_rate=50):
+    # We add metrics which are connected to the derivative, whose physical interpretation is the velocity and acceleration.
+    # By looking at the velocity and acceleration, we can learn about the change in movement during the period we are looking at.
+    data_list = safe_unwrap(data_list)
+    if data_list is not None:
+        # we receive the data of this window and the sampling rate, and calculate the first and second derivative - the velocity and acceleration.
+        velocity =  np.diff(data_list) / (1/sampling_rate)
+        acceleration = np.diff(velocity) / (1/sampling_rate)
+
+        #we find the standard deviation of the movement to see how the velocity and acceleration changed during the window
+        velocity_std = np.std(velocity)
+        acceleration_std = np.std(acceleration)
+
+        # We find the median of the velocity and acceleration, as it is unbiased metric to evaluate the middle point.
+        velocity_median = np.median(velocity)
+        acceleration_median = np.median(acceleration)
+
+        # We find the kurtosis, as it allows to understand whether there were more changes in the negative or the positive direction in the velocity and the jerk
+        velocity_kurtosis = compute_kurtosis(velocity)
+        acceleration_kurtosis = compute_kurtosis(acceleration)
+
+
+        return velocity_std, acceleration_std,  velocity_median, acceleration_median, velocity_kurtosis, acceleration_kurtosis
+
+
+    else:
+        return np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
+
+def add_derivative_features(df, column_list, num_features):
+    #Here, we just add the derivatives' features for every axis and the combined magnitude for the Acc and Gyro.
+    # The magnometer is not relevant for these features.
+    new_columns = {}
+
+    feature_suffixes = ['velocity_std', 'jerk_std', 'velocity_median',
+                        'jerk_median', 'velocity_kurtosis','jerk_kurtosis']
+    for column in column_list:
+        if "MAG" not in column:
+            features_series = df[column].apply(
+                lambda x: pd.Series(
+                    compute_derivatives(x, sampling_rate= 50),
+                    index=feature_suffixes  # defining the name of returned columns
+                )
+            )
+        # adding to the dict
+        for suffix in feature_suffixes:
+            col_name = f"{column}_{suffix}"
+            new_columns[col_name] = features_series[suffix]
+            print(f"added {col_name} column")
+
+        num_features += len(feature_suffixes)
+    df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
+    return df_new, num_features
+
+##-------EMD features - wasn't used at the end-------##
 
 def find_imfs_properties(data_list):
     #It seems like the main factors are the std and relative energy of the imfs, so this will be our focus

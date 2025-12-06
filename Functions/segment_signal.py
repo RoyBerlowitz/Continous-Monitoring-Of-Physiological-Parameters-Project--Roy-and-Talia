@@ -143,8 +143,5 @@ def segment_signal(data_path, window_size, window_step, data_files):
     Y_vector = X_matrix['Label']
     X_matrix = X_matrix.drop(columns=['Label'])
 
-    # print(X_matrix[(X_matrix["First second of the activity"] != 0) &(X_matrix["Last second of the activity"] != 0)][:1000])
-    # print(Y_vector)
-
     return X_matrix, Y_vector
 

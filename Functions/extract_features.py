@@ -7,6 +7,7 @@ from .load_data import load_data
 ##-------Main function - extract features-------##
 
 def extract_features (data_path, X_matrix , data_files):
+    print ("extracting features ...")
     num_features = 0
 
     #defining the names of columns in which the data of each window is going to be saved into
@@ -31,20 +32,6 @@ def extract_features (data_path, X_matrix , data_files):
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong baseline wander on the entire data from a certain recording in a certain sensor
                 new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
-                # This was meant for the visualization of the data - to see if the baseline wander do work
-                # if (recording['Participant ID'] == 'A') & (recording['Group number'] == '02') & (recording['Recording number'] == '01'):
-                #     plt.figure()
-                #     plt.subplot(1,2,1)
-                #     plt.title("before baseline wander")
-                #     plt.plot(recording[sensor_name]['data']['elapsed (s)'.upper()],axis_data)
-                #     plt.subplot(1,2,2)
-                #     plt.title("after baseline wander")
-                #     plt.plot(recording[sensor_name]['data']['elapsed (s)'.upper()],new_axis_data)
-                #     plt.show()
-
-                # Conducting normalization on the entire data from a certain recording in a certain sensor - only if we want normaliation
-                #if normalization == True:
-                    #new_axis_data = normalize_data(new_axis_data)
                 recording[sensor_name]['data'][axis + unit] = new_axis_data
         # We use the pre-defined function in order to get the data for each window from each recording
         applying_windows(recording, X_matrix)
@@ -64,7 +51,7 @@ def extract_features (data_path, X_matrix , data_files):
 
     #We extract statistical metrics - Kurtosis and Skewness - our article-based features - we do it because we want to see how data behaves and normalization may change it.
     #Their formulas standardize the data so we give them the 'raw' data
-    #X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
+    X_features, num_features = add_disribution_features(X_features, columns_names, num_features)
     #Thus, normalization will be conducted later
 
     #we go over the recording to get the normalize data for the entire axis
@@ -73,17 +60,18 @@ def extract_features (data_path, X_matrix , data_files):
         for sensor_name in ["Acc", "Gyro", "Mag"]:
             if sensor_name == "Acc":
                 unit =" (G)"
+                dt = 1/50
             elif sensor_name == "Mag":
                 unit =" (T)"
+                dt = 1/25
             elif sensor_name == "Gyro":
                 unit =" (deg/s)".upper()
+                dt = 1/50
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 # Conducting normalization on the entire data from a certain recording in a certain sensor
                 normalized_axis_data = normalize_data(axis_data)
                 recording[sensor_name]['data'][axis + unit] = normalized_axis_data
-        #we change the window's data to be the normalized one.
-        applying_windows(recording, X_features)
 
     #Now, let's find the magnitude again, this time normalized.
     for sensor_name in ["Acc", "Gyro", "Mag"]:
@@ -91,23 +79,26 @@ def extract_features (data_path, X_matrix , data_files):
 
 
     #We extract the basic metrics - STD, mean, median, max, min, peak-to-peak difference, RMS, zero-crossing, IQR
-    #X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
+    X_features,num_features = add_basic_metrics(X_features, columns_names, num_features)
 
     #We extract the SR, Area Under Graph, etc
-    #X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
+    X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
 
-    # adding the imf traits
+    # adding the imf traits - wasn't efficient computationally
     #X_features, num_features = EMD_properties(X_features, columns_names, num_features)
 
-    #We find the COSUM feature - we do it only for  the Acc and Gyro as the changes in Mag is much less trackable and significant
-    # for column in columns_names:
-    #     if not "Mag" in column:
-    #         X_features = add_Cosum_metrics(X_features, column)
-    #         num_features += 4
-    #         if "SM" in column:
-    #             num_features -= 1
+    # Adding derivative-oriented features - the kurtosis, median and std of the velocity and acceleration in each window for Gyro and Acc
+    X_features, num_features = add_derivative_features(X_features, columns_names, num_features)
 
-    # #getting rid of the columns with the vectors of values
+    #We find the COSUM feature - we do it only for  the Acc and Gyro as the changes in Mag is much less trackable and significant
+    for column in columns_names:
+        if not "Mag" in column:
+            X_features = add_Cosum_metrics(X_features, column)
+            num_features += 4
+            if "SM" in column:
+                num_features -= 1
+
+    # getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)
 
     print(f"added {num_features} columns")
