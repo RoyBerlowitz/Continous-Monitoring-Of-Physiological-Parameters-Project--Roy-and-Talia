@@ -1,8 +1,10 @@
 import pandas as pd
 import os
 import time
+import numpy as np
 
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features, vet_features_split1, load_data
+from Functions.feature_correlation import find_best_windows
 
 #cosnts
 #todo change before handing in
@@ -13,7 +15,7 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     ##--------------- Part A: Segmentation ----------------##
     X_matrix, Y_vector = load_cache_or_compute(
         "segment_output.pkl",
-        lambda: segment_signal(data_path, 50, 25, data_files),
+        lambda: segment_signal(data_path, 7, 0.25*7, data_files),
         force_recompute=force_recompute_seg,
         save=is_dev
     )
@@ -29,7 +31,7 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     print("completed")
 
     #--------------- Part C: Train & Test ---------------##
-    splits = load_cache_or_compute(
+    [split1,split2]  = load_cache_or_compute(
         "splits.pkl",
         lambda: split_data(X_features, Y_vector),
         force_recompute=force_recompute_splits,
@@ -37,29 +39,47 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     )
 
     #--------------- Part D:  ---------------##
+    #This is the feature correlation function to choose best windows
+    # This check is long and the process of choosing is detailed in the feature_correlation script - it is not recommended to activate it
 
-
-    #--------------- Part E: Vetting & Normalization ---------------##
-    # split1, split2 = splits
-    # #split1
-    # split1_vet_features = load_cache_or_compute(
-    #     "split1_vet_features.pkl",
-    #     lambda: vet_features_split1(split1),
-    #     force_recompute=force_recompute_vet_features,
+    # טליה בבקשה תוסיפי force_recompute_features_corr
+    # overlap_options = [0.25]
+    # window_duration_options = np.linspace(5, 14, 10)
+    # article_features_top_windows_durations, article_features_full_windows_durations_ = load_cache_or_compute(
+    #     "article_features_full_windows_durations_.pkl",
+    #     lambda: find_best_windows(data_path, window_duration_options, overlap_options, 3, case = "distribution"),
+    #     force_recompute=force_recompute_features_corr,
     #     save=is_dev
     # )
     #
-    # #split2
-    # X_train, X_test, y_train, y_test = split2
-    # split2_vet_features = load_cache_or_compute(
-    #     "split2_vet_features.pkl",
-    #     lambda: vet_features(X_train, X_test, y_train),
-    #     force_recompute=force_recompute_vet_features,
+    # frequency_features_top_windows_durations, frequency_features_full_windows_durations_ = load_cache_or_compute(
+    #     "frequency_features_full_windows_durations_.pkl",
+    #     lambda: find_best_windows(data_path, window_duration_options, overlap_options, 3, case = "frequency"),
+    #     force_recompute=force_recompute_features_corr,
     #     save=is_dev
     # )
-    # split2_vet_features = list(split2_vet_features)
-    # split2_vet_features.append(y_train)
-    # split2_vet_features.append(y_test)
+
+    #--------------- Part E: Vetting & Normalization ---------------##
+
+    #split1
+    split1_vet_features = load_cache_or_compute(
+        "split1_vet_features.pkl",
+        lambda: vet_features_split1(split1),
+        force_recompute=force_recompute_vet_features,
+        save=is_dev
+    )
+
+    #split2
+    X_train, X_test, y_train, y_test = split2
+    split2_vet_features = load_cache_or_compute(
+        "split2_vet_features.pkl",
+        lambda: vet_features(X_train, X_test, y_train),
+        force_recompute=force_recompute_vet_features,
+        save=is_dev
+    )
+    split2_vet_features = list(split2_vet_features)
+    split2_vet_features.append(y_train)
+    split2_vet_features.append(y_test)
 
     return X_features, Y_vector
 
@@ -69,9 +89,7 @@ data_path = script_directory + "\data"
 
 if __name__ == "__main__":
     start_time = time.time()
-    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=False, force_recompute_splits=False ) #,force_recompute_vet_features=False)
-    X_features.to_excel("all_samp_features.xlsx",index=False)
+    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True, force_recompute_vet_features = True,  ) #,force_recompute_vet_features=False)
     end_time = time.time()
     print(f"Total time: {end_time - start_time}")
 
-#final_x = vet_features(X_features, Y_vector, split_name = "Individual Normalization", N=3, K= 10, threshold=0.8)
