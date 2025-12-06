@@ -62,7 +62,6 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             print(f"iteration {1+len(best_features)}: now checking {column}")
             #for every column, we examine the combination of the already chosen columns/features with the newly tested column
             subset_features = [column] + best_features
-            test_x = X_vetting[subset_features]
             k = len(subset_features)
             # We take the mean feature-to-label correlation for each column we check
             temp_r_cf = r_cf.loc[subset_features].mean()

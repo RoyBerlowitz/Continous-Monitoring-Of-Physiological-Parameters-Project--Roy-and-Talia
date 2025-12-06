@@ -89,7 +89,8 @@ data_path = script_directory + "\data"
 
 if __name__ == "__main__":
     start_time = time.time()
-    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True, force_recompute_vet_features = True,  ) #,force_recompute_vet_features=False)
+    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=False, force_recompute_vet_features = False) #,force_recompute_vet_features=False)
+    X_features.to_excel(script_directory + "\data\X_features.xlsx")
     end_time = time.time()
     print(f"Total time: {end_time - start_time}")
 
