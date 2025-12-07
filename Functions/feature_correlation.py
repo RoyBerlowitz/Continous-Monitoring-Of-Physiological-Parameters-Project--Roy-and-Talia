@@ -15,7 +15,7 @@ import time
 import pandas as pd
 
 
-data_path = r"C:\Users\nirei\PycharmProjects\Continous monitoring\data"
+# data_path = r"C:\Users\nirei\PycharmProjects\Continous monitoring\data"
 
 """
 As we were not sure what is the best way to divide the windows, and the full data from all participants was not yet available - 
@@ -101,10 +101,10 @@ def run_single_search(data_path, duration, overlap, case = "distribution"):
     data_files = load_data(data_path)
 
     # segmentation
-    X_matrix, Y_vector = segment_signal(data_path, duration, overlap * duration, data_files)
+    X_matrix, Y_vector = segment_signal(duration, overlap * duration, data_files,more_prints=True)
 
     # feature extraction
-    X_features = extract_features(data_path, X_matrix, data_files)
+    X_features = extract_features(X_matrix, data_files,more_prints=True)
 
     # we find the score - based on MI or Relief
     score = feature_correlation(X_features, Y_vector, case)

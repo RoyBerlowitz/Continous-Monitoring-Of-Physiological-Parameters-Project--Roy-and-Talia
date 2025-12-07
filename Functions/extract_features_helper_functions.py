@@ -353,51 +353,51 @@ def calculate_correlation_between_axes(sensor_data):
     return [x_y_corr, y_z_corr, x_z_corr, mean_corr]
 
 
-def add_basic_metrics(df, column_names, num_features):
+def add_basic_metrics(df, column_names, num_features, more_prints):
     #This method meant to find basic time dependent metrics to evaluate the data, in align with the functions
  #in order to achieve better running time, we will add a dict containing all the new columns, and then add them together
     new_columns = {}
 
     for column in column_names:
             new_columns[column + '_mean'] = df[column].apply(calculate_list_mean)
-            print(f"added {column + '_mean'} column")
+            if more_prints: print(f"added {column + '_mean'} column")
             num_features += 1
 
             new_columns[column + '_std'] = df[column].apply(calculate_list_STD)
-            print(f"added {column + '_std'} column")
+            if more_prints: print(f"added {column + '_std'} column")
 
             num_features += 1
             new_columns[column + '_median'] = df[column].apply(calculate_list_median)
-            print(f"added {column + '_median'} column")
+            if more_prints: print(f"added {column + '_median'} column")
 
             num_features += 1
             if not "SM" in column:
                 new_columns[column + '_RMS'] = df[column].apply(calculate_list_RMS)
-                print(f"added {column + '_RMS'} column")
+                if more_prints: print(f"added {column + '_RMS'} column")
                 num_features += 1
 
             new_columns[column + '_IQR'] = df[column].apply(calculate_list_IQR)
-            print(f"added {column + '_IQR'} column")
+            if more_prints: print(f"added {column + '_IQR'} column")
             num_features += 1
 
             new_columns[column + '_max'] = df[column].apply(calculate_list_max)
-            print(f"added {column + '_max'} column")
+            if more_prints: print(f"added {column + '_max'} column")
             num_features += 1
 
             new_columns[column + '_min'] = df[column].apply(calculate_list_min)
-            print(f"added {column + '_min'} column")
+            if more_prints: print(f"added {column + '_min'} column")
             num_features += 1
 
             new_columns[column + '_peak_to_peak'] = df[column].apply(calculate_peak_to_peak_difference)
-            print(f"added {column + '_peak_to_peak'} column")
+            if more_prints: print(f"added {column + '_peak_to_peak'} column")
             num_features += 1
 
             new_columns[column + '_number_of_zero_crossing'] = df[column].apply(calculate_zero_crossing)
-            print(f"added {column + '_number_of_zero_crossing'} column")
+            if more_prints: print(f"added {column + '_number_of_zero_crossing'} column")
             num_features += 1
 
             new_columns[column + '_MAD'] = df[column].apply(calculate_list_MAD)
-            print(f"added {column + '_MAD'} column")
+            if more_prints: print(f"added {column + '_MAD'} column")
             num_features += 1
 
             #this column is calculated for later extracting the dominant power column, and will be soon deleted
@@ -409,12 +409,12 @@ def add_basic_metrics(df, column_names, num_features):
 
                 #computing RMS
                 new_columns[sensor_name + '_RMS_Total'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_sensor_RMS,axis=1)
-                print(f"added {sensor_name + '_RMS_Total'} column")
+                if more_prints: print(f"added {sensor_name + '_RMS_Total'} column")
 
                 num_features += 1
                 # computing mean distance between axes
                 new_columns[sensor_name + '_mean_dist_between_axes'] = df[[sensor_name + '_' +"X-AXIS", sensor_name + '_' +"Y-AXIS", sensor_name + '_' + "Z-AXIS"]].apply(calculate_mean_distance_between_axes,axis=1)
-                print(f"added {sensor_name + '_mean_dist_between_axes'} column")
+                if more_prints: print(f"added {sensor_name + '_mean_dist_between_axes'} column")
 
                 num_features += 1
                 # we also add a column which have the dominant axis energy
@@ -436,7 +436,7 @@ def add_basic_metrics(df, column_names, num_features):
                 for suffix in feature_suffixes:
                     col_name = f"{sensor_name}_{suffix}"
                     new_columns[col_name] = features_series[suffix]
-                    print(f"added {col_name} column")
+                    if more_prints: print(f"added {col_name} column")
                     num_features += 1
 
                 #Now we concatenate the newly created dict to the df - just one addition
@@ -550,7 +550,7 @@ def compute_AbsCV(data_list):
     else:
         return np.nan
 
-def add_disribution_features(df, column_list, num_features):
+def add_disribution_features(df, column_list, num_features, more_prints):
     #This function is meant to find features which are connected to the distribution.
     #it receives as input a dataframe to conduct the calculation on and to add the features to,
     #a list of columns to calculate based on them, and at last - num_features that will be used for tracking the number of features addded.
@@ -559,15 +559,15 @@ def add_disribution_features(df, column_list, num_features):
     new_columns = {}
     for column in column_list:
         new_columns[column + '_skewness'] = df[column].apply(compute_skewness)
-        print(f"added {column + '_skewness'} column")
+        if more_prints: print(f"added {column + '_skewness'} column")
         # print(new_columns[column + '_skewness'])
         num_features += 1
         new_columns[column + '_kurtosis'] = df[column].apply(compute_kurtosis)
-        print(f"added {column + '_kurtosis'} column")
+        if more_prints: print(f"added {column + '_kurtosis'} column")
         # print(new_columns[column + '_kurtosis'])
         num_features += 1
         new_columns[column + "_AbsCV"] = df[column].apply(compute_AbsCV)
-        print(f"added {column + '_AbsCV'} column")
+        if more_prints: print(f"added {column + '_AbsCV'} column")
 
         num_features += 1
     #Now we concatenate the newly created dict to the df - just one addition
@@ -589,7 +589,7 @@ def calculate_cusum(series, target, slack):
         cusum_list.append(current_cusum)
     return cusum_list
 
-def add_Cosum_metrics (df, column):
+def add_Cosum_metrics (df, column, more_prints):
     #this function calculate the Cosum of a df[column].
 
     df = df.copy()  # In order to prevent warnings
@@ -644,7 +644,7 @@ def add_Cosum_metrics (df, column):
         #For the first column in a recording
         df.loc[new_df.index, column+'_Relative_STD_Shift'].fillna(0, inplace=True)
 
-    print(f"added {column} COSUM metrics")
+    if more_prints: print(f"added {column} COSUM metrics")
 
 
     return df
@@ -698,7 +698,7 @@ def calculate_frequency_domain_features(data_list, sampling_rate=50):
 
     return spectral_entropy, total_energy, freq_centroid, dominant_freq, freq_variance, psd_skewness, psd_kurtosis
 
-def add_frequency_domain_features(df, column_list, num_features):
+def add_frequency_domain_features(df, column_list, num_features, more_prints):
     # This function is meant to find features dependent on the frequency domain.
     # it receives as input a dataframe to conduct the calculation on and to add the features to,
     # a list of columns to calculate based on them, and at last - num_features that will be used for tracking the number of features addded.
@@ -721,7 +721,7 @@ def add_frequency_domain_features(df, column_list, num_features):
         for suffix in feature_suffixes:
             col_name = f"{column}_{suffix}"
             new_columns[col_name] = features_series[suffix]
-            print(f"added {col_name} column")
+            if more_prints: print(f"added {col_name} column")
 
         num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -757,7 +757,7 @@ def compute_derivatives(data_list, sampling_rate=50):
     else:
         return np.nan, np.nan, np.nan, np.nan, np.nan, np.nan
 
-def add_derivative_features(df, column_list, num_features):
+def add_derivative_features(df, column_list, num_features, more_prints):
     #Here, we just add the derivatives' features for every axis and the combined magnitude for the Acc and Gyro.
     # The magnometer is not relevant for these features.
     new_columns = {}
@@ -776,7 +776,7 @@ def add_derivative_features(df, column_list, num_features):
             for suffix in feature_suffixes:
                 col_name = f"{column}_{suffix}"
                 new_columns[col_name] = features_series[suffix]
-                print(f"added {col_name} column")
+                if more_prints: print(f"added {col_name} column")
 
             num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
@@ -817,7 +817,7 @@ def find_imfs_properties(data_list):
 
 
 
-def EMD_properties(df, column_list, num_features, n_jobs=-1) :
+def EMD_properties(df, column_list, num_features, more_prints, n_jobs=-1) :
     #Now - we try to find EMD properties that will help us.
     #We use only the first and second IMFs, as we don't want to take all the Imfs to reduce complexity
     #and on the hand - those are the functions that express the changes the most.
@@ -840,7 +840,7 @@ def EMD_properties(df, column_list, num_features, n_jobs=-1) :
         for suffix in feature_suffixes:
             col_name = f"{column}_{suffix}"
             new_columns[col_name] = features_df[suffix]
-            print(f"added {col_name} column")
+            if more_prints: print(f"added {col_name} column")
 
         num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
