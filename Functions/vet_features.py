@@ -11,10 +11,6 @@ from .vet_features_healper_functions import *
 columns_not_to_normalize = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
 
 def feature_normalization(X_train,X_test,method='IQR'):
-    # features = [
-    #     col for col in X_train.columns
-    #     if col not in columns_not_to_normalize and X_train[col].dtype != 'object'
-    # ]
     features = [col for col in X_train.columns if col not in columns_not_to_normalize]
 
     #train norm
@@ -22,14 +18,14 @@ def feature_normalization(X_train,X_test,method='IQR'):
     X_train_norm = X_train.copy()
     X_train_norm[features] = norm_train.reshape(-1, len(features)) #this reshape makes the num of rows automatic (-1) and columns len of features. reshapes if flatten happened
 
-    #test norm
+    #test norm - uses scaler from the train data set
     norm_test = normalize_transform(X_test[features].values, scaler)
     X_test_norm = X_test.copy()
     X_test_norm[features] = norm_test.reshape(-1, len(features))
 
     return X_train_norm, X_test_norm
 
-def find_best_features_to_label_combination (X_train, Y_train, administrative_features, N=20, K= 10, threshold=0.8):
+def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=20, K= 10, threshold=0.8):
     #This function tries to find the 20 best features by using a filter method with the CFS metric.
     #It takes as an input X_train, which is the matrix that contains the data and the features
     #It also receives Y_train which gives the labels for each window.
@@ -48,7 +44,7 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
     # We want to keep the best features
     best_features = []
     results_log = []
-    print("started searching for best features")
+    if more_prints: print("started searching for best features")
     # As each iteration will add a feature to the best features (we are implementing forward algorithm),
     # we limit the while loop until we find N best features - which mean we have N item in the best_features list
     while len(best_features) < N:
@@ -59,7 +55,7 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
         column_to_add = None
         #We go over all the possible columns
         for column in candidate_columns:
-            print(f"iteration {1+len(best_features)}: now checking {column}")
+            if more_prints: print(f"iteration {1+len(best_features)}: now checking {column}")
             #for every column, we examine the combination of the already chosen columns/features with the newly tested column
             subset_features = [column] + best_features
             k = len(subset_features)
@@ -89,10 +85,10 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
         #We add the chosen feature to the list of best features, and remove it from the candidates - as it was chosen
         best_features.append(column_to_add)
         candidate_columns.remove(column_to_add)
-        print(f"Iteration {len(best_features)}:")
-        print(f"  Feature Added: {column_to_add}")
-        print(f"Current Subset of features: {best_features}")
-        print(f"  Current Subset Score: {best_score:.4f}")
+        if more_prints: print(f"Iteration {len(best_features)}:")
+        if more_prints: print(f"  Feature Added: {column_to_add}")
+        if more_prints: print(f"Current Subset of features: {best_features}")
+        if more_prints: print(f"  Current Subset Score: {best_score:.4f}")
         #Now, we get the correlation matrix of test_X.
         #we look for the correlation with the best feature and find the feature which have |0.8| or above correlation with the selected feature.
         #we remove the correlated features, so they will  not be added and we will get only uncorrelated features in the end.
@@ -104,7 +100,7 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             col for col in candidate_columns
             if col not in correlated_features
         ]
-        print(f"features removed: {correlated_features}")
+        if more_prints: print(f"features removed: {correlated_features}")
         #the dict is meant in order to be later transformed to excel for interpretability of what happened
         results_log.append({
             "iteration": len(best_features),
@@ -118,7 +114,8 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
     return best_features, results_log
 
 
-def vet_features_split1(split1):
+def vet_features_split1(split1, more_prints):
+    #each participant was normalized related to its own data. features were vetted for all participants together
     split1_X_trains, split1_X_tests, split1_Y_trains, split1_Y_tests = split1
     all_X_trains = []
     all_X_tests = []
@@ -138,13 +135,12 @@ def vet_features_split1(split1):
     all_X_tests = pd.concat(all_X_tests)
     all_Y_trains = pd.concat(all_Y_trains)
 
-    all_X_vetted, X_test_norm = vet_features(all_X_trains, all_X_tests, all_Y_trains)
+    all_X_vetted, X_test_norm = vet_features(all_X_trains, all_X_tests, all_Y_trains, more_prints)
 
     return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests)]
 
-def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
+def vet_features(X_train, X_test, Y_train, more_prints, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
     # Preforming the normalization
-    # return X_vetting, X_test_norm
     X_vetting, X_test_norm = feature_normalization(X_train,X_test, method='IQR')
 
 
@@ -152,39 +148,40 @@ def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalizatio
     if "__participant_key__"  in X_train.columns:
         administrative_features.append("__participant_key__")
     # we find the 20 best feature according to CFS and forward algorithm
-    best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features, N, K, threshold)
+    best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features,more_prints, N, K, threshold)
     #we keep the administrative features and most connected to label features, in both train and test
     features_to_keep = administrative_features + best_features
     X_vetting = X_vetting[features_to_keep]
     X_test_norm = X_test_norm[features_to_keep]
     #we try to see the correlation and the pair plot between the features we selected in order to see if we have chosen properly
-    print(X_vetting[best_features].corr())
-    #in order to have interpretability for the results, we export to excell with 3 sheets - one with the vetting results, one with the correlation between the features, and one with the pair plot
-    excel_file_path = f"{split_name} vetting data.xlsx"
-    writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
-    pd.DataFrame(results_log).to_excel(
-        writer,
-        sheet_name='Vetting Process Log',
-        index=False
-    )
-    X_vetting[best_features].corr(method = 'spearman').to_excel(
-        writer,
-        sheet_name='Correlation Matrix',
-        index=True)
-    writer.close()
+    if more_prints: print(X_vetting[best_features].corr())
 
-    # We display the pairplot
-    fig = sns.pairplot(pd.concat([X_vetting[best_features], Y_train.rename("Label")], axis=1), hue="Label")
-    plot_file_path = f"{split_name} pairplot.png"
-    fig.savefig(plot_file_path)
-    plt.close(fig)
+    ##!!!!!!!
+
+    # IF YOU WANT TO SEE THE VETTING PROCESS REMOVE THE COMMENT FROM THE FOLLOWING CODE
+
+    ##!!!!!!!
+    #in order to have interpretability for the results, we export to excell with 3 sheets - one with the vetting results, one with the correlation between the features, and one with the pair plot
+
+    # excel_file_path = f"{split_name} vetting data.xlsx"
+    # writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
+    # pd.DataFrame(results_log).to_excel(
+    #     writer,
+    #     sheet_name='Vetting Process Log',
+    #     index=False
+    # )
+    # X_vetting[best_features].corr(method = 'spearman').to_excel(
+    #     writer,
+    #     sheet_name='Correlation Matrix',
+    #     index=True)
+    # writer.close()
 
     return X_vetting, X_test_norm
 
 
 """ 
-We first calculated by the relief algorithm but it cosumes more memory than the computer can allocate.
-We left the fucntion of the selection by relief here, in case before the test we will change the window size and return to this
+We first calculated by the relief algorithm but it consumes more memory than the computer can allocate.
+We left the function of the selection by relief here, in case before the test we will change the window size and return to this
 """
 
 # def find_best_features_to_label_combination (X_train, Y_train, administrative_features, N=20, K= 10, threshold=0.8):

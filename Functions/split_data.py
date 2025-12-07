@@ -20,7 +20,7 @@ def split_data(X_features, Y_samples):
        list
            A two-element list containing:
 
-           1. **Split 1 — Within-Group Results**
+           1. Split 1 — Within-Group Results
               A list of lists, where each inner list corresponds to one participant
               and has the form:
                   [X_train, X_test, Y_train, Y_test]
@@ -28,7 +28,7 @@ def split_data(X_features, Y_samples):
               - Train = all Protocol recordings + 80% of that participant's Routine data
               - Test  = remaining 20% of that participant's Routine data
 
-           2. **Split 2 — Leave-Group-Out Results**
+           2. Split 2 — Leave-Group-Out Results
               A single list with the form:
                   [X_train, X_test, Y_train, Y_test]
 
