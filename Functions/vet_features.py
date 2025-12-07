@@ -142,7 +142,6 @@ def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalizatio
     # Preforming the normalization
     # return X_vetting, X_test_norm
     X_vetting, X_test_norm = feature_normalization(X_train,X_test, method='IQR')
-    print(len(X_vetting))
 
 
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
@@ -172,7 +171,9 @@ def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalizatio
 
     # We display the pairplot
     fig = sns.pairplot(pd.concat([X_vetting[best_features], Y_train.rename("Label")], axis=1), hue="Label")
-    plt.show()
+    plot_file_path = f"{split_name} pairplot.png"
+    fig.savefig(plot_file_path)
+    plt.close(fig)
 
     return X_vetting, X_test_norm
 

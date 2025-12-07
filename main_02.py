@@ -31,15 +31,17 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
         save=is_dev
     )
 
-    # X_features.to_excel(
-    #     r"C:\Users\nirei\PycharmProjects\Continous monitoring\data\X_features.xlsx",
-    #     engine='xlsxwriter',  # אופציונלי, אך טוב לוודא
-    #     engine_kwargs={'options': {'use_zip64': True}}
-    # )
 
+    # Saving the matrix
+    X_features.to_excel(
+        r"C:\Users\nirei\PycharmProjects\Continous monitoring\data\X_features.xlsx",
+        engine='xlsxwriter',
+        engine_kwargs={'options': {'use_zip64': True}}
+    )
     print('\033[32mFeature extraction completed\033[0m')
 
     #--------------- Part C: Train & Test ---------------##
+
     [split1,split2]  = load_cache_or_compute(
         "splits.pkl",
         lambda: split_data(X_features, Y_vector),

@@ -773,12 +773,12 @@ def add_derivative_features(df, column_list, num_features):
                 )
             )
         # adding to the dict
-        for suffix in feature_suffixes:
-            col_name = f"{column}_{suffix}"
-            new_columns[col_name] = features_series[suffix]
-            print(f"added {col_name} column")
+            for suffix in feature_suffixes:
+                col_name = f"{column}_{suffix}"
+                new_columns[col_name] = features_series[suffix]
+                print(f"added {col_name} column")
 
-        num_features += len(feature_suffixes)
+            num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new, num_features
 
