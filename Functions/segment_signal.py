@@ -3,8 +3,9 @@ import numpy as np
 
 
 # Window step is the delay between each window. it can be chosen in various ways, for overlapping or not.
-def segment_signal(data_path, window_size, window_step, data_files):
-    print('============================ Segmenting signal again :)))')
+def segment_signal(window_size, window_step, data_files, is_dev):
+    if is_dev: print('============================ Segmenting signal again :)))')
+
     handwahses_dict = {}
     hand_washing_duration_list = []
     keys = data_files.keys()
@@ -28,7 +29,6 @@ def segment_signal(data_path, window_size, window_step, data_files):
 
         relevant_phases = recording[(recording["Label".upper()] == 1)]
 
-
         for index, row in relevant_phases.iterrows():
             # we extract the times of handwashing activities, and also see the Mean and Std to effectively declare windows
             start_col = 'Start (Seconds from Recording Start)'.upper()
@@ -40,13 +40,13 @@ def segment_signal(data_path, window_size, window_step, data_files):
 
             hand_washing_duration_list.append(total_duration)
             data_files[key]['Handwashing time'].append((start, end))
-            print(f"Handwashing recording times for {key}: {(start, end)}, {total_duration} seconds")
+            if is_dev: print(f"Handwashing recording times for {key}: {(start, end)}, {total_duration} seconds")
             handwahses_dict[f"{data_files[key]['Group number']}_{data_files[key]['Participant ID']}"] = handwahses_dict.get(f"{data_files[key]['Group number']}_{data_files[key]['Participant ID']}", 0) +1
 
     # print(len(hand_washing_duration_list))
     print(f"the average hand washing duration is: {np.mean(hand_washing_duration_list):3.2f}")
     print(f"the standard deviation of hand washing duration is: {np.std(hand_washing_duration_list):3.2f}")
-    print (handwahses_dict)
+    if is_dev: print(handwahses_dict)
 
     def create_window(window_size, window_step, recording):
         # at first, we commit check that each recording starts with 0. if not, we "normalize" the data by creating a reset to zero
@@ -136,7 +136,7 @@ def segment_signal(data_path, window_size, window_step, data_files):
                         'Recording number': recording['Recording number'], 'Protocol': recording['Protocol'],
                         'Label': label}
             X_matrix.loc[len(X_matrix.index)] = row_dict
-            if (len(X_matrix.index) - 1) % 1000 == 0:
+            if is_dev and (len(X_matrix.index) - 1) % 1000 == 0:
                 print(f"row {len(X_matrix.index) - 1} has been added")
 
     #Creating the labels vector

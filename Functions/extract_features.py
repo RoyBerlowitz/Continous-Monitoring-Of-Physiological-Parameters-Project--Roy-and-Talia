@@ -1,13 +1,12 @@
 import copy
 
 from .extract_features_helper_functions import *
-from .load_data import load_data
 
-##-------Part B: Feature Extraction - Helper Functions-------
 ##-------Main function - extract features-------##
 
-def extract_features (data_path, X_matrix , data_files):
-    print ("extracting features ...")
+def extract_features (X_matrix , data_files, is_dev):
+    if is_dev: print ("extracting features again ...")
+
     num_features = 0
 
     #defining the names of columns in which the data of each window is going to be saved into
@@ -105,7 +104,7 @@ def extract_features (data_path, X_matrix , data_files):
     cols_to_drop = (X_features == 0).all()
     zero_cols = X_features.columns[cols_to_drop]
     X_features = X_features.drop(columns=zero_cols)
-    print(f"added {num_features - len(zero_cols)} columns")
+    if is_dev: print(f"added {num_features - len(zero_cols)} columns")
 
     return X_features
 

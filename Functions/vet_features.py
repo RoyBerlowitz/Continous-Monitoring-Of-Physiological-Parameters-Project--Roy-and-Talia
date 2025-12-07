@@ -11,10 +11,6 @@ from .vet_features_healper_functions import *
 columns_not_to_normalize = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
 
 def feature_normalization(X_train,X_test,method='IQR'):
-    # features = [
-    #     col for col in X_train.columns
-    #     if col not in columns_not_to_normalize and X_train[col].dtype != 'object'
-    # ]
     features = [col for col in X_train.columns if col not in columns_not_to_normalize]
 
     #train norm
@@ -22,7 +18,7 @@ def feature_normalization(X_train,X_test,method='IQR'):
     X_train_norm = X_train.copy()
     X_train_norm[features] = norm_train.reshape(-1, len(features)) #this reshape makes the num of rows automatic (-1) and columns len of features. reshapes if flatten happened
 
-    #test norm
+    #test norm - uses scaler from the train data set
     norm_test = normalize_transform(X_test[features].values, scaler)
     X_test_norm = X_test.copy()
     X_test_norm[features] = norm_test.reshape(-1, len(features))
@@ -182,8 +178,8 @@ def vet_features(X_train, X_test, Y_train, split_name = "Individual Normalizatio
 
 
 """ 
-We first calculated by the relief algorithm but it cosumes more memory than the computer can allocate.
-We left the fucntion of the selection by relief here, in case before the test we will change the window size and return to this
+We first calculated by the relief algorithm but it consumes more memory than the computer can allocate.
+We left the function of the selection by relief here, in case before the test we will change the window size and return to this
 """
 
 # def find_best_features_to_label_combination (X_train, Y_train, administrative_features, N=20, K= 10, threshold=0.8):

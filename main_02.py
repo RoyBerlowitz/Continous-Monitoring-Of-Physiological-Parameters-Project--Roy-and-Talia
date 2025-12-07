@@ -1,40 +1,43 @@
-import pandas as pd
-import os
-import time
 import numpy as np
+import time
+import os
 
-from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features, vet_features_split1, load_data
-from Functions.feature_correlation import find_best_windows
+from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features, vet_features_split1, load_data, find_best_windows
 
 #cosnts
 #todo change before handing in
 is_dev = True #False
-def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features=True):
+
+def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_feature_corr = True, force_recompute_vet_features=True):
+
     data_files = load_data(data_path)
+    print('\033[32mData loaded\033[0m')
 
     ##--------------- Part A: Segmentation ----------------##
     X_matrix, Y_vector = load_cache_or_compute(
         "segment_output.pkl",
-        lambda: segment_signal(data_path, 7, 0.25*7, data_files),
+        lambda: segment_signal(7, 0.25*7, data_files, is_dev),
         force_recompute=force_recompute_seg,
         save=is_dev
     )
 
+    print('\033[32mSegmentation completed\033[0m')
+
     ##--------------- Part B: Feature Extraction -----------##
     X_features = load_cache_or_compute(
         "X_features.pkl",
-        lambda: extract_features(data_path, X_matrix, data_files),
+        lambda: extract_features(X_matrix, data_files, is_dev),
         force_recompute=force_recompute_features,
         save=is_dev
     )
 
-    print("completed")
+    # X_features.to_excel(
+    #     r"C:\Users\nirei\PycharmProjects\Continous monitoring\data\X_features.xlsx",
+    #     engine='xlsxwriter',  # אופציונלי, אך טוב לוודא
+    #     engine_kwargs={'options': {'use_zip64': True}}
+    # )
 
-    X_features.to_excel(
-        r"C:\Users\nirei\PycharmProjects\Continous monitoring\data\X_features.xlsx",
-        engine='xlsxwriter',  # אופציונלי, אך טוב לוודא
-        engine_kwargs={'options': {'use_zip64': True}}
-    )
+    print('\033[32mFeature extraction completed\033[0m')
 
     #--------------- Part C: Train & Test ---------------##
     [split1,split2]  = load_cache_or_compute(
@@ -44,24 +47,25 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
         save=is_dev
     )
 
+    print('\033[32mTrain test split completed\033[0m')
+
     #--------------- Part D:  ---------------##
-    #This is the feature correlation function to choose best windows
+    # This is the feature correlation function to choose best windows
     # This check is long and the process of choosing is detailed in the feature_correlation script - it is not recommended to activate it
 
-    # טליה בבקשה תוסיפי force_recompute_features_corr
     # overlap_options = [0.25]
     # window_duration_options = np.linspace(5, 14, 10)
     # article_features_top_windows_durations, article_features_full_windows_durations_ = load_cache_or_compute(
     #     "article_features_full_windows_durations_.pkl",
     #     lambda: find_best_windows(data_path, window_duration_options, overlap_options, 3, case = "distribution"),
-    #     force_recompute=force_recompute_features_corr,
+    #     force_recompute=force_recompute_feature_corr,
     #     save=is_dev
     # )
     #
     # frequency_features_top_windows_durations, frequency_features_full_windows_durations_ = load_cache_or_compute(
     #     "frequency_features_full_windows_durations_.pkl",
     #     lambda: find_best_windows(data_path, window_duration_options, overlap_options, 3, case = "frequency"),
-    #     force_recompute=force_recompute_features_corr,
+    #     force_recompute=force_recompute_feature_corr,
     #     save=is_dev
     # )
 
@@ -87,15 +91,17 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
     split2_vet_features.append(y_train)
     split2_vet_features.append(y_test)
 
-    return X_features, Y_vector
+    print('\033[32mFeature vetting completed\033[0m')
+
+    return split1_vet_features, split2_vet_features
 
 script_path = os.path.abspath(__file__)
 script_directory = os.path.dirname(script_path)
-data_path = script_directory + "\data"
+data_path = os.path.join(script_directory, "data")
 
 if __name__ == "__main__":
     start_time = time.time()
-    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features = True) #,force_recompute_vet_features=False)
+    split1_dfs, split2_dfs = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=False, force_recompute_vet_features = False)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")
