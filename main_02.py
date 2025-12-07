@@ -30,6 +30,12 @@ def run_part_a(data_path, force_recompute_seg=True, force_recompute_features=Tru
 
     print("completed")
 
+    X_features.to_excel(
+        r"C:\Users\nirei\PycharmProjects\Continous monitoring\data\X_features.xlsx",
+        engine='xlsxwriter',  # אופציונלי, אך טוב לוודא
+        engine_kwargs={'options': {'use_zip64': True}}
+    )
+
     #--------------- Part C: Train & Test ---------------##
     [split1,split2]  = load_cache_or_compute(
         "splits.pkl",
@@ -89,8 +95,8 @@ data_path = script_directory + "\data"
 
 if __name__ == "__main__":
     start_time = time.time()
-    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=False, force_recompute_vet_features = False) #,force_recompute_vet_features=False)
-    X_features.to_excel(script_directory + "\data\X_features.xlsx")
+    X_features, Y_vector = run_part_a(data_path, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features = True) #,force_recompute_vet_features=False)
+
     end_time = time.time()
-    print(f"Total time: {end_time - start_time}")
+    print(f"Total time: {end_time - start_time} sec")
 
