@@ -430,7 +430,7 @@ def add_basic_metrics(df, column_names, num_features):
                     lambda x: pd.Series(
                         calculate_correlation_between_axes(x),
                         index=feature_suffixes  #  defining the name of returned columns
-                    )
+                    ),axis=1
                 )
                 #adding to the dict
                 for suffix in feature_suffixes:
@@ -597,7 +597,8 @@ def add_Cosum_metrics (df, column):
     #we create the columns that will be added
     df[column+'_Mean_Shift'] = np.nan
     df[column+'_CUSUM+_Feature'] = np.nan
-    df[column+'_CUSUM-_Feature'] = np.nan
+    if not "SM" in column:
+        df[column+'_CUSUM-_Feature'] = np.nan
 
     #Cosum is tracking the movement in the window, but we do not want to compare separate recordings.
     # This metric is preformed on a normalize data and each recording was normalize separately, so we group each recording by using its identifiers.
@@ -640,6 +641,8 @@ def add_Cosum_metrics (df, column):
             df.loc[new_df.index, column+'_CUSUM-_Feature'] = cusum_neg_values
         df.loc[new_df.index, column+'_Mean_Shift'] = mean_shift
         df.loc[new_df.index, column+'_Relative_STD_Shift'] = std_relative_shift
+        #For the first column in a recording
+        df.loc[new_df.index, column+'_Relative_STD_Shift'].fillna(0, inplace=True)
 
     print(f"added {column} COSUM metrics")
 
@@ -743,7 +746,7 @@ def compute_derivatives(data_list, sampling_rate=50):
         velocity_median = np.median(velocity)
         acceleration_median = np.median(acceleration)
 
-        # We find the kurtosis, as it allows to understand whether there were more changes in the negative or the positive direction in the velocity and the jerk
+        # We find the kurtosis, as it allows to understand whether there were more changes in the negative or the positive direction in the velocity and the Acceleration
         velocity_kurtosis = compute_kurtosis(velocity)
         acceleration_kurtosis = compute_kurtosis(acceleration)
 
@@ -759,10 +762,10 @@ def add_derivative_features(df, column_list, num_features):
     # The magnometer is not relevant for these features.
     new_columns = {}
 
-    feature_suffixes = ['velocity_std', 'jerk_std', 'velocity_median',
-                        'jerk_median', 'velocity_kurtosis','jerk_kurtosis']
+    feature_suffixes = ['velocity_std', 'acceleration_std', 'velocity_median',
+                        'acceleration_median', 'velocity_kurtosis','acceleration_kurtosis']
     for column in column_list:
-        if "MAG" not in column:
+        if "Mag" not in column:
             features_series = df[column].apply(
                 lambda x: pd.Series(
                     compute_derivatives(x, sampling_rate= 50),
@@ -770,12 +773,12 @@ def add_derivative_features(df, column_list, num_features):
                 )
             )
         # adding to the dict
-        for suffix in feature_suffixes:
-            col_name = f"{column}_{suffix}"
-            new_columns[col_name] = features_series[suffix]
-            print(f"added {col_name} column")
+            for suffix in feature_suffixes:
+                col_name = f"{column}_{suffix}"
+                new_columns[col_name] = features_series[suffix]
+                print(f"added {col_name} column")
 
-        num_features += len(feature_suffixes)
+            num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new, num_features
 

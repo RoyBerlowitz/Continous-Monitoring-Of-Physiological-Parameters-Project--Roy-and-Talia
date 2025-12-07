@@ -101,7 +101,11 @@ def extract_features (data_path, X_matrix , data_files):
     # getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)
 
-    print(f"added {num_features} columns")
+    #Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
+    cols_to_drop = (X_features == 0).all()
+    zero_cols = X_features.columns[cols_to_drop]
+    X_features = X_features.drop(columns=zero_cols)
+    print(f"added {num_features - len(zero_cols)} columns")
 
     return X_features
 
