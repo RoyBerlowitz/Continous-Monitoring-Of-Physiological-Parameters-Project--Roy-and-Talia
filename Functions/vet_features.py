@@ -23,7 +23,7 @@ def feature_normalization(X_train,X_test,method='IQR'):
     X_test_norm = X_test.copy()
     X_test_norm[features] = norm_test.reshape(-1, len(features))
 
-    return X_train_norm, X_test_norm
+    return X_train_norm, X_test_norm, scaler
 
 def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=20, K= 10, threshold=0.8):
     #This function tries to find the 20 best features by using a filter method with the CFS metric.
@@ -121,14 +121,17 @@ def vet_features_split1(split1, more_prints):
     all_X_tests = []
     all_Y_trains = []
     all_Y_tests = []
+    all_scalers = []
 
     for i in range(len(split1_X_trains)):
         X_train, X_test, y_train, y_test = split1_X_trains[i], split1_X_tests[i], split1_Y_trains[i], split1_Y_tests[i]
         # X_train, X_test = vet_features(X_train, X_test, y_train)
+        X_train, X_test, scaler = feature_normalization(X_train, X_test, method='IQR')
         all_X_trains.append(X_train)
         all_X_tests.append(X_test)
         all_Y_trains.append(y_train)
         all_Y_tests.append(y_test)
+        all_scalers.append(scaler)
         # new_dfs.append([X_train, X_test, y_train, y_test])
 
     all_X_trains = pd.concat(all_X_trains)
@@ -137,15 +140,21 @@ def vet_features_split1(split1, more_prints):
 
     all_X_vetted, X_test_norm = vet_features(all_X_trains, all_X_tests, all_Y_trains, more_prints)
 
-    return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests)]
+    return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests), all_scalers]
 
-def vet_features(X_train, X_test, Y_train, more_prints, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
+def vet_features_split2(split2, more_prints):
+    split2_X_train, split2_X_test, split2_Y_train, split2_Y_test = split2
+    X_vetting, X_test_norm, scaler = feature_normalization(split2_X_train, split2_X_test, method='IQR')
+    X_vetting, X_test_norm = vet_features(X_vetting, X_test_norm, split2_Y_train, more_prints, split_name="Group normalization")
+
+    return [X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler]
+
+def vet_features(X_vetting, X_test_norm, Y_train, more_prints, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
     # Preforming the normalization
-    X_vetting, X_test_norm = feature_normalization(X_train,X_test, method='IQR')
-
+    # X_vetting, X_test_norm = feature_normalization(X_train,X_test, method='IQR')
 
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
-    if "__participant_key__"  in X_train.columns:
+    if "__participant_key__"  in X_vetting.columns:
         administrative_features.append("__participant_key__")
     # we find the 20 best feature according to CFS and forward algorithm
     best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features,more_prints, N, K, threshold)
