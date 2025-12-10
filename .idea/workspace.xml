@@ -5,16 +5,39 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5a93e656-ab41-41ca-9ffe-e1f059eade2a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Project_A.py" beforeDir="false" afterPath="$PROJECT_DIR$/Project_A.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/Continous monitoring.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Continous monitoring.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/main_02.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_02.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/rb.py" beforeDir="false" afterPath="$PROJECT_DIR$/rb.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;RoyBerlowitz&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/RoyBerlowitz/Continous-Monitoring-Of-Physiological-Parameters-Project--Roy-and-Talia.git&quot;,
+    &quot;accountId&quot;: &quot;92d21c09-916e-40fe-b5f5-b44ec6e4f666&quot;
+  }
+}</component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 4
 }</component>
@@ -26,10 +49,25 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.Project_A.executor": "Run",
+    "Python.extract_features.executor": "Run",
+    "Python.extract_features_helper_functions.executor": "Run",
+    "Python.feature_correlation.executor": "Run",
+    "Python.load_data.executor": "Run",
+    "Python.main_02.executor": "Run",
+    "Python.rb.executor": "Run",
+    "Python.segment_signal.executor": "Run",
+    "Python.vet_features.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "Merging main",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "git-widget-placeholder": "roee__branch",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
@@ -49,6 +87,14 @@
       <option name="presentableId" value="Default" />
       <updated>1763731236242</updated>
       <workItem from="1763731237320" duration="1000" />
+      <workItem from="1764416658846" duration="30436000" />
+      <workItem from="1764539026106" duration="3294000" />
+      <workItem from="1764596726671" duration="20735000" />
+      <workItem from="1764671252341" duration="16186000" />
+      <workItem from="1764741915646" duration="11533000" />
+      <workItem from="1764763952672" duration="9000" />
+      <workItem from="1764764623716" duration="31991000" />
+      <workItem from="1764840536270" duration="81089000" />
     </task>
     <servers />
   </component>
@@ -56,7 +102,14 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
-    <SUITE FILE_PATH="coverage/Continous_monitoring$rb.coverage" NAME="rb Coverage Results" MODIFIED="1764011278729" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$Project_A.coverage" NAME="Project_A Coverage Results" MODIFIED="1764228381398" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$feature_correlation.coverage" NAME="feature_correlation Coverage Results" MODIFIED="1764864146342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$rb.coverage" NAME="rb Coverage Results" MODIFIED="1764685041765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$vet_features.coverage" NAME="vet_features Coverage Results" MODIFIED="1764965905645" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features.coverage" NAME="extract_features Coverage Results" MODIFIED="1764779729972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$segment_signal.coverage" NAME="segment_signal Coverage Results" MODIFIED="1764860096289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$load_data.coverage" NAME="load_data Coverage Results" MODIFIED="1764794333097" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features_helper_functions.coverage" NAME="extract_features_helper_functions Coverage Results" MODIFIED="1765049631519" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$Project_A.coverage" NAME="Project_A Coverage Results" MODIFIED="1764683725690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$main_02.coverage" NAME="main_02 Coverage Results" MODIFIED="1765116354250" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
