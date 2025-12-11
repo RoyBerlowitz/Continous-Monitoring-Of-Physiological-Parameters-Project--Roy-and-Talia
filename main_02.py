@@ -4,7 +4,7 @@ import time
 import os
 
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features_split1, vet_features_split2, load_data, find_best_windows
-
+from Functions.select_features import select_features
 def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_load_data=True, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_feature_corr=True, force_recompute_vet_features=True):
     """
     Parameters of run_part_a which can be changed in call below
@@ -127,8 +127,12 @@ data_path = os.path.join(script_directory, "data")
 
 if __name__ == "__main__":
     start_time = time.time()
-    # split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=False, force_recompute_vet_features = False)
-    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True)
+    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=False,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=False, force_recompute_vet_features = False)
+    #split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True)
+    [split2_X_vetting, split2_X_test_norm, split2_Y_train, split2_Y_test, split2_scaler] = split2_dfs
+    [split1_X_vetting, split1_X_test_norm, split1_Y_train, split1_Y_test, split1_scaler] = split1_dfs
+    split2_X_selected = select_features(split1_X_vetting, split1_Y_train, split_name="Individual_split", stopping_criteria=0)
+    split1_X_selected = select_features(split2_X_vetting, split2_Y_train, split_name="Group_split", stopping_criteria=0)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")
