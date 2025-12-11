@@ -172,18 +172,18 @@ def vet_features(X_vetting, X_test_norm, Y_train, more_prints, split_name = "Ind
     ##!!!!!!!
     #in order to have interpretability for the results, we export to excell with 3 sheets - one with the vetting results, one with the correlation between the features, and one with the pair plot
 
-    # excel_file_path = f"{split_name} vetting data.xlsx"
-    # writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
-    # pd.DataFrame(results_log).to_excel(
-    #     writer,
-    #     sheet_name='Vetting Process Log',
-    #     index=False
-    # )
-    # X_vetting[best_features].corr(method = 'spearman').to_excel(
-    #     writer,
-    #     sheet_name='Correlation Matrix',
-    #     index=True)
-    # writer.close()
+    excel_file_path = f"{split_name} vetting data.xlsx"
+    writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
+    pd.DataFrame(results_log).to_excel(
+        writer,
+        sheet_name='Vetting Process Log',
+        index=False
+    )
+    X_vetting[best_features].corr(method = 'spearman').to_excel(
+        writer,
+        sheet_name='Correlation Matrix',
+        index=True)
+    writer.close()
 
     return X_vetting, X_test_norm
 
