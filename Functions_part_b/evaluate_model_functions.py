@@ -1,5 +1,3 @@
-import os
-
 import matplotlib.pyplot as plt
 from sklearn.metrics import (
     roc_auc_score,
@@ -10,6 +8,8 @@ from sklearn.metrics import (
     confusion_matrix
 )
 import pandas as pd
+import os
+import re
 
 def evaluate_one_model(model, model_name, X_test, y_test):
     # predict_proba - the prob of each row to be in each class.
@@ -90,15 +90,28 @@ def save_model_outputs_to_xlsx(model_outputs, folder_name):
     columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix']
     df[columns_to_save].to_excel(f'{folder_name}/model_outputs.xlsx')
 
-def create_folder_for_saving():
-    if not os.path.exists('model_outputs'):
-        os.makedirs('model_outputs')
 
-    folder_name = 1
+def create_folder_for_saving(split_name):
+    base_dir = "model_outputs"
 
-    while os.path.exists(f'model_outputs/{folder_name}'):
-        folder_name += 1
+    # Create base directory if it doesn't exist
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir)
 
-    os.makedirs(f'model_outputs/{folder_name}')
+    # Find existing folders that start with a number_
+    existing = os.listdir(base_dir)
+    indices = []
 
-    return f'model_outputs/{folder_name}'
+    for folder in existing:
+        match = re.match(r"(\d+)_", folder)
+        if match:
+            indices.append(int(match.group(1)))
+
+    # Determine next index
+    next_index = max(indices) + 1 if indices else 1
+
+    # Create new folder
+    folder_path = os.path.join(base_dir, f"{next_index}_{split_name}")
+    os.makedirs(folder_path)
+
+    return folder_path

@@ -1,6 +1,6 @@
 from .evaluate_model_functions import evaluate_one_model, plot_ROC, plot_PRC, save_model_outputs_to_xlsx, create_folder_for_saving
 
-def evaluate_model(models, model_names, X_test, y_test, save_model_outputs=False):
+def evaluate_model(models, model_names, X_test, y_test, save_model_outputs=False, split_name=None):
     # roc_auc
     # prc_auc
     # sensitivity
@@ -8,7 +8,7 @@ def evaluate_model(models, model_names, X_test, y_test, save_model_outputs=False
 
     folder_name = False
     if save_model_outputs:
-        folder_name = create_folder_for_saving()
+        folder_name = create_folder_for_saving(split_name)
 
     model_outputs = []
 
