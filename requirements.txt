@@ -9,4 +9,6 @@ scipy==1.16.3
 seaborn==0.13.2
 skrebate==0.62
 xlsxwriter==3.2.9
+xgboost==2.0.3
+
 
