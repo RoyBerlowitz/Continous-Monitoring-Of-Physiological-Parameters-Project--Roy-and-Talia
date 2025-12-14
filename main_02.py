@@ -5,6 +5,7 @@ import os
 
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features_split1, vet_features_split2, load_data, find_best_windows
 from Functions_part_b.select_features import select_features
+from Functions_part_b.SVM_classifier import preform_PCA
 def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_load_data=True, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_feature_corr=True, force_recompute_vet_features=True):
     """
     Parameters of run_part_a which can be changed in call below
@@ -131,8 +132,11 @@ if __name__ == "__main__":
     #split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True)
     [split2_X_vetting, split2_X_test_norm, split2_Y_train, split2_Y_test, split2_scaler] = split2_dfs
     [split1_X_vetting, split1_X_test_norm, split1_Y_train, split1_Y_test, split1_scaler] = split1_dfs
-    split2_X_selected = select_features(split1_X_vetting, split1_Y_train, split_name="Individual_split", stopping_criteria=0)
-    split1_X_selected = select_features(split2_X_vetting, split2_Y_train, split_name="Group_split", stopping_criteria=0)
+    split1_X_selected = select_features(split1_X_vetting, split1_Y_train, split_name="Individual_split", stopping_criteria=0)
+    split2_X_selected = select_features(split2_X_vetting, split2_Y_train, split_name="Group_split", stopping_criteria=0)
+    preform_PCA(split2_X_selected, split2_Y_train, n_dimensions =2, name="Individual Split")
+    preform_PCA(split1_X_selected, split2_Y_train, n_dimensions=2, name="Group Split")
+
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")

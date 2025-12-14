@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from scipy.stats import loguniform
-from sklearn.metrics import roc_auc_score, classification_report, recall_score, accuracy_score
+from sklearn.metrics import roc_auc_score, classification_report
 from scipy.stats import randint
 
 
