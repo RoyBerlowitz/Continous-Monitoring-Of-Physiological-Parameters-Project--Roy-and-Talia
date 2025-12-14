@@ -4,7 +4,7 @@ import time
 import os
 
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features_split1, vet_features_split2, load_data, find_best_windows
-from Functions.select_features import select_features
+from Functions_part_b.select_features import select_features
 def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_load_data=True, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_feature_corr=True, force_recompute_vet_features=True):
     """
     Parameters of run_part_a which can be changed in call below

@@ -42,7 +42,7 @@ def best_cut_point(values: np.ndarray, target: np.ndarray) -> Optional[Tuple[flo
         # we define the mean of the different values as the cut point.
         cut = (values_sorted[i] + values_sorted[i - 1]) / 2
         # we define the values before the cut as a "left" group
-        left = pd.Series(np.where(values <= cut, f"<= {cut:.4f}", f"> {cut:.4f}"))
+        left = pd.Series(np.where(values <= cut, 0, 1))
         # we calculate the CACC score of the discertiaztion
         cacc = contingency_coefficient(left, pd.Series(target))
         # if the CACC score is better, we define this cut as the best so far
@@ -51,33 +51,49 @@ def best_cut_point(values: np.ndarray, target: np.ndarray) -> Optional[Tuple[flo
     # we return the best cut and cacc if it not none
     return (best_cut, best_cacc) if best_cut is not None else None
 
-def CACC_discretization(column: pd.Series, target_series: pd.Series, column_name: str, min_gain: float = 1e-6) -> List[float]:
+def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str, min_gain: float = 0.02, max_bins_limit=20) -> List[float]: #min_samples_to_split: int = 200) -> List[float]:
 
     # Here, we recursively discretize a continuous attribute using CACC.
     # we return sorted list of cut points.
-    values = column.values
-    target = target_series.values
+
     print(f"started discretization for {column_name}")
     cut_points = []
 
 
     def recursive_cut(sub_values, sub_target):
+        # if len(sub_values) < 2 * min_samples_to_split:
+        #     return
+
         best = best_cut_point(sub_values, sub_target)
         if not best:
             return
+
+        if len(cut_points) + 1 >= max_bins_limit:
+            return cut_points
+
         cut, cacc = best
-        # Compute CACC before split
-        before_cacc = contingency_coefficient(pd.Series(np.repeat("all", len(sub_values))), pd.Series(sub_target))
+
+        # Compute CACC before split (תיקון ה-1 שביצענו)
+        before_cacc = contingency_coefficient(pd.Series(np.ones(len(sub_values))), pd.Series(sub_target))
+
+        # 🚨 בדיקה: האם הרווח גדול מהסף AND האם החיתוך ייצור קבוצות בגודל סביר
         if cacc - before_cacc > min_gain:
-            cut_points.append(cut)
             left_mask = sub_values <= cut
+
+            # # 🚨 תיקון 2: בדיקה אם שני הצדדים עומדים בגודל המינימלי
+            # if np.sum(left_mask) >= min_samples_to_split and np.sum(~left_mask) >= min_samples_to_split:
+            #     cut_points.append(cut)
+            #     recursive_cut(sub_values[left_mask], sub_target[left_mask])
+            #     recursive_cut(sub_values[~left_mask], sub_target[~left_mask])
+            cut_points.append(cut)
             recursive_cut(sub_values[left_mask], sub_target[left_mask])
             recursive_cut(sub_values[~left_mask], sub_target[~left_mask])
 
     recursive_cut(values, target)
-    print(f"completed discretization for {column_name}")
+    print(f"completed discretization for {column_name}. found {len(cut_points)} cuts")
 
     return sorted(cut_points)
+
 
 
 def discretize_colum(df: pd.DataFrame, column: str, cut_points: List[float]) -> pd.Series:
