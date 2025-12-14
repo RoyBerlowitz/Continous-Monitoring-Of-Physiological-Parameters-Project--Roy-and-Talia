@@ -2,3 +2,4 @@
 *.xlsx
 *.patch
 /data
+/model_outputs
