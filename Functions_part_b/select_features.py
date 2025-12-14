@@ -7,18 +7,16 @@ from joblib import Parallel, delayed
 
 
 def run_cacc_for_column(df: pd.DataFrame, col_name: str, y_target: pd.Series):
-    """
-    מבצע CACC ודיסקרטיזציה על עמודה בודדת ומחזיר את ה-Series החדש.
-    """
+    # This function takes as an input a dataframe and the column name which represent the feature column that should be discretized and a a target series.
+    # we first take the values of tje target and column and turn them to be np array
+    values = df[col_name].values
+    target = y_target.values
+    # we find the cut point acording to CACC algorithm
+    cut_points = CACC_discretization(values, target, col_name)
 
-    # 1. מציאת נקודות החיתוך (התהליך הרקורסיבי)
-    cut_points = CACC_discretization(df[col_name], y_target, col_name)
-
-    # 2. יישום נקודות החיתוך והמרת הסדרה לדיסקרטית (0, 1, 2...)
-    # נניח ש-discretize_column_correct הוגדרה כראוי
+    # we discretized the data acordding to the found cut points to be labeled as zero to the number of cut points found - 1
     discretized_series = discretize_colum(df, col_name, cut_points)
 
-    # מחזירים את שם העמודה והסדרה החדשה כדי שנוכל לשלב אותה בחזרה ב-DataFrame
     return col_name, discretized_series, cut_points
 
 def select_features(X_vetting, Y_train, split_name = "Individual_split", stopping_criteria = 0):
@@ -75,7 +73,7 @@ def select_features(X_vetting, Y_train, split_name = "Individual_split", stoppin
         writer,
         sheet_name='Relevance Vector',
         index=True)
-    pd.DataFrame(dict_of_discertization).to_excel(
+    pd.Series(dict_of_discertization).to_frame().to_excel(
         writer,
         sheet_name='Discretization process',
         index=True)
