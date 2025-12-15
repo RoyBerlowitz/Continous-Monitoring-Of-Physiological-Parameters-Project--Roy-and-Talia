@@ -52,7 +52,7 @@ def plot_ROC(model_outputs, folder_name):
     plt.figure()
 
     for m in model_outputs:
-        plt.plot(m['fpr'], m['tpr'], label=f'Model {m['model_name']} (AUC = {m['roc_auc']:.3f})')
+        plt.plot(m['fpr'], m['tpr'], label=f"Model {m['model_name']} (AUC = {m['roc_auc']:.3f})")
 
     plt.plot([0, 1], [0, 1], linestyle='--')
     plt.xlabel('False Positive Rate')
@@ -71,7 +71,7 @@ def plot_PRC(model_outputs, folder_name):
     plt.figure()
 
     for m in model_outputs:
-        plt.plot(m['recall'], m['precision'], label=f'Model {m['model_name']} (PRC AUC = {m['prc_auc']:.3f})')
+        plt.plot(m['recall'], m['precision'], label=f"Model {m['model_name']} (PRC AUC = {m['prc_auc']:.3f})")
 
     plt.xlabel('Recall')
     plt.ylabel('Precision')
