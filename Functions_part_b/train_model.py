@@ -3,7 +3,7 @@ import copy
 from .logistic_regression_model import train_logistic_regression
 from .xgboost_model import train_xgboost
 from .SVM_classifier import find_best_SVM_parameters, train_SVM
-from .Random_forest_model import find_best_random_forrest_parameters
+from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier
 #from .Random_forest_model import
 
 def choose_hyperparameters(train_df, target, n_dimensions,   params_range: dict, model="SVM",n_jobs = -1, n_iterations = 50, split_name = "Individual Split"):
@@ -38,7 +38,7 @@ def train_model(X_selected,Y_train, best_parameters, model_name):
         SVM_model = train_SVM( train_x, Y_train,val_df, val_labels, best_parameters, name = "Individual Split")
         return SVM_model
     if model_name == "Random Forest":
-        random_forest_model = train_xgboost( train_x, Y_train,best_parameters, name = "Individual Split")
+        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split")
 
 
     return train_logistic_regression(X_selected,Y_train), train_xgboost(X_selected,Y_train)

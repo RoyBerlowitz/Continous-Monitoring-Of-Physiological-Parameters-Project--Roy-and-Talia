@@ -144,10 +144,10 @@ if __name__ == "__main__":
     perform_PCA(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_dimensions =2, name="Individual Split")
     perform_PCA(split1_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_dimensions=2, name="Group Split")
 
-    best_params_split2 = find_best_SVM_parameters(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_jobs=-1, n_iterations=4, split_name="Group Split")
-    #best_params_split1 = find_best_SVM_parameters(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train, n_jobs=-1, n_iterations=50, split_name="Individual Split")
+    best_params_split2 = find_best_SVM_parameters(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_jobs=8, n_iterations=30, split_name="Group Split")
+    best_params_split1 = find_best_SVM_parameters(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train, n_jobs=8, n_iterations=30, split_name="Individual Split")
     train_SVM(split2_X_vetting.drop(administrative_features, axis=1),split2_Y_train,  split2_X_test_norm.drop(administrative_features, axis=1), split2_Y_test, best_params_split2, name="Group Split")
-    #train_SVM(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train,  split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, best_params_split1, name="Individual Split")
+    train_SVM(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train,  split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, best_params_split1, name="Individual Split")
 
 
 

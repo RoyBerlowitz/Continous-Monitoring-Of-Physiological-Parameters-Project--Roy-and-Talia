@@ -5,7 +5,9 @@ from sklearn.metrics import (
     precision_recall_curve,
     auc,
     recall_score,
-    confusion_matrix
+    confusion_matrix,
+    cohen_kappa_score,
+    accuracy_score,
 )
 import pandas as pd
 import os
@@ -13,8 +15,17 @@ import re
 
 def evaluate_one_model(model, model_name, X_test, y_test):
     # predict_proba - the prob of each row to be in each class.
-    # take the prob of being in class hand washing
+    # take the prob of being in class Handwashing
     y_prob = model.predict_proba(X_test)[:, 1]
+    y_predicted = model.predict(X_test)
+    # ---------- Accuracy ----------
+    accuracy = accuracy_score(y_test, y_predicted)
+
+    # ---------- Cohen's Kappa ----------
+    # Tries to estimate how bias the model prediction towards the majority group, by dividing  (accuracy minus ration of majority group) / (1 minus ration of majority group)
+    cohen_kappa = cohen_kappa_score(y_test, y_predicted)
+
+
 
     # ---------- ROC & AUC ----------
     roc_auc = roc_auc_score(y_test, y_prob) #Area Under the ROC Curve, higher better
