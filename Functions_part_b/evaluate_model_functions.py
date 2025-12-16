@@ -57,7 +57,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # [FN, TP]]
     confusion_matrx = confusion_matrix(y_test, y_pred)
 
-    return {'model_name':model_name, 'roc_auc':roc_auc, 'fpr':fpr, 'tpr': tpr, 'precision': precision, 'recall':recall, 'prc_auc':prc_auc, 'sensitivity': sensitivity, 'confusion_matrix':confusion_matrx}
+    return {'model_name':model_name, 'roc_auc':roc_auc, 'accuracy': accuracy, 'fpr':fpr, 'tpr': tpr, 'precision': precision, 'recall':recall, 'prc_auc':prc_auc, 'sensitivity': sensitivity, 'cohen_kappa': cohen_kappa, 'confusion_matrix':confusion_matrx}
 
 def plot_ROC(model_outputs, folder_name):
     plt.figure()
