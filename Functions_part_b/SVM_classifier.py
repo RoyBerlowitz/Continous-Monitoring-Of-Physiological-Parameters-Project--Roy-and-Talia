@@ -70,11 +70,11 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
         params_ranges = {"svm__C": loguniform(0.01, 30),
                          'svm__gamma': loguniform(0.0001, 0.5),
                          'pca__n_components': randint(3, len(train_df.columns) - 1),
-                         'svm__class_weight': [None, 'balanced'] }
+                         'svm__class_weight': ['balanced'] }
     else:
         params_ranges = {"svm__C": loguniform(0.01, 30),
                          'svm__gamma': loguniform(0.0001, 0.5),
-                         'svm__class_weight': [None, 'balanced'] }
+                         'svm__class_weight': ['balanced'] }
 
 
     # we add scoring metrics we will examine in the Excel.
@@ -166,7 +166,7 @@ def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name 
         gamma=gamma,
         random_state=42,
         probability=True,
-        class_weight=class_weight  # 🛑 השתמש במשתנה class_weight הנכון!
+        class_weight=class_weights  # 🛑 השתמש במשתנה class_weight הנכון!
     )))
 
     # best_SVM_parameters = Pipeline([
