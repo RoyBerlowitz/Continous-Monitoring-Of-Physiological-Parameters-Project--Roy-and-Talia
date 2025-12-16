@@ -5,8 +5,12 @@ import os
 import copy as copy
 
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features_split1, vet_features_split2, load_data, find_best_windows
+
 from Functions_part_b.select_features import select_features
 from Functions_part_b.SVM_classifier import perform_PCA, find_best_SVM_parameters, train_SVM
+from Functions_part_b.train_model import choose_hyperparameters
+from Functions_part_b.Random_forest_model import train_random_forest_classifier
+from Functions_part_b.evaluate_model import evaluate_model
 
 def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_load_data=True, force_recompute_seg=True, force_recompute_features=True, force_recompute_splits=True, force_recompute_feature_corr=True, force_recompute_vet_features=True):
     """
@@ -134,8 +138,8 @@ if __name__ == "__main__":
     #split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True)
     [split2_X_vetting, split2_X_test_norm, split2_Y_train, split2_Y_test, split2_scaler] = split2_dfs
     [split1_X_vetting, split1_X_test_norm, split1_Y_train, split1_Y_test, split1_scaler] = split1_dfs
-    # split1_X_selected = select_features(split1_X_vetting, split1_Y_train, split_name="Individual_split", stopping_criteria=0)
-    # split2_X_selected = select_features(split2_X_vetting, split2_Y_train, split_name="Group_split", stopping_criteria=0)
+    split1_X_selected, split2_X_test_norm = select_features(split1_X_vetting, split1_Y_train,split2_X_test_norm, split_name="Individual_split", stopping_criteria=0)
+    split2_X_selected, split1_X_test_norm = select_features(split2_X_vetting, split2_Y_train,split1_X_test_norm, split_name="Group_split", stopping_criteria=0)
 
 
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
@@ -146,9 +150,15 @@ if __name__ == "__main__":
 
     best_params_split2 = find_best_SVM_parameters(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_jobs=8, n_iterations=30, split_name="Group Split")
     best_params_split1 = find_best_SVM_parameters(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train, n_jobs=8, n_iterations=30, split_name="Individual Split")
-    train_SVM(split2_X_vetting.drop(administrative_features, axis=1),split2_Y_train,  split2_X_test_norm.drop(administrative_features, axis=1), split2_Y_test, best_params_split2, name="Group Split")
-    train_SVM(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train,  split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, best_params_split1, name="Individual Split")
+    train_SVM(split2_X_selected.drop(administrative_features, axis=1),split2_Y_train,  split2_X_test_norm.drop(administrative_features, axis=1), split2_Y_test, best_params_split2, name="Group Split")
+    train_SVM(split1_X_selected.drop(administrative_features, axis=1), split1_Y_train,  split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, best_params_split1, name="Individual Split")
 
+    best_params_for_split_2 = choose_hyperparameters(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train,  model = "Random Forest", n_jobs = -1, n_iterations = 50, split_name = "Group Split")
+    train_rf_split_2 = train_random_forest_classifier (split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, best_params_for_split_2, name = "Group Split")
+    train_rf_split_1_model_output = evaluate_model([train_rf_split_2], ['Random Forest'], split2_X_test_norm.drop(administrative_features, axis=1), split2_Y_test, save_model_outputs=True, split_name="Group Split")
+    best_params_for_split_1 = choose_hyperparameters(split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train,  model = "Random Forest", n_jobs = -1, n_iterations = 50, split_name = "Individual Split")
+    train_rf_split_1 = train_random_forest_classifier (split1_X_vetting.drop(administrative_features, axis=1), split1_Y_train, best_params_for_split_1, name = "Individual Split")
+    train_rf_split_2_model_output = evaluate_model([train_rf_split_1], ['Random Forest'], split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, save_model_outputs=True, split_name="Group Split")
 
 
     end_time = time.time()
