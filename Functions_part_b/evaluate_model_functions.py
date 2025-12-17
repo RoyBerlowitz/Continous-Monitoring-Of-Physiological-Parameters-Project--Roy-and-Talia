@@ -10,6 +10,7 @@ from sklearn.metrics import (
     accuracy_score,
 )
 import pandas as pd
+import numpy as np
 import os
 import re
 
@@ -17,7 +18,11 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # predict_proba - the prob of each row to be in each class.
     # take the prob of being in class Handwashing
     y_prob = model.predict_proba(X_test)[:, 1]
+
+    # ---------- Predictions ----------
+    # specific predicted label
     y_predicted = model.predict(X_test)
+
     # ---------- Accuracy ----------
     accuracy = accuracy_score(y_test, y_predicted)
 
@@ -31,17 +36,15 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     roc_auc = roc_auc_score(y_test, y_prob) #Area Under the ROC Curve, higher better
     # FPR (False Positive Rate) = Routine misclassified as Handwashing
     # TPR (True Positive Rate / Sensitivity) = Handwashing correctly detected
-    fpr, tpr, _ = roc_curve(y_test, y_prob)
+    fpr, tpr, roc_thresholds = roc_curve(y_test, y_prob)
+    best_roc_point = closest_point_roc(fpr, tpr, roc_thresholds)
 
     # ---------- Precision-Recall Curve (PRC) ----------
     # Precision - How many predicted washings were correct
     # Recall - How many real washings were detected
-    precision, recall, _ = precision_recall_curve(y_test, y_prob)
+    precision, recall, prc_thresholds = precision_recall_curve(y_test, y_prob)
+    best_prc_point = closest_point_prc(precision, recall, prc_thresholds)
     prc_auc = auc(recall, precision) # area under curve. higher better detection of label 1
-
-    # ---------- Predictions ----------
-    # specific predicted label
-    y_pred = model.predict(X_test)
 
     # ---------- Sensitivity (Recall for Class 1) ----------
     # how many real handwashing events were detected
@@ -50,14 +53,17 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # FP: Routine classified as Handwashing(false alarm)
     # FN: Missed handwashing(dangerous)
     # TP: Correct handwashing detection
-    sensitivity = recall_score(y_test, y_pred, pos_label=1)
+    sensitivity = recall_score(y_test, y_predicted, pos_label=1)
 
     # ---------- Confusion Matrices ----------
     #[[TN, FP],
     # [FN, TP]]
-    confusion_matrx = confusion_matrix(y_test, y_pred)
+    confusion_matrx = confusion_matrix(y_test, y_predicted)
 
-    return {'model_name':model_name, 'roc_auc':roc_auc, 'fpr':fpr, 'tpr': tpr, 'precision': precision, 'recall':recall, 'prc_auc':prc_auc, 'sensitivity': sensitivity, 'confusion_matrix':confusion_matrx}
+    return {'model_name':model_name, 'accuracy':accuracy, 'cohen_kappa':cohen_kappa,
+            'roc_auc':roc_auc, 'fpr':fpr, 'tpr': tpr, 'precision': precision, 'recall':recall,
+            'prc_auc':prc_auc, 'sensitivity': sensitivity, 'confusion_matrix':confusion_matrx,
+            'best_roc_point':best_roc_point, 'best_prc_point':best_prc_point}
 
 def plot_ROC(model_outputs, folder_name):
     plt.figure()
@@ -96,9 +102,31 @@ def plot_PRC(model_outputs, folder_name):
     else:
         plt.show()
 
+def closest_point_roc(fpr, tpr, thresholds):
+    distances = np.sqrt((fpr - 0)**2 + (tpr - 1)**2)
+    idx = np.argmin(distances)
+
+    return {
+        'fpr': fpr[idx],
+        'tpr': tpr[idx],
+        'threshold': thresholds[idx],
+        'distance': distances[idx]
+    }
+
+def closest_point_prc(precision, recall, thresholds):
+    distances = np.sqrt((recall - 1)**2 + (precision - 1)**2)
+    idx = np.argmin(distances)
+
+    return {
+        'precision': precision[idx],
+        'recall': recall[idx],
+        'threshold': thresholds[idx] if idx < len(thresholds) else None,
+        'distance': distances[idx]
+    }
+
 def save_model_outputs_to_xlsx(model_outputs, folder_name):
     df = pd.DataFrame(model_outputs)
-    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix']
+    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix', 'accuracy', 'cohen_kappa', 'best_roc_point', 'best_prc_point']
     df[columns_to_save].to_excel(f'{folder_name}/model_outputs.xlsx')
 
 
