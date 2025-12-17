@@ -19,7 +19,7 @@ def run_cacc_for_column(df: pd.DataFrame, col_name: str, y_target: pd.Series):
 
     return col_name, discretized_series, cut_points
 
-def select_features(X_vetting, Y_train, split_name = "Individual_split", stopping_criteria = 0):
+def select_features(X_vetting, Y_train, X_test, split_name = "Individual_split", stopping_criteria = 0):
     # we create the X_selected
     X_selected = copy.deepcopy(X_vetting)
     # we separate the administrative features from the features we check, to keep them for later use and becasue they won't be part of prediction anyway
@@ -56,6 +56,7 @@ def select_features(X_vetting, Y_train, split_name = "Individual_split", stoppin
     features_to_keep = administrative_features + best_features
     #we let only the administrative and selected features to remain
     X_selected = X_selected[features_to_keep]
+    X_test = X_test[features_to_keep]
     # X_test_norm = X_test_norm[features_to_keep]
     #we create excel file for intrepretabillity
     excel_file_path = f"{split_name} feature_selection.xlsx"
