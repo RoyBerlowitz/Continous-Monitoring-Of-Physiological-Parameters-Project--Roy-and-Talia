@@ -1,47 +1,27 @@
 from xgboost import XGBClassifier
 
-def train_xgboost(X_train, y_train,
-                  n_estimators=200,
-                  learning_rate=0.1,
-                  max_depth=6,
-                  subsample=0.8,
-                  colsample_bytree=0.8,
-                  random_state=42):
-    """
-    Train a simple XGBoost classifier model.
+from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi
 
-    Parameters
-    ----------
-    X_train : array-like or DataFrame
-        Training features.
-    y_train : array-like
-        Training labels.
-    n_estimators : int, default=200
-        Number of boosting rounds.
-    learning_rate : float, default=0.1
-        Step size shrinkage.
-    max_depth : int, default=6
-        Maximum depth of trees.
-    subsample : float, default=0.8
-        Fraction of samples used per tree.
-    colsample_bytree : float, default=0.8
-        Fraction of features used per tree.
-    random_state : int, default=42
-        Random seed.
+def find_best_hp_xgboost(X_train, y_train, split_name):
 
-    Returns
-    -------
-    model : fitted XGBClassifier model
-    """
+    # Grid search
+    # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
+    # results_grid.to_excel(f'{split_name}_xgboost_results_xgb_grid.xlsx')
+    # print(f'Saved {split_name}_xgboost_results_xgb_grid.xlsx')
+
+    # Randomized search
+    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train)
+    results_rand.to_excel(f'{split_name}_xgboost_results_xgb_rand.xlsx')
+    print(f'Saved {split_name}_xgboost_results_xgb_rand.xlsx')
+
+    return best_params_rand
+
+def train_xgboost(X_train, y_train, best_hp, random_state=42):
 
     model = XGBClassifier(
-        n_estimators=n_estimators,
-        learning_rate=learning_rate,
-        max_depth=max_depth,
-        subsample=subsample,
-        colsample_bytree=colsample_bytree,
         random_state=random_state,
-        eval_metric='logloss'
+        eval_metric='logloss',
+        **best_hp
     )
 
     model.fit(X_train, y_train)
