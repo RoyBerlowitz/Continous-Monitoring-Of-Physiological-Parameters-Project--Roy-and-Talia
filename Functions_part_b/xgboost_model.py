@@ -1,48 +1,17 @@
-from xgboost import XGBClassifier
+from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi
 
-def train_xgboost(X_train, y_train,
-                  n_estimators=200,
-                  learning_rate=0.1,
-                  max_depth=6,
-                  subsample=0.8,
-                  colsample_bytree=0.8,
-                  random_state=42):
-    """
-    Train a simple XGBoost classifier model.
+def train_xgboost(X_train, y_train):
 
-    Parameters
-    ----------
-    X_train : array-like or DataFrame
-        Training features.
-    y_train : array-like
-        Training labels.
-    n_estimators : int, default=200
-        Number of boosting rounds.
-    learning_rate : float, default=0.1
-        Step size shrinkage.
-    max_depth : int, default=6
-        Maximum depth of trees.
-    subsample : float, default=0.8
-        Fraction of samples used per tree.
-    colsample_bytree : float, default=0.8
-        Fraction of features used per tree.
-    random_state : int, default=42
-        Random seed.
+    # Grid search
+    # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
+    # print("XGBoost Grid Search Best Params:", best_params_grid)
+    # print(results_grid.head())
+    # results_grid.to_excel('results_xgb_grid.xlsx')
 
-    Returns
-    -------
-    model : fitted XGBClassifier model
-    """
+    # Randomized search
+    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train)
+    print("XGBoost Randomized Search Best Params:", best_params_rand)
+    print(results_rand.head())
+    results_rand.to_excel('results_xgb_rand.xlsx')
 
-    model = XGBClassifier(
-        n_estimators=n_estimators,
-        learning_rate=learning_rate,
-        max_depth=max_depth,
-        subsample=subsample,
-        colsample_bytree=colsample_bytree,
-        random_state=random_state,
-        eval_metric='logloss'
-    )
-
-    model.fit(X_train, y_train)
-    return model
+    return best_xgb_rand
