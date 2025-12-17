@@ -1,10 +1,16 @@
 from .evaluate_model_functions import evaluate_one_model, plot_ROC, plot_PRC, save_model_outputs_to_xlsx, create_folder_for_saving
-
-def evaluate_model(models, model_names, X_test, y_test, save_model_outputs=False, split_name=None):
+import copy as copy
+import pandas as pd
+def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False, split_name=None):
     # roc_auc
     # prc_auc
     # sensitivity
     # confusion_matrix
+
+    X_test = copy.deepcopy(test_x)
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
+    # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
+    X_test = X_test.drop(columns = administrative_features, inplace = True)
 
     folder_name = False
     if save_model_outputs:

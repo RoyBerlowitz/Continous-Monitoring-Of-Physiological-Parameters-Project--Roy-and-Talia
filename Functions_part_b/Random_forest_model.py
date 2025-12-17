@@ -23,7 +23,7 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     params_ranges = {'Random_Forest__n_estimators': randint(100, 500),
                      'Random_Forest__max_depth': [None]  + randint(10, 50),
                      'Random_Forest__min_samples_per_split': randint(2, 20),
-                     'svm__class_weight': [None, 'balanced'] }
+                     'Random_Forest__class_weight': [None, 'balanced'] }
 
     # we add scoring metrics we will examine in the Excel.
     # we chose AUC, Accuracy, F1_score and sensitivity
