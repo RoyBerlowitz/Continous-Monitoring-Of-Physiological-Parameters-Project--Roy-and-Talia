@@ -1,17 +1,28 @@
+from xgboost import XGBClassifier
+
 from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi
 
-def train_xgboost(X_train, y_train):
+def find_best_hp_xgboost(X_train, y_train, split_name):
 
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
-    # print("XGBoost Grid Search Best Params:", best_params_grid)
-    # print(results_grid.head())
-    # results_grid.to_excel('results_xgb_grid.xlsx')
+    # results_grid.to_excel(f'{split_name}_xgboost_results_xgb_grid.xlsx')
+    # print(f'Saved {split_name}_xgboost_results_xgb_grid.xlsx')
 
     # Randomized search
     best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train)
-    print("XGBoost Randomized Search Best Params:", best_params_rand)
-    print(results_rand.head())
-    results_rand.to_excel('results_xgb_rand.xlsx')
+    results_rand.to_excel(f'{split_name}_xgboost_results_xgb_rand.xlsx')
+    print(f'Saved {split_name}_xgboost_results_xgb_rand.xlsx')
 
-    return best_xgb_rand
+    return best_params_rand
+
+def train_xgboost(X_train, y_train, best_hp, random_state=42):
+
+    model = XGBClassifier(
+        random_state=random_state,
+        eval_metric='logloss',
+        **best_hp
+    )
+
+    model.fit(X_train, y_train)
+    return model

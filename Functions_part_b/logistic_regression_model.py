@@ -1,20 +1,30 @@
+from sklearn.linear_model import LogisticRegression
+
 from .logistic_regression_model_helper_functions import logistic_random_search_multi, logistic_grid_search_multi
 
-def train_logistic_regression(X_train, y_train):
+def find_best_hp_logistic_regression(X_train, y_train, split_name):
 
-    # Grid search
-    best_model_grid, best_params_grid, results_grid = logistic_grid_search_multi(X_train, y_train)
-    print("Grid Search Best Params:", best_params_grid)
-    print(results_grid.head())
-    results_grid.to_csv('results_grid_search.csv', index=False)
+    # # Grid search
+    # best_model_grid, best_params_grid, results_grid = logistic_grid_search_multi(X_train, y_train)
+    # results_grid.to_excel(f'{split_name}_logistic_results_grid_search.xlsx', index=False)
+    # print(f'Saved {split_name}_results_grid_search.xlsx')
 
     # Randomized search
     best_model_rand, best_params_rand, results_rand = logistic_random_search_multi(X_train, y_train)
-    print("Randomized Search Best Params:", best_params_rand)
-    print(results_rand.head())
-    results_rand.to_csv('results_rand_search.csv', index=False)
+    results_rand.to_excel(f'{split_name}_logistic_results_rand_search.xlsx', index=False)
+    print(f'Saved {split_name}_logistic_results_rand_search.xlsx')
 
-    return best_model_rand
+    return best_params_rand
+
+def train_logistic_regression(X_train, y_train, best_hp):
+
+    model = LogisticRegression(
+        max_iter=1000,
+        **best_hp
+    )
+
+    model.fit(X_train, y_train)
+    return model
 
 #possible hyperparams
 #Regularization
