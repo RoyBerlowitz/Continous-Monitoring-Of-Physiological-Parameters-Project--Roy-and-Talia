@@ -1,9 +1,9 @@
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
-from scipy.stats import loguniform, randint
+from scipy.stats import loguniform, randint, uniform
 from sklearn.model_selection import RandomizedSearchCV
-from sklearn.metrics import cohen_kappa_score, make_scorer
+from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
 
 
 def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_iterations = 50, split_name = "Individual Split"):
@@ -13,29 +13,35 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()
     # We create a pipeline of how we process the data in the stages of training the model
-    pipeline = Pipeline(['Random Forest Classifier', RandomForestClassifier(random_state=42)])
+    pipeline = Pipeline([('Random_Forest', RandomForestClassifier(random_state=42))])
 
     # We will determine the ranges of the values of the parameters.
     # we preform RandomSearch instead of GridSearch, as it allows to cover the space more completely.
     # we look for the parameters that will award us with the best combination between good prediction and no overfitting.
-    # all of the are randomly chosen as integers  from a declined range
+    # all of the parameters are randomly chosen as integers  from a declined range
     # class weight is examined to be between None and balanced which gives more weight the minority group and by that creates more balanced model
+    # max sample detrmine which percent of the data will be transmitted to each tree
     params_ranges = {'Random_Forest__n_estimators': randint(100, 500),
-                     'Random_Forest__max_depth': [None]  + randint(10, 50),
-                     'Random_Forest__min_samples_per_split': randint(2, 20),
-                     'svm__class_weight': [None, 'balanced'] }
+                     'Random_Forest__max_depth': randint(10, 41),
+                     'Random_Forest__min_samples_split': randint(20, 100),
+                     'Random_Forest__max_samples': uniform(0.5, 0.4),
+                     'Random_Forest__class_weight': ['balanced', 'balanced_subsample'] }
 
     # we add scoring metrics we will examine in the Excel.
     # we chose AUC, Accuracy, F1_score and sensitivity
     # We added also cohen's kappa as it is more informative regarding the bias of the model towards the majority group
     kappa_scorer = make_scorer(cohen_kappa_score)
+    specificity_scorer = make_scorer(recall_score, pos_label=0)
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
         'F1': 'f1_macro',
         'Sensitivity': 'recall_macro',
+        'Precision': 'precision',
+        'specificity': specificity_scorer,
         'PRC': 'average_precision',
-        'Kappa':  kappa_scorer
+        'Kappa':  kappa_scorer,
+
     }
 
     # Here we preform the search itself
@@ -65,11 +71,11 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     cols_to_save = ['params',
 
     # TRAIN SCORE
-    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity', 'mean_train_F1',
-    'mean_train_PRC', 'mean_train_Kappa',
+    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity','mean_train_Precision', 'mean_train_Sensitivity' 'mean_train_F1',
+    'mean_train_PRC', 'mean_train_Kappa', 'mean_train_specificity'
 
     # TEST SCORES
-    'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Sensitivity', 'mean_test_F1',
+    'mean_test_AUC', 'mean_test_Accuracy','mean_test_Precision', 'mean_test_Sensitivity', 'mean_test_F1',
     'mean_test_PRC', 'mean_test_Kappa',
 
     # Control columns
@@ -84,7 +90,7 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     # we return the best model
     return best_parameters
 
-def train_random_forest_classifier (train_df, train_labels, best_parameters, name = "Individual Split"):
+def train_random_forest_classifier (train_df, train_labels, best_parameters, name = "Individual Split", n_jobs = -1):
     # This function is meant to fit the model with the selected hyperparameters to the data
     # we start by adjusting the dimension of the validation labels.
 
@@ -92,10 +98,12 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, nam
     # we get the best params
     max_depth = best_parameters['Random_Forest__max_depth']
     n_estimators = best_parameters['Random_Forest__n_estimators']
-    min_samples_split = best_parameters['Random_Forest__min_samples_per_split']
+    min_samples_split = best_parameters['Random_Forest__min_samples_split']
     class_weight = best_parameters['Random_Forest__class_weight']
+    max_samples = best_parameters['Random_Forest__max_samples']
+    max_features = best_parameters.get('Random_Forest__max_features', 'sqrt')
     #we create the pipeline again
-    Random_Forest_pipeline = Pipeline(["Random Forest Classifier", RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, min_samples_split = min_samples_split, class_weight = class_weight, random_state=42)])
+    Random_Forest_pipeline = Pipeline([("Random_Forest", RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, min_samples_split = min_samples_split, class_weight = class_weight, max_samples = max_samples, random_state=42, n_jobs =n_jobs))])
 
     print (f"Starting Training the Random Forrest for {name}...")
     # we fit the model to the data

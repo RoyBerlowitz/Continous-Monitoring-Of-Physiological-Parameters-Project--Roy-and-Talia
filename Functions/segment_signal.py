@@ -98,7 +98,7 @@ def segment_signal(window_size, window_step, data_files, more_prints):
         # d. there is an overlap that starts with the start of the window periods and ends with the end point of the period
         # therefore, we calculate overlap in a way that take all of them into consideration, and assign the label if the overlap is at leat 50% of the window
 
-        #we are looping over all the times of handwashing in the recording
+            #we are looping over all the times of handwashing in the recording
         for timing in reference_timing_list:
             # the starting point of the joint period will be the maximum between the start of the window and the start of the handwashing
             overlap_start = max(window_starting_time, timing[0])

@@ -746,12 +746,16 @@ def compute_derivatives(data_list, sampling_rate=50):
         velocity_median = np.median(velocity)
         acceleration_median = np.median(acceleration)
 
-        # We find the kurtosis, as it allows to understand whether there were more changes in the negative or the positive direction in the velocity and the Acceleration
+        # We find the kurtosis, as it allows to understand whether thereare radical values velocity and the Acceleration
         velocity_kurtosis = compute_kurtosis(velocity)
         acceleration_kurtosis = compute_kurtosis(acceleration)
 
+        # We find the skewness, as it allows to understand whether there were more changes in the negative or the positive direction in the velocity and the Acceleration
+        velocity_skewness = compute_skewness(velocity)
+        acceleration_skewness = compute_skewness(acceleration)
 
-        return velocity_std, acceleration_std,  velocity_median, acceleration_median, velocity_kurtosis, acceleration_kurtosis
+
+        return velocity_std, acceleration_std,  velocity_median, acceleration_median, velocity_kurtosis, acceleration_kurtosis, velocity_skewness, acceleration_skewness
 
 
     else:
@@ -763,7 +767,7 @@ def add_derivative_features(df, column_list, num_features, more_prints):
     new_columns = {}
 
     feature_suffixes = ['velocity_std', 'acceleration_std', 'velocity_median',
-                        'acceleration_median', 'velocity_kurtosis','acceleration_kurtosis']
+                        'acceleration_median', 'velocity_kurtosis','acceleration_kurtosis', 'velocity_skewness','acceleration_skewness']
     for column in column_list:
         if "Mag" not in column:
             features_series = df[column].apply(

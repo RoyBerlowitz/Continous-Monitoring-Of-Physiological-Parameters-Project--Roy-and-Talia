@@ -51,6 +51,11 @@ def MRMR_feature_selection (df, label_vector, candidate_columns ,stopping_criter
     # we find the feature with the maximum relevance, and we add him as the first feature/
     max_relevance_index = np.argmax(relevance_vector)
     most_relevant_column = df.columns[max_relevance_index]
+    results_log.append({
+        "iteration": len(best_features),
+        "feature_added": most_relevant_column,
+        "MRMR_score": relevance_vector[max_relevance_index],
+    })
     best_features.append(most_relevant_column)
     candidate_columns.remove(most_relevant_column)
     # we initiate the values of total relevance and total redundancy that will help us to calculate the MRMR score for the stopping rule.
