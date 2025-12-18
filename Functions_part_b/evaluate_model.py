@@ -16,16 +16,34 @@ def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False
     if save_model_outputs:
         folder_name = create_folder_for_saving(split_name)
 
-    model_outputs = []
+    all_excel_data = []
+    plot_outputs = []
 
     for i in range(len(models)):
         model_output = evaluate_one_model(models[i], model_names[i], X_test, y_test)
-        model_outputs.append(model_output)
+        all_excel_data.extend(model_output['excel_rows'])
+        plot_outputs.append(model_output['plot_data'])
 
-    plot_ROC(model_outputs, folder_name)
-    plot_PRC(model_outputs, folder_name)
+    plot_ROC(plot_outputs, folder_name)
+    plot_PRC(plot_outputs, folder_name)
 
     if save_model_outputs:
-        save_model_outputs_to_xlsx(model_outputs, folder_name)
+        df = pd.DataFrame(all_excel_data)
+        df.to_excel(f'{folder_name}/model_outputs.xlsx', index=False)
 
-    return model_outputs
+    return all_excel_data
+
+    # model_outputs = []
+    #
+    # for i in range(len(models)):
+    #     model_output = evaluate_one_model(models[i], model_names[i], X_test, y_test)
+    #     all_excel_data.extend(model_output['excel_rows'])
+    #     plot_outputs.append(model_output['plot_data'])
+    #
+    # plot_ROC(model_outputs, folder_name)
+    # plot_PRC(model_outputs, folder_name)
+    #
+    # if save_model_outputs:
+    #     save_model_outputs_to_xlsx(model_outputs, folder_name)
+    #
+    # return model_outputs

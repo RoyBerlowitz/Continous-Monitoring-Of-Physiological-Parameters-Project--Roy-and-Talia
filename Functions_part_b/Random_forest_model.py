@@ -47,17 +47,31 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     # Here we preform the search itself
     random_search = RandomizedSearchCV(
         pipeline,
-        param_distributions=params_ranges,  # the parameters we look for
-        n_iter=n_iterations,  # number of iterations to check
-        cv=5,  # 5 stratified K-folds to look for
-        scoring=scoring_metrics, # we find all the wanted metrics
-        refit='AUC',  # AUC-ROC is the evaluation metric
-        n_jobs=n_jobs,
-        verbose=3,
-        random_state=42,  # to have consistent results
-        return_train_score=True
-
+        param_distributions=params_ranges,
+        n_iter=n_iterations,
+        cv=5,
+        scoring=scoring_metrics,
+        refit='AUC',
+        n_jobs=1,  # שינוי ל-1 כדי למנוע קריסות זיכרון ולראות לוגים
+        verbose=3,  # יאפשר לראות התקדמות של כל Fold
+        random_state=42,
+        return_train_score=True,
+        error_score='raise'  # יכריח את הפייתון להראות לנו את השגיאה המדויקת אם הוא קורס
     )
+
+    # random_search = RandomizedSearchCV(
+    #     pipeline,
+    #     param_distributions=params_ranges,  # the parameters we look for
+    #     n_iter=n_iterations,  # number of iterations to check
+    #     cv=5,  # 5 stratified K-folds to look for
+    #     scoring=scoring_metrics, # we find all the wanted metrics
+    #     refit='AUC',  # AUC-ROC is the evaluation metric
+    #     n_jobs=n_jobs,
+    #     verbose=3,
+    #     random_state=42,  # to have consistent results
+    #     return_train_score=True
+    #
+    # )
 
     print(f"Starting Randomized Search with {n_iterations} iterations and 5-Fold Cross-Validation...")
     #we fit each option with the data
@@ -67,21 +81,18 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
     # we export to Excel the metric score for each parameter for later intrepretabillity
     # we save both test and train values to be able to identify overfitting
     cv_results_df = pd.DataFrame(random_search.cv_results_)
-
-    cols_to_save = ['params',
-
-    # TRAIN SCORE
-    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity','mean_train_Precision', 'mean_train_Sensitivity' 'mean_train_F1',
-    'mean_train_PRC', 'mean_train_Kappa', 'mean_train_specificity'
-
-    # TEST SCORES
-    'mean_test_AUC', 'mean_test_Accuracy','mean_test_Precision', 'mean_test_Sensitivity', 'mean_test_Specificity', 'mean_test_F1',
-    'mean_test_PRC', 'mean_test_Kappa',
-
-    # Control columns
-    'mean_fit_time',
-    'rank_test_AUC']
-
+    print("Available columns in results:", cv_results_df.columns.tolist())
+    cols_to_save = [
+        'params',
+        # TRAIN SCORE
+        'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
+        'mean_train_Precision', 'mean_train_F1', 'mean_train_PRC', 'mean_train_Kappa',
+        # TEST SCORES
+        'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
+        'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
+        # Control columns
+        'mean_fit_time', 'rank_test_AUC'
+    ]
     cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_AUC')
 
     excel_file_name = split_name + 'Random_Forrest_Search_Results.xlsx'

@@ -39,7 +39,7 @@ def train_model(X_selected,Y_train, best_parameters, model_name):
     train_x = train_x[[col for col in train_x.columns if col not in administrative_features]]
 
     if model_name == ModelNames.SVM:
-        SVM_model = train_SVM( train_x, Y_train,val_df, val_labels, best_parameters, name = "Individual Split")
+        SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Individual Split")
         return SVM_model
     if model_name == ModelNames.RANDOM_FOREST:
         random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split")

@@ -122,21 +122,17 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
     # we export to Excel the metric score for each parameter
     cv_results_df = pd.DataFrame(random_search.cv_results_)
 
-    cols_to_save = ['params',
-
-                    # TRAIN SCORE
-                    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity', 'mean_train_Precision',
-                    'mean_train_Sensitivity' 'mean_train_F1',
-                    'mean_train_PRC', 'mean_train_Kappa', 'mean_train_specificity'
-
-                    # TEST SCORES
-                     'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Precision', 'mean_test_Sensitivity',
-                    'mean_test_Specificity', 'mean_test_F1',
-                    'mean_test_PRC', 'mean_test_Kappa',
-
-                    # Control columns
-                    'mean_fit_time',
-                    'rank_test_AUC']
+    cols_to_save = [
+        'params',
+        # TRAIN SCORE
+        'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
+        'mean_train_Precision', 'mean_train_F1', 'mean_train_PRC', 'mean_train_Kappa',
+        # TEST SCORES
+        'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
+        'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
+        # Control columns
+        'mean_fit_time', 'rank_test_AUC'
+    ]
 
     cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_AUC')
 
@@ -146,10 +142,10 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
     #we return the best model
     return best_parameters
 
-def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name = "Individual Split"):
+def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
-    val_target = val_labels.values.ravel()
+    val_target = train_labels.values.ravel()
     # we start by scaling again
     steps = [
         ('scaler', StandardScaler())
@@ -171,7 +167,7 @@ def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name 
         gamma=gamma,
         random_state=42,
         probability=True,
-        class_weight=class_weights  # 🛑 השתמש במשתנה class_weight הנכון!
+        class_weight=class_weights
     )))
 
     # best_SVM_parameters = Pipeline([

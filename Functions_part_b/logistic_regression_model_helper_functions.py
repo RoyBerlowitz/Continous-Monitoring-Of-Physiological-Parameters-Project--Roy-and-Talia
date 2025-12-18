@@ -4,22 +4,17 @@ from sklearn.linear_model import LogisticRegression
 from scipy.stats import loguniform
 import pandas as pd
 
-cols_to_save = ['params',
-
-                # TRAIN SCORE
-                'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity', 'mean_train_Precision',
-                'mean_train_Sensitivity' 'mean_train_F1',
-                'mean_train_PRC', 'mean_train_Kappa', 'mean_train_specificity'
-
-                # TEST SCORES
-                'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Precision', 'mean_test_Sensitivity',
-                'mean_test_Specificity', 'mean_test_F1',
-                'mean_test_PRC', 'mean_test_Kappa',
-
-                # Control columns
-                'mean_fit_time',
-                'rank_test_AUC']
-
+cols_to_save = [
+        'params',
+        # TRAIN SCORE
+        'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
+        'mean_train_Precision', 'mean_train_F1', 'mean_train_PRC', 'mean_train_Kappa',
+        # TEST SCORES
+        'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
+        'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
+        # Control columns
+        'mean_fit_time', 'rank_test_AUC'
+    ]
 def logistic_grid_search_multi(X_train, y_train, cv=5):
     """
     Logistic Regression hyperparameter tuning with multiple scoring metrics using GridSearchCV.
