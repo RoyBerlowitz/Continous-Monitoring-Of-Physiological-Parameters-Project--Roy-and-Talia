@@ -65,7 +65,7 @@ def logistic_grid_search_multi(X_train, y_train, cv=5):
 
     return grid_search.best_estimator_, grid_search.best_params_, results_df
 
-def logistic_random_search_multi(X_train, y_train, cv=5, n_iter=20, random_state=42):
+def logistic_random_search_multi(X_train, y_train, cv=5, n_iter=50, random_state=42):
     """
     Logistic Regression hyperparameter tuning with multiple scoring metrics using RandomizedSearchCV.
     n_iter - is the number of random hyperparameter combinations to try

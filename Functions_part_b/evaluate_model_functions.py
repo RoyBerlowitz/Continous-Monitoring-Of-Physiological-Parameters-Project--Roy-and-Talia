@@ -8,6 +8,8 @@ from sklearn.metrics import (
     confusion_matrix,
     cohen_kappa_score,
     accuracy_score,
+    precision_score,
+    f1_score
 )
 import pandas as pd
 import numpy as np
@@ -29,8 +31,6 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # ---------- Cohen's Kappa ----------
     # Tries to estimate how bias the model prediction towards the majority group, by dividing  (accuracy minus ration of majority group) / (1 minus ration of majority group)
     cohen_kappa = cohen_kappa_score(y_test, y_predicted)
-
-
 
     # ---------- ROC & AUC ----------
     roc_auc = roc_auc_score(y_test, y_prob) #Area Under the ROC Curve, higher better
@@ -60,10 +60,37 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # [FN, TP]]
     confusion_matrx = confusion_matrix(y_test, y_predicted)
 
-    return {'model_name':model_name, 'accuracy':accuracy, 'cohen_kappa':cohen_kappa,
-            'roc_auc':roc_auc, 'fpr':fpr, 'tpr': tpr, 'precision': precision, 'recall':recall,
-            'prc_auc':prc_auc, 'sensitivity': sensitivity, 'confusion_matrix':confusion_matrx,
-            'best_roc_point':best_roc_point, 'best_prc_point':best_prc_point}
+    # ---------- Confusion Matrix values ----------
+    TN, FP, FN, TP = confusion_matrx.ravel()
+
+    # ---------- Precision ----------
+    precision_score_val = precision_score(y_test, y_predicted, pos_label=1)
+
+    # ---------- Specificity (True Negative Rate) ----------
+    # Specificity = TN / (TN + FP)
+    specificity = TN / (TN + FP) if (TN + FP) > 0 else 0.0
+
+    # ---------- F1 Score ----------
+    f1 = f1_score(y_test, y_predicted, pos_label=1)
+
+    return {
+        'model_name': model_name,
+        'accuracy': accuracy,
+        'cohen_kappa': cohen_kappa,
+        'roc_auc': roc_auc,
+        'fpr': fpr,
+        'tpr': tpr,
+        'precision_curve': precision,
+        'recall_curve': recall,
+        'prc_auc': prc_auc,
+        'sensitivity': sensitivity,
+        'specificity': specificity,
+        'precision_score': precision_score_val,
+        'f1_score': f1,
+        'confusion_matrix': confusion_matrx,
+        'best_roc_point': best_roc_point,
+        'best_prc_point': best_prc_point
+    }
 
 def plot_ROC(model_outputs, folder_name):
     plt.figure()
@@ -126,7 +153,7 @@ def closest_point_prc(precision, recall, thresholds):
 
 def save_model_outputs_to_xlsx(model_outputs, folder_name):
     df = pd.DataFrame(model_outputs)
-    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix', 'accuracy', 'cohen_kappa', 'best_roc_point', 'best_prc_point']
+    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'specificity', 'precision_score', 'f1_score', 'sensitivity', 'confusion_matrix', 'accuracy', 'cohen_kappa', 'best_roc_point', 'best_prc_point']
     df[columns_to_save].to_excel(f'{folder_name}/model_outputs.xlsx')
 
 
