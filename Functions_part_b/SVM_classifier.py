@@ -130,8 +130,8 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
                     'mean_train_PRC', 'mean_train_Kappa', 'mean_train_specificity'
 
                     # TEST SCORES
-                                                          'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Precision',
-                    'mean_test_Sensitivity', 'mean_test_F1',
+                     'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Precision', 'mean_test_Sensitivity',
+                    'mean_test_Specificity', 'mean_test_F1',
                     'mean_test_PRC', 'mean_test_Kappa',
 
                     # Control columns
