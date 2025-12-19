@@ -1,4 +1,4 @@
-from sklearn.model_selection import RandomizedSearchCV, GridSearchCV
+from sklearn.model_selection import RandomizedSearchCV, GridSearchCV, StratifiedGroupKFold, StratifiedKFold
 from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
 from sklearn.linear_model import LogisticRegression
 from scipy.stats import loguniform
@@ -34,7 +34,7 @@ def logistic_grid_search_multi(X_train, y_train, cv=5):
         'F1': 'f1_macro',
         'Sensitivity': 'recall_macro',
         'Precision': 'precision',
-        'specificity': specificity_scorer,
+        'Specificity': specificity_scorer,
         'PRC': 'average_precision',
         'Kappa': kappa_scorer,
 
@@ -63,11 +63,11 @@ def logistic_grid_search_multi(X_train, y_train, cv=5):
 
     # Convert results to DataFrame
     results_df = pd.DataFrame(grid_search.cv_results_)
-    results_df = results_df[result_cols_to_save]
+    results_df = results_df[cols_to_save]
 
     return grid_search.best_estimator_, grid_search.best_params_, results_df
 
-def logistic_random_search_multi(X_train, y_train, cv=5, n_iter=20, random_state=42):
+def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, group_indicator=None, n_iter=20, random_state=42):
     """
     Logistic Regression hyperparameter tuning with multiple scoring metrics using RandomizedSearchCV.
     n_iter - is the number of random hyperparameter combinations to try
@@ -97,11 +97,16 @@ def logistic_random_search_multi(X_train, y_train, cv=5, n_iter=20, random_state
 
     lr = LogisticRegression(max_iter=1000)
 
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
+
     random_search = RandomizedSearchCV(
         lr,
         param_distributions,
         n_iter=n_iter,
-        cv=cv,
+        cv=cv_strategy,
         scoring=scoring_metrics,
         refit='AUC',
         return_train_score=True,
@@ -109,7 +114,10 @@ def logistic_random_search_multi(X_train, y_train, cv=5, n_iter=20, random_state
         random_state=random_state
     )
 
-    random_search.fit(X_train, y_train)
+    if split_by_group_flag:
+        random_search.fit(X_train, y_train, groups=group_indicator)
+    else:
+        random_search.fit(X_train, y_train)
 
     # Convert results to DataFrame
     results_df = pd.DataFrame(random_search.cv_results_)

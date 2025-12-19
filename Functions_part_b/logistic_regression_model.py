@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 
 from .logistic_regression_model_helper_functions import logistic_random_search_multi, logistic_grid_search_multi
 
-def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False):
+def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None):
 
     # # Grid search
     # best_model_grid, best_params_grid, results_grid = logistic_grid_search_multi(X_train, y_train)
@@ -10,7 +10,7 @@ def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_grou
     # print(f'Saved {split_name}_results_grid_search.xlsx')
 
     # Randomized search
-    best_model_rand, best_params_rand, results_rand = logistic_random_search_multi(X_train, y_train)
+    best_model_rand, best_params_rand, results_rand = logistic_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
     results_rand.to_excel(f'{split_name}_logistic_results_rand_search.xlsx', index=False)
     print(f'Saved {split_name}_logistic_results_rand_search.xlsx')
 

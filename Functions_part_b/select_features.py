@@ -80,5 +80,5 @@ def select_features(X_vetting, Y_train, X_test, split_name = "Individual_split",
 
     writer.close()
 
-    return X_selected
+    return features_to_keep
 
