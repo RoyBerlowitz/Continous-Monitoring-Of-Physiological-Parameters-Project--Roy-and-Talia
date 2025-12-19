@@ -214,7 +214,7 @@ def closest_point_prc(precision, recall, thresholds):
 
 def save_model_outputs_to_xlsx(model_outputs, folder_name):
     df = pd.DataFrame(model_outputs)
-    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix']
+    columns_to_save = ['model_name', 'roc_auc', 'prc_auc', 'sensitivity', 'confusion_matrix', 'accuracy', 'cohen_kappa', 'best_roc_point', 'best_prc_point']
     df[columns_to_save].to_excel(f'{folder_name}/model_outputs.xlsx')
 
 
