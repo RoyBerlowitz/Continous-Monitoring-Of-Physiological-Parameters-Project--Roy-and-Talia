@@ -2,7 +2,7 @@ from sklearn.linear_model import LogisticRegression
 
 from .logistic_regression_model_helper_functions import logistic_random_search_multi, logistic_grid_search_multi
 
-def find_best_hp_logistic_regression(X_train, y_train, split_name):
+def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False):
 
     # # Grid search
     # best_model_grid, best_params_grid, results_grid = logistic_grid_search_multi(X_train, y_train)

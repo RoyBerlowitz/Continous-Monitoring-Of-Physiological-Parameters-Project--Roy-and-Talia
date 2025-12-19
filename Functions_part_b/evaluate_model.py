@@ -8,7 +8,7 @@ def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False
     # confusion_matrix
 
     X_test = copy.deepcopy(test_x)
-    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol', "__participant_key__"]
     # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
     X_test = X_test[[col for col in X_test.columns if col not in administrative_features]]
 

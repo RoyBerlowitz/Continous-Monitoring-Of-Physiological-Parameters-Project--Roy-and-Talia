@@ -2,11 +2,12 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from scipy.stats import loguniform, randint, uniform
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold
 from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
 
 
-def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_iterations = 50, split_name = "Individual Split"):
+
+def find_best_random_forrest_parameters (train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False):
     # Here we preform the search for the best hyperparameters for the SVM model.
     # We will preform parallel run to accelerate time
 
@@ -44,38 +45,36 @@ def find_best_random_forrest_parameters (train_df, train_labels,n_jobs = -1, n_i
 
     }
 
+    # Here We determine the stratified K-Folds strategy.
+    # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(k=5)
+    else:
+        cv_strategy = StratifiedKFold(k=5)
+
     # Here we preform the search itself
+
     random_search = RandomizedSearchCV(
         pipeline,
-        param_distributions=params_ranges,
-        n_iter=n_iterations,
-        cv=5,
-        scoring=scoring_metrics,
-        refit='AUC',
-        n_jobs=1,  # שינוי ל-1 כדי למנוע קריסות זיכרון ולראות לוגים
-        verbose=3,  # יאפשר לראות התקדמות של כל Fold
-        random_state=42,
-        return_train_score=True,
-        error_score='raise'  # יכריח את הפייתון להראות לנו את השגיאה המדויקת אם הוא קורס
+        param_distributions=params_ranges,  # the parameters we look for
+        n_iter=n_iterations,  # number of iterations to check
+        cv=cv_strategy,  # stratified K-folds to look for
+        scoring=scoring_metrics,  # we find all the wanted metrics
+        refit='AUC',  # AUC-ROC is the evaluation metric
+        n_jobs=n_jobs,
+        verbose=3,
+        random_state=42,  # to have consistent results
+        return_train_score=True
+
     )
 
-    # random_search = RandomizedSearchCV(
-    #     pipeline,
-    #     param_distributions=params_ranges,  # the parameters we look for
-    #     n_iter=n_iterations,  # number of iterations to check
-    #     cv=5,  # 5 stratified K-folds to look for
-    #     scoring=scoring_metrics, # we find all the wanted metrics
-    #     refit='AUC',  # AUC-ROC is the evaluation metric
-    #     n_jobs=n_jobs,
-    #     verbose=3,
-    #     random_state=42,  # to have consistent results
-    #     return_train_score=True
-    #
-    # )
-
     print(f"Starting Randomized Search with {n_iterations} iterations and 5-Fold Cross-Validation...")
-    #we fit each option with the data
-    random_search.fit(train_df, train_target)
+    # we fit each option with the data. if the division is by groups, we indicate it what group to look for
+    if split_by_group_flag:
+        random_search.fit(train_df, train_target, groups=group_indicator)
+    else:
+        random_search.fit(train_df, train_target)
+
     # we find the best parameters
     best_parameters = random_search.best_params_
     # we export to Excel the metric score for each parameter for later intrepretabillity

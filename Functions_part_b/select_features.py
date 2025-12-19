@@ -57,7 +57,6 @@ def select_features(X_vetting, Y_train, X_test, split_name = "Individual_split",
     #we let only the administrative and selected features to remain
     X_selected = X_selected[features_to_keep]
     X_test = X_test[features_to_keep]
-    # X_test_norm = X_test_norm[features_to_keep]
     #we create excel file for intrepretabillity
     excel_file_path = f"{split_name} feature_selection.xlsx"
     writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
