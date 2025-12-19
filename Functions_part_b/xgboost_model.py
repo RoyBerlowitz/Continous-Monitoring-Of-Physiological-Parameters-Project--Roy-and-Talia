@@ -2,7 +2,7 @@ from xgboost import XGBClassifier
 
 from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi
 
-def find_best_hp_xgboost(X_train, y_train, split_name):
+def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False):
 
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
