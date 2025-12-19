@@ -3,7 +3,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from scipy.stats import loguniform, randint, uniform
 from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold
-from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
+from sklearn.metrics import roc_curve, cohen_kappa_score, make_scorer, recall_score, precision_recall_curve, average_precision_score
+import numpy as np
+from .evaluate_model_functions import closest_point_roc
 
 
 
@@ -36,7 +38,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
-        'F1': 'f1_macro',
+        'F1': 'f1',
         'Sensitivity': 'recall_macro',
         'Precision': 'precision',
         'Specificity': specificity_scorer,
@@ -53,6 +55,10 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
         cv_strategy = StratifiedKFold(n_splits=5)
 
     # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represnets the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
 
     random_search = RandomizedSearchCV(
         pipeline,
@@ -60,7 +66,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
         n_iter=n_iterations,  # number of iterations to check
         cv=cv_strategy,  # stratified K-folds to look for
         scoring=scoring_metrics,  # we find all the wanted metrics
-        refit='AUC',  # AUC-ROC is the evaluation metric
+        refit='average_precision',  # AUC-ROC is the evaluation metric
         n_jobs=n_jobs,
         verbose=3,
         random_state=42,  # to have consistent results
@@ -114,10 +120,29 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, nam
     max_features = best_parameters.get('Random_Forest__max_features', 'sqrt')
     #we create the pipeline again
     Random_Forest_pipeline = Pipeline([("Random_Forest", RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, min_samples_split = min_samples_split, class_weight = class_weight, max_samples = max_samples, random_state=42, n_jobs =n_jobs))])
-
     print (f"Starting Training the Random Forrest for {name}...")
     # we fit the model to the data
     best_Random_Forest_Model = Random_Forest_pipeline.fit(train_df, train_target)
+
+    # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
+    # To use the PRC without overfitting which is based on the fact we find the best operating point with the data we trained on,
+    # we use the OOB - each tree is not fed with the entire data, so the OOB data is the data the tree was not trained on.
+    # we use this data to predict the probabilities and by that find the best operating point.
+    oob_probs = best_Random_Forest_Model.oob_decision_function_[:, 1]
+    # we calculate the needed calculation for the PRC curve
+    precisions, recalls, thresholds = precision_recall_curve(train_target, oob_probs)
+    avg_prec = average_precision_score(train_target, oob_probs)
+
+    # Here we find the optimal threshold, which is the point which gives the best F1 score.
+    # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+    best_idx = np.argmax(f1_scores)
+    best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[best_idx]
+
+    # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
+    fpr, tpr, roc_thresholds = roc_curve(train_target, oob_probs)
+    roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
+    best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
 
     return best_Random_Forest_Model
 

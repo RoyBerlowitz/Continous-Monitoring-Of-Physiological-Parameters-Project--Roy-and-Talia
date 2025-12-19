@@ -49,11 +49,11 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # optimal point in the AUC-ROC curve
     # optimal point in the PRC curve
     # we will evaluate the model on all three of them for comparison
-
+    # we will use the optimal threshold by PRC and ROC that were extracted during the train, to prevent calcualting the threshold based on the validation data
     working_points = [
         {'type': 'Original (0.5)', 'threshold': 0.5},
-        {'type': 'Best_ROC_AUC', 'threshold': best_roc_point['threshold']},
-        {'type': 'Best_PRC', 'threshold': best_prc_point['threshold']}
+        {'type': 'Best_ROC_AUC', 'threshold': model.optimal_threshold_ROC_},
+        {'type': 'Best_PRC', 'threshold': model.optimal_threshold_PRC_}
     ]
 
     excel_results = []

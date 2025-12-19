@@ -4,7 +4,7 @@ from sklearn.linear_model import LogisticRegression
 from scipy.stats import loguniform
 import pandas as pd
 
-cols_to_save = [
+result_cols_to_save = [
         'params',
         # TRAIN SCORE
         'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
@@ -15,57 +15,6 @@ cols_to_save = [
         # Control columns
         'mean_fit_time', 'rank_test_AUC'
     ]
-def logistic_grid_search_multi(X_train, y_train, cv=5):
-    """
-    Logistic Regression hyperparameter tuning with multiple scoring metrics using GridSearchCV.
-    cv - amount of folds for cross validation
-
-    Returns:
-        best_model: trained LogisticRegression with best params
-        best_params: dict of best hyperparameters
-        results_df: DataFrame of all tested hyperparameter combinations and scores
-    """
-    kappa_scorer = make_scorer(cohen_kappa_score)
-    specificity_scorer = make_scorer(recall_score, pos_label=0)
-
-    scoring_metrics = {
-        'AUC': 'roc_auc',
-        'Accuracy': 'accuracy',
-        'F1': 'f1_macro',
-        'Sensitivity': 'recall_macro',
-        'Precision': 'precision',
-        'Specificity': specificity_scorer,
-        'PRC': 'average_precision',
-        'Kappa': kappa_scorer,
-
-    }
-
-    # Define valid hyperparameter grid
-    param_grid = [
-        {'solver': ['liblinear'], 'penalty': ['l1', 'l2'], 'C': [0.01, 0.1, 1, 10, 100],'class_weight':[None, 'balanced']},
-        {'solver': ['lbfgs', 'newton-cg'], 'penalty': ['l2'], 'C': [0.01, 0.1, 1, 10, 100],'class_weight':[None, 'balanced']},
-        {'solver': ['saga'], 'penalty': ['elasticnet'], 'C': [0.01, 0.1, 1, 10], 'l1_ratio': [0.1, 0.5, 0.9], 'class_weight':[None, 'balanced']},
-    ]
-
-    lr = LogisticRegression(max_iter=1000)
-
-    grid_search = GridSearchCV(
-        lr,
-        param_grid,
-        cv=cv,
-        scoring=scoring_metrics,
-        refit='AUC',  # choose metric to pick best model
-        return_train_score=True,
-        n_jobs=-1
-    )
-
-    grid_search.fit(X_train, y_train)
-
-    # Convert results to DataFrame
-    results_df = pd.DataFrame(grid_search.cv_results_)
-    results_df = results_df[cols_to_save]
-
-    return grid_search.best_estimator_, grid_search.best_params_, results_df
 
 def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, group_indicator=None, n_iter=20, random_state=42):
     """
@@ -97,10 +46,18 @@ def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, gr
 
     lr = LogisticRegression(max_iter=1000)
 
+    # Here We determine the stratified K-Folds strategy.
+    # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
     if split_by_group_flag:
         cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
+
+    # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
 
     random_search = RandomizedSearchCV(
         lr,
@@ -108,7 +65,7 @@ def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, gr
         n_iter=n_iter,
         cv=cv_strategy,
         scoring=scoring_metrics,
-        refit='AUC',
+        refit='average_precision',
         return_train_score=True,
         n_jobs=-1,
         random_state=random_state
@@ -121,6 +78,65 @@ def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, gr
 
     # Convert results to DataFrame
     results_df = pd.DataFrame(random_search.cv_results_)
-    results_df = results_df[cols_to_save]
+    results_df = results_df[result_cols_to_save]
 
     return random_search.best_estimator_, random_search.best_params_, results_df
+
+
+def logistic_grid_search_multi(X_train, y_train, cv=5):
+    """
+    Logistic Regression hyperparameter tuning with multiple scoring metrics using GridSearchCV.
+    cv - amount of folds for cross validation
+
+    Returns:
+        best_model: trained LogisticRegression with best params
+        best_params: dict of best hyperparameters
+        results_df: DataFrame of all tested hyperparameter combinations and scores
+    """
+    kappa_scorer = make_scorer(cohen_kappa_score)
+    specificity_scorer = make_scorer(recall_score, pos_label=0)
+
+    scoring_metrics = {
+        'AUC': 'roc_auc',
+        'Accuracy': 'accuracy',
+        'F1': 'f1',
+        'Sensitivity': 'recall_macro',
+        'Precision': 'precision',
+        'Specificity': specificity_scorer,
+        'PRC': 'average_precision',
+        'Kappa': kappa_scorer,
+
+    }
+
+    # Define valid hyperparameter grid
+    param_grid = [
+        {'solver': ['liblinear'], 'penalty': ['l1', 'l2'], 'C': [0.01, 0.1, 1, 10, 100],'class_weight':[None, 'balanced']},
+        {'solver': ['lbfgs', 'newton-cg'], 'penalty': ['l2'], 'C': [0.01, 0.1, 1, 10, 100],'class_weight':[None, 'balanced']},
+        {'solver': ['saga'], 'penalty': ['elasticnet'], 'C': [0.01, 0.1, 1, 10], 'l1_ratio': [0.1, 0.5, 0.9], 'class_weight':[None, 'balanced']},
+    ]
+
+    lr = LogisticRegression(max_iter=1000)
+
+    # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
+    grid_search = GridSearchCV(
+        lr,
+        param_grid,
+        cv=cv,
+        scoring=scoring_metrics,
+        refit='average precision',  # choose metric to pick best model
+        return_train_score=True,
+        n_jobs=-1
+    )
+
+    grid_search.fit(X_train, y_train)
+
+    # Convert results to DataFrame
+    results_df = pd.DataFrame(grid_search.cv_results_)
+    results_df = results_df[result_cols_to_save]
+
+    return grid_search.best_estimator_, grid_search.best_params_, results_df
+

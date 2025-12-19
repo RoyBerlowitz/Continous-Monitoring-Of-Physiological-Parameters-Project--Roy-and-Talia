@@ -94,4 +94,3 @@ def wrapper_selection(train_df, train_labels, frozen_params,
     best_row = results_df.loc[results_df['mean_test_Precision'].idxmax()]
     return best_row['Selected_Features'].split(", ")
 
-    return results_df

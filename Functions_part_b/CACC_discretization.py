@@ -51,7 +51,7 @@ def best_cut_point(values: np.ndarray, target: np.ndarray) -> Optional[Tuple[flo
     # we return the best cut and cacc if it not none
     return (best_cut, best_cacc) if best_cut is not None else None
 
-def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str, min_gain: float = 0.05, max_bins_limit=20) -> List[float]: #min_samples_to_split: int = 200) -> List[float]:
+def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str, min_gain: float = 0.1, max_bins_limit=100) -> List[float]: #min_samples_to_split: int = 200) -> List[float]:
 
     # Here, we recursively discretize a continuous attribute using CACC.
     # we return sorted list of cut points.
@@ -73,7 +73,7 @@ def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str
         # it we did not got any cut point - we return nothing
         if not best:
             return
-        # if we surprass the maximal number of bins - we stop and return the cut point list
+        # # if we surprass the maximal number of bins - we stop and return the cut point list
         if len(cut_points) + 1 >= max_bins_limit:
             return cut_points
         # We get the cut point and the CACC score

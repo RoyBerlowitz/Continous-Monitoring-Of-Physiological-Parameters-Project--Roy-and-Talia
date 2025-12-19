@@ -5,11 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5a93e656-ab41-41ca-9ffe-e1f059eade2a" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Continous monitoring.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Continous monitoring.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/select_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/select_features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/CACC_discretization.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/CACC_discretization.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/Random_forest_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/Random_forest_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/SVM_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/SVM_classifier.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/evaluate_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/evaluate_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/evaluate_model_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/evaluate_model_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model_helper_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model_helper_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/select_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/select_features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/xgboost_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/xgboost_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/xgboost_model_helper_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/xgboost_model_helper_functions.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_02.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_02.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/rb.py" beforeDir="false" afterPath="$PROJECT_DIR$/rb.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,31 +54,33 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.Project_A.executor": "Run",
-    "Python.extract_features.executor": "Run",
-    "Python.extract_features_helper_functions.executor": "Run",
-    "Python.feature_correlation.executor": "Run",
-    "Python.load_data.executor": "Run",
-    "Python.main_02.executor": "Run",
-    "Python.rb.executor": "Run",
-    "Python.segment_signal.executor": "Run",
-    "Python.vet_features.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "git-widget-placeholder": "roee__branch",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.Project_A.executor&quot;: &quot;Run&quot;,
+    &quot;Python.Random_forest_model.executor&quot;: &quot;Run&quot;,
+    &quot;Python.evaluate_model_functions.executor&quot;: &quot;Debug&quot;,
+    &quot;Python.extract_features.executor&quot;: &quot;Run&quot;,
+    &quot;Python.extract_features_helper_functions.executor&quot;: &quot;Run&quot;,
+    &quot;Python.feature_correlation.executor&quot;: &quot;Run&quot;,
+    &quot;Python.load_data.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main_02.executor&quot;: &quot;Run&quot;,
+    &quot;Python.rb.executor&quot;: &quot;Run&quot;,
+    &quot;Python.segment_signal.executor&quot;: &quot;Run&quot;,
+    &quot;Python.vet_features.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;roee__branch&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -102,14 +112,19 @@
     <option name="version" value="3" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/Continous_monitoring$SVM_classifier.coverage" NAME="SVM_classifier Coverage Results" MODIFIED="1765918505910" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$feature_correlation.coverage" NAME="feature_correlation Coverage Results" MODIFIED="1764864146342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$rb.coverage" NAME="rb Coverage Results" MODIFIED="1764685041765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$Random_forest_model.coverage" NAME="Random_forest_model Coverage Results" MODIFIED="1766105638976" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$vet_features.coverage" NAME="vet_features Coverage Results" MODIFIED="1764965905645" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features.coverage" NAME="extract_features Coverage Results" MODIFIED="1764779729972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$segment_signal.coverage" NAME="segment_signal Coverage Results" MODIFIED="1764860096289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$load_data.coverage" NAME="load_data Coverage Results" MODIFIED="1764794333097" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features_helper_functions.coverage" NAME="extract_features_helper_functions Coverage Results" MODIFIED="1765049631519" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$evaluate_model_functions.coverage" NAME="evaluate_model_functions Coverage Results" MODIFIED="1766070062473" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$Project_A.coverage" NAME="Project_A Coverage Results" MODIFIED="1764683725690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$main_02.coverage" NAME="main_02 Coverage Results" MODIFIED="1765116354250" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$run_part_b.coverage" NAME="run_part_b Coverage Results" MODIFIED="1765721474015" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$rb.coverage" NAME="rb Coverage Results" MODIFIED="1764685041765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features.coverage" NAME="extract_features Coverage Results" MODIFIED="1764779729972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$select_features.coverage" NAME="select_features Coverage Results" MODIFIED="1765567187132" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$main_02.coverage" NAME="main_02 Coverage Results" MODIFIED="1766148120666" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

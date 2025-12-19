@@ -52,12 +52,17 @@ def xgb_grid_search_multi(X_train, y_train, cv=5):
 
     xgb = XGBClassifier(use_label_encoder=False, eval_metric='logloss')
 
+    # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
     grid_search = GridSearchCV(
         xgb,
         param_grid,
         cv=cv,
         scoring=scoring_metrics,
-        refit='AUC',
+        refit='average_precision',
         n_jobs=-1,
         return_train_score=True,
     )
@@ -86,7 +91,7 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
-        'F1': 'f1_macro',
+        'F1': 'f1',
         'Sensitivity': 'recall_macro',
         'Precision': 'precision',
         'Specificity': specificity_scorer,
@@ -115,13 +120,18 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
 
     xgb = XGBClassifier(eval_metric='logloss')
 
+    # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
     random_search = RandomizedSearchCV(
         xgb,
         param_distributions,
         n_iter=n_iter,
         cv=cv_strategy,
         scoring=scoring_metrics,
-        refit='AUC',
+        refit= 'average_precision',
         n_jobs=-1,
         random_state=random_state,
         return_train_score=True

@@ -3,12 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.decomposition import PCA
-from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold, cross_val_predict
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from scipy.stats import loguniform, randint
-from sklearn.metrics import roc_auc_score, classification_report, cohen_kappa_score, recall_score, make_scorer
+from sklearn.metrics import roc_curve, cohen_kappa_score, make_scorer, recall_score, precision_recall_curve, average_precision_score
+from .evaluate_model_functions import closest_point_roc
 
 
 def perform_PCA(train_df, target, n_dimensions, name = "Individual Split"):
@@ -19,7 +20,8 @@ def perform_PCA(train_df, target, n_dimensions, name = "Individual Split"):
 
     # We preform the PCA transformation on the data
     principal_components = pca.fit_transform(train_df)
-    pca_df = pd.DataFrame(data=principal_components, columns=['Principal Component 1', 'Principal Component 2'])
+    columns = [f'Principal Component {i + 1}' for i in range(n_dimensions)]
+    pca_df = pd.DataFrame(data=principal_components, columns=columns)
     pca_df['labels'] = target
     # we plot the PCA component results
     sns.scatterplot(
@@ -85,10 +87,10 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
-        'F1': 'f1_macro',
+        'F1': 'f1',
         'Sensitivity': 'recall_macro',
         'Precision': 'precision',
-        'specificity': specificity_scorer,
+        'Specificity': specificity_scorer,
         'PRC': 'average_precision',
         'Kappa':  kappa_scorer,
 
@@ -101,13 +103,18 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
         cv_strategy = StratifiedKFold(n_splits=3)
 
     # Here we preform the search itself
+    # We decided to evaluate our model by the PRC.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
+    # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
+    # which may indicate the best balance between sensitivity and precision
+
     random_search = RandomizedSearchCV(
         pipeline,
         param_distributions=params_ranges,  # the parameters we look for
         n_iter=n_iterations,  # number of iterations to check
         cv=cv_strategy,  # stratified K-folds to look for
         scoring=scoring_metrics,  # we find all the wanted metrics
-        refit='AUC',  # AUC-ROC is the evaluation metric
+        refit='average_precision',  # AUC-ROC is the evaluation metric
         n_jobs=n_jobs,
         verbose=3,
         random_state=42,  # to have consistent results
@@ -157,7 +164,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
 def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
-    val_target = train_labels.values.ravel()
+    train_target = train_labels.values.ravel()
     # we start by scaling again
     steps = [
         ('scaler', StandardScaler())
@@ -192,7 +199,28 @@ def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"
 
     print (f"Starting Training the SVM model for {name}...")
     # We fit the model with our parameters to the data
-    best_SVM_model = best_SVM_parameters.fit(train_df, train_labels.values.ravel())
+    best_SVM_model = best_SVM_parameters.fit(train_df, train_target)
+
+    # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
+    # we face a challenge - we try to estimate the PRC without overfitting, which is non-trivial based on the fact we find the best operating point with the data we trained on.
+    # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
+    # we use the result to predict the probabilities and by that find the best operating point.
+    # it is not exactly the same model, but it is close and justified estimation.
+    y_probs = cross_val_predict(best_SVM_model, train_df, train_target, cv=5, method='predict_proba')[:, 1]
+    # we calculate the needed calculation for the PRC curve
+    precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
+    avg_prec = average_precision_score(train_target, y_probs)
+
+    # Here we find the optimal threshold, which is the point which gives the best F1 score.
+    # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+    best_idx = np.argmax(f1_scores)
+    best_SVM_model.optimal_threshold_PRC_ = thresholds[best_idx]
+
+    # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
+    fpr, tpr, roc_thresholds = roc_curve(train_target, y_probs)
+    roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
+    best_SVM_model.optimal_threshold_ROC_ = roc_res['threshold']
 
     return best_SVM_model
 
