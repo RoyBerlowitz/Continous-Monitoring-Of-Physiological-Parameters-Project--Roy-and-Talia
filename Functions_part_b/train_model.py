@@ -10,7 +10,7 @@ from .consts import ModelNames
 def choose_hyperparameters(train_df, target, model=ModelNames.SVM, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False):
 
     df_for_hyperparameters = copy.deepcopy(train_df)
-    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol', "__participant_key__"]
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     group_indicator = df_for_hyperparameters['Group number']
     # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
     df_for_hyperparameters = df_for_hyperparameters[[col for col in df_for_hyperparameters.columns if col not in administrative_features]]
@@ -37,7 +37,7 @@ def choose_hyperparameters(train_df, target, model=ModelNames.SVM, n_jobs = -1, 
 
 def train_model(X_selected,Y_train, best_parameters, model_name):
 
-    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol', "__participant_key__"]
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     train_x = copy.deepcopy(X_selected)
     # train_x = train_x.drop(columns = administrative_features, inplace = True)
     train_x = train_x[[col for col in train_x.columns if col not in administrative_features]]

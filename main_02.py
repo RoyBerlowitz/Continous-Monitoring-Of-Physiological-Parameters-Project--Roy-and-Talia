@@ -183,10 +183,10 @@ if __name__ == "__main__":
         "Gyro_X-AXIS_CUSUM+_Feature"
     ]
 
-    best_params_for_split_1_RF = choose_hyperparameters(split1_X_vetting[best_features_list_split_1],
+    best_params_for_split_1_RF = choose_hyperparameters(split1_X_vetting[best_features_list_split_1+administrative_features],
                                                         split1_Y_train, model=ModelNames.RANDOM_FOREST, n_jobs=-1,
                                                         n_iterations=50, split_name="Individual Split after wrapper")
-    train_rf_split_1 = train_random_forest_classifier(split1_X_vetting[best_features_list_split_1],
+    train_rf_split_1 = train_random_forest_classifier(split1_X_vetting[best_features_list_split_1+administrative_features],
                                                       split1_Y_train, best_params_for_split_1_RF,
                                                       name="RF AFTER WRAPPER - INDIVIDUAL SPLIT")
 
@@ -196,26 +196,26 @@ if __name__ == "__main__":
 
     # best_params_for_split_2_RF = {'Random_Forest__class_weight': 'balanced', 'Random_Forest__max_depth': 26, 'Random_Forest__max_samples': np.float64(0.78453678109946), 'Random_Forest__min_samples_split': 54, 'Random_Forest__n_estimators': 388}
     # wrapper_selection(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, best_params_for_split_2_RF,
-    #                   n_features_range= [3,5,7,10,12,15,17,19,20], model_type='RF', split_name="Individual")
+    #                   n_features_range= [3,5,7,10,12,15,17,19,20], model_type='RF', split_name="Group 1st wrapper")
 
-    best_features_list_split_2 = []
-    best_params_for_split_2_RF = choose_hyperparameters(split2_X_vetting[best_features_list_split_1],
-                                                        split2_Y_train, model=ModelNames.RANDOM_FOREST, n_jobs=-1,
-                                                        n_iterations=50, split_name="Group Split after wrapper")
-    train_rf_split_2 = train_random_forest_classifier(split2_X_selected.drop(administrative_features, axis=1),
-                                                      split2_Y_train, best_params_for_split_2_RF,
-                                                      name="RF AFTER WRAPPER - INDIVIDUAL SPLIT")
-
-    train_rf_split_2_model_output = evaluate_model([train_rf_split_2], ['Random Forest'],
-                                                   split1_X_test_norm.drop(administrative_features, axis=1),
-                                                   split1_Y_test, save_model_outputs=True, split_name="RF AFTER WRAPPER - Group Split")
+    # best_features_list_split_2 = []
+    # best_params_for_split_2_RF = choose_hyperparameters(split2_X_vetting[best_features_list_split_2+administrative_features],
+    #                                                     split2_Y_train, model=ModelNames.RANDOM_FOREST, n_jobs=-1,
+    #                                                     n_iterations=50, split_name="Group Split after wrapper")
+    # train_rf_split_2 = train_random_forest_classifier(split2_X_vetting[best_features_list_split_2],
+    #                                                   split2_Y_train, best_params_for_split_2_RF,
+    #                                                   name="RF AFTER WRAPPER - INDIVIDUAL SPLIT")
+    #
+    # train_rf_split_2_model_output = evaluate_model([train_rf_split_2], ['Random Forest'],
+    #                                                split1_X_test_norm.drop(administrative_features, axis=1),
+    #                                                split1_Y_test, save_model_outputs=True, split_name="RF AFTER WRAPPER - Group Split")
     #________________________________________________________________________________________________________
 
-    best_params_for_split_1_RF = choose_hyperparameters(split1_X_selected.drop(administrative_features, axis=1),
+    best_params_for_split_1_RF = choose_hyperparameters(split1_X_selected,
                                                         split1_Y_train, model=ModelNames.RANDOM_FOREST, n_jobs=-1,
                                                         n_iterations=50, split_name="Individual Split after wrapper")
     train_rf_split_1 = train_random_forest_classifier(split1_X_selected.drop(administrative_features, axis=1),
-                                                      split1_Y_train, best_params_for_split_1_RF,
+                                                      split1_Y_train, split1_X_selected['Group number'], best_params_for_split_1_RF,
                                                       name="Individual Split")
 
     train_rf_split_1_model_output = evaluate_model([train_rf_split_1], ['Random Forest'],
@@ -226,11 +226,11 @@ if __name__ == "__main__":
 
 
 
-    split2_X_selected, split2_X_test_norm = select_features(split2_X_vetting, split2_Y_train,split2_X_test_norm, split_name="Group_split updated", stopping_criteria=0)
+    #split2_X_selected, split2_X_test_norm = select_features(split2_X_vetting, split2_Y_train,split2_X_test_norm, split_name="Group_split updated", stopping_criteria=0)
     split2_X_selected = split2_X_vetting
-    perform_PCA(split2_X_selected.drop(administrative_features, axis=1), split2_Y_train, n_dimensions =2, name="Group Split updated")
+    perform_PCA(split2_X_selected, split2_Y_train, n_dimensions =2, name="Group Split updated")
 
-    best_params_for_split_2_RF = choose_hyperparameters(split2_X_selected.drop(administrative_features, axis=1),
+    best_params_for_split_2_RF = choose_hyperparameters(split2_X_selected,
                                                      split2_Y_train, model=ModelNames.RANDOM_FOREST, n_jobs=-1, n_iterations=50,
                                                      split_name="Group Split updated")
     train_rf_split_2 = train_random_forest_classifier(split2_X_selected.drop(administrative_features, axis=1),
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
     # best_params_split1_SVM = find_best_SVM_parameters(split1_X_selected.drop(administrative_features, axis=1), split1_Y_train, n_jobs=8, n_iterations=30, split_name="Individual Split")
     # train_SVM(split1_X_selected.drop(administrative_features, axis=1), split1_Y_train,  split1_X_test_norm.drop(administrative_features, axis=1), split1_Y_test, best_params_split1_SVM, name="Individual Split")
-    best_params_split2_SVM = find_best_SVM_parameters(split2_X_selected.drop(administrative_features, axis=1), split2_Y_train, n_jobs=8, n_iterations=30, split_name="Group Split")
+    best_params_split2_SVM = find_best_SVM_parameters(split2_X_selected.drop(administrative_features, axis=1), split2_X_selected['Group number'], split2_Y_train, n_jobs=8, n_iterations=30, split_name="Group Split")
     train_SVM(split2_X_selected.drop(administrative_features, axis=1),split2_Y_train,  split2_X_test_norm.drop(administrative_features, axis=1), split2_Y_test, best_params_split2_SVM, name="Group Split")
 
 
