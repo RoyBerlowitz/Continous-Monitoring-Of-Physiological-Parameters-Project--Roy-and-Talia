@@ -1,4 +1,4 @@
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, StratifiedGroupKFold, StratifiedKFold
 from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
 from scipy.stats import uniform, randint, loguniform
 from xgboost import XGBClassifier
@@ -70,7 +70,7 @@ def xgb_grid_search_multi(X_train, y_train, cv=5):
 
     return grid_search.best_estimator_, grid_search.best_params_, results_df
 
-def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=30, random_state=42):
+def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_indicator=None, n_iter=30, random_state=42):
     """
     XGBoost hyperparameter tuning with multiple scoring metrics using RandomizedSearchCV.
 
@@ -89,7 +89,7 @@ def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=30, random_state=42):
         'F1': 'f1_macro',
         'Sensitivity': 'recall_macro',
         'Precision': 'precision',
-        'specificity': specificity_scorer,
+        'Specificity': specificity_scorer,
         'PRC': 'average_precision',
         'Kappa':  kappa_scorer,
 
@@ -108,13 +108,18 @@ def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=30, random_state=42):
         'scale_pos_weight': [1, pos_weight]
     }
 
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
+
     xgb = XGBClassifier(eval_metric='logloss')
 
     random_search = RandomizedSearchCV(
         xgb,
         param_distributions,
         n_iter=n_iter,
-        cv=cv,
+        cv=cv_strategy,
         scoring=scoring_metrics,
         refit='AUC',
         n_jobs=-1,
@@ -122,7 +127,10 @@ def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=30, random_state=42):
         return_train_score=True
     )
 
-    random_search.fit(X_train, y_train)
+    if split_by_group_flag:
+        random_search.fit(X_train, y_train, groups=group_indicator)
+    else:
+        random_search.fit(X_train, y_train)
 
     # Convert results to DataFrame
     results_df = pd.DataFrame(random_search.cv_results_)

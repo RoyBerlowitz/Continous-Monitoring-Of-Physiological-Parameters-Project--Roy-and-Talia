@@ -16,7 +16,6 @@ def choose_hyperparameters(train_df, target, model=ModelNames.SVM, n_jobs = -1, 
     df_for_hyperparameters = df_for_hyperparameters[[col for col in df_for_hyperparameters.columns if col not in administrative_features]]
 
 
-
     if model == ModelNames.SVM:
         best_SVM_parameters = find_best_SVM_parameters(df_for_hyperparameters, target,group_indicator, n_jobs, n_iterations = n_iterations, split_name = split_name, split_by_group_flag = split_by_group_flag)
         return best_SVM_parameters
@@ -25,13 +24,13 @@ def choose_hyperparameters(train_df, target, model=ModelNames.SVM, n_jobs = -1, 
         best_Random_Forrest_parameters = find_best_random_forrest_parameters(df_for_hyperparameters, target,group_indicator, n_jobs, n_iterations = n_iterations, split_name = split_name, split_by_group_flag = split_by_group_flag)
         return best_Random_Forrest_parameters
 
-    # if model == ModelNames.LOGISTIC:
-    #     # טליה - צורה רצויה
-    #     #return find_best_hp_logistic_regression(df_for_hyperparameters, target, group_indicator,split_name = split_name, split_by_group_flag = split_by_group_flag)
-    #
-    # if model == ModelNames.XGBOOST:
-    #     # טליה - צורה רצויה
-    #     #return find_best_hp_xgboost(df_for_hyperparameters, target,group_indicator, split_name = split_name, split_by_group_flag = split_by_group_flag)
+    if model == ModelNames.LOGISTIC:
+         # טליה - צורה רצויה
+        return find_best_hp_logistic_regression(df_for_hyperparameters, target, split_name, split_by_group_flag, group_indicator)
+
+    if model == ModelNames.XGBOOST:
+        # טליה - צורה רצויה
+        return find_best_hp_xgboost(df_for_hyperparameters, target, split_name, split_by_group_flag, group_indicator)
 
     return None
 

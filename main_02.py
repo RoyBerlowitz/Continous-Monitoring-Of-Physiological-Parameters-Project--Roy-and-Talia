@@ -225,6 +225,9 @@ if __name__ == "__main__":
 
 
 
+    # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
+    perform_PCA(split2_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_dimensions =2, name="Individual Split")
+    perform_PCA(split1_X_vetting.drop(administrative_features, axis=1), split2_Y_train, n_dimensions=2, name="Group Split")
 
     #split2_X_selected, split2_X_test_norm = select_features(split2_X_vetting, split2_Y_train,split2_X_test_norm, split_name="Group_split updated", stopping_criteria=0)
     split2_X_selected = split2_X_vetting

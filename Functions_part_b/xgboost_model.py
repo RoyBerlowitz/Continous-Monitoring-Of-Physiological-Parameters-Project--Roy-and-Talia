@@ -2,7 +2,7 @@ from xgboost import XGBClassifier
 
 from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi
 
-def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False):
+def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None):
 
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
@@ -10,7 +10,7 @@ def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = Fal
     # print(f'Saved {split_name}_xgboost_results_xgb_grid.xlsx')
 
     # Randomized search
-    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train)
+    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
     results_rand.to_excel(f'{split_name}_xgboost_results_xgb_rand.xlsx')
     print(f'Saved {split_name}_xgboost_results_xgb_rand.xlsx')
 

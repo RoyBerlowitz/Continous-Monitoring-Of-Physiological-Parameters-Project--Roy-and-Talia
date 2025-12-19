@@ -4,12 +4,15 @@ from sklearn.feature_selection import RFE
 from sklearn.model_selection import cross_validate
 from sklearn.metrics import make_scorer, cohen_kappa_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
+from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
+
+from .consts import ModelNames
 
 
 def wrapper_selection(train_df, train_labels, frozen_params,
                                         n_features_range=[3, 5, 7, 10, 12, 15],
-                                        model_type='RF', split_name="Individual"):
+                                        model_type=ModelNames.RANDOM_FOREST, split_name="Individual"):
     """
     שלב א: השוואה בין כמויות פיצ'רים שונות.
     שומר גם Train וגם Test עבור כל המדדים שביקשת.
@@ -33,10 +36,12 @@ def wrapper_selection(train_df, train_labels, frozen_params,
     }
 
     # 2. בניית המודל עם הפרמטרים ה"קפואים"
-    if model_type == 'RF':
+    if model_type == ModelNames.RANDOM_FOREST:
         # ניקוי השמות של הפרמטרים במידה והם מגיעים עם תחילית של Pipeline
         clean_params = {k.split('__')[-1]: v for k, v in frozen_params.items()}
         estimator = RandomForestClassifier(**clean_params, random_state=42, n_jobs=-1)
+    elif model_type == ModelNames.XGBOOST:
+        estimator =  XGBClassifier(**frozen_params, random_state=42, n_jobs=-1)
 
     print(f"Starting Stage 1 Comparison for {split_name}...")
 
@@ -81,8 +86,12 @@ def wrapper_selection(train_df, train_labels, frozen_params,
            [c for c in results_df.columns if 'mean_test' in c] + \
            [c for c in results_df.columns if 'mean_train' in c]
 
-    file_name = f"{split_name}_Feature_Count_Comparison.xlsx"
+    file_name = f"{split_name}_{model_type}_Feature_Count_Comparison.xlsx"
     results_df[cols].to_excel(file_name, index=False)
 
     print(f"\n--- Results saved to: {file_name} ---")
+
+    best_row = results_df.loc[results_df['mean_test_Precision'].idxmax()]
+    return best_row['Selected_Features'].split(", ")
+
     return results_df
