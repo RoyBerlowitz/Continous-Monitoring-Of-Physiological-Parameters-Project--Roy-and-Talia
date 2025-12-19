@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.svm import SVC
 from scipy.stats import loguniform, randint
-from sklearn.metrics import roc_auc_score, classification_report, cohen_kappa_score, average_precision_score, make_scorer
+from sklearn.metrics import roc_auc_score, classification_report, cohen_kappa_score, recall_score, make_scorer
 
 
 def perform_PCA(train_df, target, n_dimensions, name = "Individual Split"):
@@ -81,14 +81,17 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
     # we chose AUC, Accuracy, F1_score and sensitivity
     # We added also cohen's kappa as it is more informative regarding the bias of the model towards the majority group
     kappa_scorer = make_scorer(cohen_kappa_score)
-
+    specificity_scorer = make_scorer(recall_score, pos_label=0)
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
         'F1': 'f1_macro',
         'Sensitivity': 'recall_macro',
-         'PRC': 'average_precision',
-         'Kappa': kappa_scorer
+        'Precision': 'precision',
+        'specificity': specificity_scorer,
+        'PRC': 'average_precision',
+        'Kappa':  kappa_scorer,
+
     }
     # Here we preform the search itself
     random_search = RandomizedSearchCV(
@@ -119,19 +122,17 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
     # we export to Excel the metric score for each parameter
     cv_results_df = pd.DataFrame(random_search.cv_results_)
 
-    cols_to_save = ['params',
-
-                    # TRAIN SCORE
-                    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity', 'mean_train_F1',
-                    'mean_train_PRC', 'mean_train_Kappa',
-
-                    # TEST SCORES
-                    'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Sensitivity', 'mean_test_F1',
-                    'mean_test_PRC', 'mean_test_Kappa',
-
-                    # Control columns
-                    'mean_fit_time',
-                    'rank_test_AUC']
+    cols_to_save = [
+        'params',
+        # TRAIN SCORE
+        'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
+        'mean_train_Precision', 'mean_train_F1', 'mean_train_PRC', 'mean_train_Kappa',
+        # TEST SCORES
+        'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
+        'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
+        # Control columns
+        'mean_fit_time', 'rank_test_AUC'
+    ]
 
     cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_AUC')
 
@@ -141,10 +142,10 @@ def find_best_SVM_parameters(train_df, train_labels, n_jobs = -1, n_iterations =
     #we return the best model
     return best_parameters
 
-def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name = "Individual Split"):
+def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
-    val_target = val_labels.values.ravel()
+    val_target = train_labels.values.ravel()
     # we start by scaling again
     steps = [
         ('scaler', StandardScaler())
@@ -166,7 +167,7 @@ def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name 
         gamma=gamma,
         random_state=42,
         probability=True,
-        class_weight=class_weights  # 🛑 השתמש במשתנה class_weight הנכון!
+        class_weight=class_weights
     )))
 
     # best_SVM_parameters = Pipeline([
@@ -181,17 +182,19 @@ def train_SVM( train_df, train_labels,val_df, val_labels, best_parameters, name 
     # We fit the model with our parameters to the data
     best_SVM_model = best_SVM_parameters.fit(train_df, train_labels.values.ravel())
 
-    # We find two predictions. one is the predicted label, the second one is the probability to be in the 1 label for each sample.
-    predicted_validation = best_SVM_model.predict(val_df)
-    val_scores = best_SVM_model.predict_proba(val_df)[:, 1]
+    return best_SVM_model
 
-    # We compute the AUC for the model
-    val_auc = roc_auc_score(val_target, val_scores)
-
-
-    print(f"\nTest Set AUC-ROC Score (Best Model) for {name}: {val_auc:.4f}")
-    print("\nClassification Report:")
-    # we show the classification report that includes various metrices
-    print(classification_report(val_target, predicted_validation))
+    # # We find two predictions. one is the predicted label, the second one is the probability to be in the 1 label for each sample.
+    # predicted_validation = best_SVM_model.predict(val_df)
+    # val_scores = best_SVM_model.predict_proba(val_df)[:, 1]
+    #
+    # # We compute the AUC for the model
+    # val_auc = roc_auc_score(val_target, val_scores)
+    #
+    #
+    # print(f"\nTest Set AUC-ROC Score (Best Model) for {name}: {val_auc:.4f}")
+    # print("\nClassification Report:")
+    # # we show the classification report that includes various metrices
+    # print(classification_report(val_target, predicted_validation))
 
 

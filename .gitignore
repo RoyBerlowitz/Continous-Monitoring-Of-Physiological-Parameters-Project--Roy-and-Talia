@@ -1,5 +1,12 @@
+﻿.idea/
+.venv/
+Continous_monitoring_venv/
+**/__pycache__/
+*.pyc
 *.pkl
 *.xlsx
-*.patch
-/data
-/model_outputs
+*.csv
+*.png
+*.jpg
+~$*
+X_features

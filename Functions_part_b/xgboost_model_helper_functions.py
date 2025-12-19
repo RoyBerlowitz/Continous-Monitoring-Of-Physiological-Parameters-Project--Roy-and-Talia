@@ -1,21 +1,20 @@
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-from sklearn.metrics import cohen_kappa_score, make_scorer
+from sklearn.metrics import cohen_kappa_score, make_scorer, recall_score
 from scipy.stats import uniform, randint, loguniform
 from xgboost import XGBClassifier
 import pandas as pd
 
-result_cols_to_save =['params',
-                    # TRAIN SCORE
-                    'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Sensitivity', 'mean_train_F1',
-                    'mean_train_PRC', 'mean_train_Kappa',
-
-                    # TEST SCORES
-                    'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Sensitivity', 'mean_test_F1',
-                    'mean_test_PRC', 'mean_test_Kappa',
-
-                    # Control columns
-                    'mean_fit_time',
-                    'rank_test_AUC']
+result_cols_to_save = [
+        'params',
+        # TRAIN SCORE
+        'mean_train_AUC', 'mean_train_Accuracy', 'mean_train_Specificity', 'mean_train_Sensitivity',
+        'mean_train_Precision', 'mean_train_F1', 'mean_train_PRC', 'mean_train_Kappa',
+        # TEST SCORES
+        'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
+        'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
+        # Control columns
+        'mean_fit_time', 'rank_test_AUC'
+    ]
 
 def xgb_grid_search_multi(X_train, y_train, cv=5):
     """
@@ -71,7 +70,7 @@ def xgb_grid_search_multi(X_train, y_train, cv=5):
 
     return grid_search.best_estimator_, grid_search.best_params_, results_df
 
-def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=50, random_state=42):
+def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=30, random_state=42):
     """
     XGBoost hyperparameter tuning with multiple scoring metrics using RandomizedSearchCV.
 
@@ -82,14 +81,18 @@ def xgb_random_search_multi(X_train, y_train, cv=5, n_iter=50, random_state=42):
     """
 
     kappa_scorer = make_scorer(cohen_kappa_score)
+    specificity_scorer = make_scorer(recall_score, pos_label=0)
 
     scoring_metrics = {
         'AUC': 'roc_auc',
         'Accuracy': 'accuracy',
         'F1': 'f1_macro',
         'Sensitivity': 'recall_macro',
+        'Precision': 'precision',
+        'specificity': specificity_scorer,
         'PRC': 'average_precision',
-        'Kappa': kappa_scorer
+        'Kappa':  kappa_scorer,
+
     }
 
     pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
