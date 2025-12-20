@@ -61,7 +61,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
 
         # We use RFE for the features selection regarding the wanted number of features.
         # RFE removes the most redundant features in each iteration after creating the forest with all the features, until it reaches the most impactful feature
-        selector = RFE(estimator=estimator, n_features_to_select=n, step=1, verbose=1)
+        selector = RFE(estimator=estimator, n_features_to_select=n, step=1, verbose=0)
         selector.fit(train_df, train_target)
         # we save the columns to a list
         selected_cols = train_df.columns[selector.support_].tolist()
@@ -112,5 +112,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
     print(f"\n--- Results saved to: {file_name} ---")
     # we save the best row as the best PRC - this is the metric we evaluate the model by
     best_row = results_df.loc[results_df['mean_test_PRC'].idxmax()]
-    return best_row['Selected_Features'].split(", ")
+    chosen_features = best_row['Selected_Features'].split(", ")
+    print (f"selected {len(chosen_features)}")
+    return chosen_features
 
