@@ -38,8 +38,7 @@ def choose_hyperparameters(train_df, labels, model=ModelNames.SVM, n_jobs = -1, 
     return None
 
 def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_flag = False):
-    # This function is meant to be the Super function for the model training.
-    # by defining the model name, we choose the model we train.
+
     # split_by_group is meant to ensure we leave (1/number of folds) of the groups out when we work on the group split - to resemble that case.
     # it is relevant in all models but random forrest
     # we create a copy to avoid changing the original data frame
@@ -60,7 +59,8 @@ def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_
         SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag)
         return SVM_model
     if model_name == ModelNames.RANDOM_FOREST:
-        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag)
+        # the finding of threshold is based on the OOB data so no need for k-folds and group flag
+        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split")
         return random_forest_model
     if model_name == ModelNames.LOGISTIC:
         return train_logistic_regression( train_x, Y_train,best_parameters, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
