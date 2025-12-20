@@ -3,7 +3,7 @@ import numpy as np
 
 from Functions_part_b import (load_cache_or_compute, select_features, choose_hyperparameters, train_model,
                               evaluate_model, ModelNames, chosen_hp_split1, chosen_hp_split2, wrapper_feature_selection)
-
+from Functions_part_b.select_features import select_features
 # Here are some definition for the part b running.
 # the administrative features are the feature which hold the details of every recording. they are important to keep, but the model should not train on them
 admin_features = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
@@ -106,14 +106,14 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
 
     return
 
-def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper=False):
+def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper=False):
     #here we preform the entire run_part_b
     models = [ModelNames.LOGISTIC, ModelNames.XGBOOST, ModelNames.SVM, ModelNames.RANDOM_FOREST]  #all
 
 
     #load part a
-    # part_a_res_cache_path = "part_a_final_output.pkl"
-    part_a_res_cache_path = "part_a_final_output_all_data.pkl"
+    part_a_res_cache_path = "part_a_final_output.pkl"
+    #part_a_res_cache_path = "part_a_final_output_all_data.pkl"
     with open(part_a_res_cache_path, "rb") as f:
         part_a_res = pickle.load(f)
 
@@ -157,6 +157,6 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, save_cache=False, f
 
     return
 
-run_part_b(save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
-                                force_recompute_train_model=True, force_recompute_evaluate_model=True,)
+run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
+                                force_recompute_train_model=True, force_recompute_evaluate_model=True,use_wrapper = True)
 # run_part_b(save_cache=True, chosen_hp_split1=chosen_hp_split1, chosen_hp_split2=chosen_hp_split2)
