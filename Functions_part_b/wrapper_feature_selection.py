@@ -111,5 +111,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
     print(f"\n--- Results saved to: {file_name} ---")
     # we save the best row as the best PRC - this is the metric we evaluate the model by
     best_row = results_df.loc[results_df['mean_test_PRC'].idxmax()]
-    return best_row['Selected_Features'].split(", ")
+    chosen_features = best_row['Selected_Features'].split(", ")
+    print (f"selected {len(chosen_features)}")
+    return chosen_features
 
