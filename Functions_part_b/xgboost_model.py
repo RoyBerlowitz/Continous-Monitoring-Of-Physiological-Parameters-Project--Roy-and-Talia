@@ -9,7 +9,7 @@ from sklearn.preprocessing import LabelEncoder
 
 
 
-def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None):
+def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None, wrapper_text = ''):
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
     # results_grid.to_excel(f'{split_name}_xgboost_results_xgb_grid.xlsx')
@@ -17,12 +17,12 @@ def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = Fal
 
     # Randomized search
     best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
-    results_rand.to_excel(f'{split_name}_xgboost_results_xgb_rand.xlsx')
-    print(f'Saved {split_name}_xgboost_results_xgb_rand.xlsx')
+    results_rand.to_excel(f'{split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
+    print(f'Saved {split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
 
     return best_params_rand
 
-def train_xgboost(X_train, y_train, best_hp, random_state=42, split_by_group_flag = False):
+def train_xgboost(X_train, y_train, best_hp, random_state=42, split_by_group_flag = False, group_indicator=None):
     # we encode the labels to be ints
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
@@ -33,8 +33,6 @@ def train_xgboost(X_train, y_train, best_hp, random_state=42, split_by_group_fla
         objective='binary:logistic',
         **best_hp
     )
-    model._estimator_type = "classifier"
-
 
     model.fit(X_train, y_train_encoded)
 
@@ -49,7 +47,7 @@ def train_xgboost(X_train, y_train, best_hp, random_state=42, split_by_group_fla
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
 
-    y_probs = cross_val_predict(model, X_train, y_train_encoded, cv=cv_strategy, method='predict_proba')[:, 1]
+    y_probs = cross_val_predict(model, X_train, y_train_encoded, groups=group_indicator, cv=cv_strategy, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(y_train_encoded, y_probs)
     avg_prec = average_precision_score(y_train_encoded, y_probs)

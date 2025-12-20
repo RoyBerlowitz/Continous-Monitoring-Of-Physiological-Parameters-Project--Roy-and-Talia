@@ -56,12 +56,15 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
     ##--------------- Part B: train model -----------##
     trained_models = {}
 
+    # selected_feats = ['Acc_Z-AXIS_velocity_std', 'Acc_Z-AXIS_kurtosis', 'Mag_MEAN_AXES_CORR', 'Gyro_X-AXIS_CUSUM-_Feature', 'Gyro_X_Z_CORR', 'Acc_Z-AXIS_velocity_median', 'Gyro_Y-AXIS_dominant_frequency', 'Mag_Y-AXIS_skewness', 'Gyro_X-AXIS_CUSUM+_Feature', 'Acc_Y-AXIS_frequency_variance', 'Acc_SM_acceleration_median']
+    # selected_feats = features
+
     for model_name in models_to_run:
         # if we selected to use wrapper, the flag will be true and we commit the selection for each model seperately.
         if use_wrapper:
             selected_feats = load_cache_or_compute(
                     f"{split_name}_{model_name}_wrapper_select_features.pkl",
-                    lambda: select_features(X_train[features], y_train,  chosen_hp[model_name], split_name=split_name+model_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
+                    lambda: select_features(X_train, y_train,  chosen_hp[model_name], split_name=split_name+model_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
                     force_recompute=force_recompute_select_features,
                     save=save_cache
                 )
@@ -73,8 +76,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         #get best hyperparameters
         model_best_hp = load_cache_or_compute(
             f"{split_name}_{model_name}{wrapper_text}_best_hp.pkl",
-            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name+model_name,split_by_group_flag=split_by_group_flag),
-            # lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name,split_by_group_flag=split_by_group_flag,wrapper_text=wrapper_text),
+            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name+model_name,split_by_group_flag=split_by_group_flag,wrapper_text=wrapper_text),
             force_recompute=force_recompute_find_hp,
             save=save_cache
         )
@@ -110,6 +112,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
 def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper=False):
     #here we preform the entire run_part_b
     models = [ModelNames.LOGISTIC, ModelNames.XGBOOST, ModelNames.SVM, ModelNames.RANDOM_FOREST]  #all
+    # models = [ModelNames.XGBOOST]  #all
 
     #load part a
     # part_a_res_cache_path = "part_a_final_output.pkl"

@@ -6,7 +6,7 @@ import numpy as np
 from .evaluate_model_functions import closest_point_roc
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold, StratifiedKFold
 
-def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None):
+def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None, wrapper_text=''):
 
     # # Grid search
     # best_model_grid, best_params_grid, results_grid = logistic_grid_search_multi(X_train, y_train)
@@ -15,12 +15,12 @@ def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_grou
 
     # Randomized search
     best_model_rand, best_params_rand, results_rand = logistic_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
-    results_rand.to_excel(f'{split_name}_logistic_results_rand_search.xlsx', index=False)
-    print(f'Saved {split_name}_logistic_results_rand_search.xlsx')
+    results_rand.to_excel(f'{split_name}{wrapper_text}_logistic_results_rand_search.xlsx', index=False)
+    print(f'Saved {split_name}{wrapper_text}_logistic_results_rand_search.xlsx')
 
     return best_params_rand
 
-def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = False):
+def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = False, group_indicator=None):
 
     model = LogisticRegression(
         max_iter=1000,
@@ -40,7 +40,7 @@ def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = Fa
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
 
-    y_probs = cross_val_predict(model, X_train, y_train, cv=5, method='predict_proba')[:, 1]
+    y_probs = cross_val_predict(model, X_train, y_train, groups=group_indicator, cv=5, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(y_train, y_probs)
     avg_prec = average_precision_score(y_train, y_probs)

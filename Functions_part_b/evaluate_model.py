@@ -1,7 +1,7 @@
 from .evaluate_model_functions import evaluate_one_model, plot_ROC, plot_PRC, save_model_outputs_to_xlsx, create_folder_for_saving
 import copy as copy
 import pandas as pd
-def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False, split_name=None):
+def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False, split_name=None, wrapper_text=''):
     # roc_auc
     # prc_auc
     # sensitivity
@@ -14,7 +14,7 @@ def evaluate_model(models, model_names, test_x, y_test, save_model_outputs=False
 
     folder_name = False
     if save_model_outputs:
-        folder_name = create_folder_for_saving(split_name)
+        folder_name = create_folder_for_saving(split_name+wrapper_text)
 
     all_excel_data = []
     plot_outputs = []
