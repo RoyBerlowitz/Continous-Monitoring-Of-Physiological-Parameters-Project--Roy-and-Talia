@@ -15,6 +15,6 @@ def select_features(X, Y, function_variable: list, split_name="Individual_split"
         # we evaluate the model by PRC
         [frozen_params,n_features_range,model_type] = function_variable
         selected_features = select_features_wrapper(X, Y, frozen_params,
-                                        n_features_range=[3, 5, 7, 10, 12, 15],
-                                        model_type=ModelNames.RANDOM_FOREST, split_name=split_name, split_by_group_flag = split_by_group_flag)
+                                        n_features_range=n_features_range,
+                                        model_type=model_type, split_name=split_name, split_by_group_flag = split_by_group_flag)
     return selected_features

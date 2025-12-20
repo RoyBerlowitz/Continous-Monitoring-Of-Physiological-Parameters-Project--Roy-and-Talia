@@ -61,7 +61,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         if use_wrapper:
             selected_feats = load_cache_or_compute(
                     f"{split_name}_{model_name}_wrapper_select_features.pkl",
-                    lambda: select_features(X_train[features], y_train,  chosen_hp[model_name], split_name=split_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
+                    lambda: select_features(X_train[features], y_train,  chosen_hp[model_name], split_name=split_name+model_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
                     force_recompute=force_recompute_select_features,
                     save=save_cache
                 )
@@ -73,7 +73,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         #get best hyperparameters
         model_best_hp = load_cache_or_compute(
             f"{split_name}_{model_name}{wrapper_text}_best_hp.pkl",
-            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name,split_by_group_flag=split_by_group_flag),
+            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name+model_name,split_by_group_flag=split_by_group_flag),
             force_recompute=force_recompute_find_hp,
             save=save_cache
         )
