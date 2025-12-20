@@ -24,7 +24,7 @@ wrapper_params_split_2 = {
 n_features_range = [3, 5, 7, 10, 12, 15, 17, 19, 20]
 # we define the model the wrapper should run on.
 wrapper_models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
-wrapper_models = [ModelNames.RANDOM_FOREST]
+wrapper_models = [ModelNames.XGBOOST]
 # the wrapper parameters
 chosen_hp_split1 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_1[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_1[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
 chosen_hp_split2 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_2[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
@@ -61,7 +61,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         if use_wrapper:
             selected_feats = load_cache_or_compute(
                     f"{split_name}_{model_name}_wrapper_select_features.pkl",
-                    lambda: select_features(X_train[features], y_train,  chosen_hp[model_name], split_name=split_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
+                    lambda: select_features(X_train, y_train, chosen_hp[model_name], split_name=split_name, selection_flag = "wrapper", split_by_group_flag = split_by_group_flag),
                     force_recompute=force_recompute_select_features,
                     save=save_cache
                 )
@@ -73,7 +73,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         #get best hyperparameters
         model_best_hp = load_cache_or_compute(
             f"{split_name}_{model_name}{wrapper_text}_best_hp.pkl",
-            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name,split_by_group_flag=split_by_group_flag),
+            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name,split_by_group_flag=split_by_group_flag,wrapper_text=wrapper_text),
             force_recompute=force_recompute_find_hp,
             save=save_cache
         )
@@ -97,7 +97,8 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         lambda: evaluate_model(list(trained_models.values()), list(trained_models.keys()),
                                X_test[selected_feats], y_test,
                                split_name = split_name,
-                               save_model_outputs=True),
+                               save_model_outputs=True,
+                               wrapper_text=wrapper_text),
         force_recompute=force_recompute_evaluate_model,
         save=save_cache
     )
@@ -110,10 +111,9 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
     #here we preform the entire run_part_b
     models = [ModelNames.LOGISTIC, ModelNames.XGBOOST, ModelNames.SVM, ModelNames.RANDOM_FOREST]  #all
 
-
     #load part a
-    part_a_res_cache_path = "part_a_final_output.pkl"
-    #part_a_res_cache_path = "part_a_final_output_all_data.pkl"
+    # part_a_res_cache_path = "part_a_final_output.pkl"
+    part_a_res_cache_path = "part_a_final_output_all_data.pkl"
     with open(part_a_res_cache_path, "rb") as f:
         part_a_res = pickle.load(f)
 
