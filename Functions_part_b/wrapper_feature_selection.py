@@ -14,7 +14,7 @@ from .consts import ModelNames
 
 def select_features_wrapper(train_df, train_labels, frozen_params,
                                         n_features_range=[3, 5, 7, 10, 12, 15],
-                                        model_type=ModelNames.RANDOM_FOREST, split_name="Individual", split_by_group_flag = False):
+                                        model_type=ModelNames.RANDOM_FOREST, split_name="Individual", split_by_group_flag = False, group_indicator=None):
     #We implemented wrapper selection based on the two best operation model: gradient boosting and random forrest.
     # we decided to look for the best number of features, and subsequecntly, the best combination for each of this number.
     # because preforming the search for the best hyperparameters for each number pf features will take an incerible amount of runtime,
@@ -52,7 +52,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         # We clean the parametrs' names if thet are with Pipeline prefix
         clean_params = {k.split('__')[-1]: v for k, v in frozen_params.items()}
         # we define the estimator to be the XG_boost model with the selected parameters
-        estimator =  XGBClassifier(**clean_params, random_state=42, n_jobs=-1)
+        estimator = XGBClassifier(**clean_params, random_state=42, n_jobs=-1)
 
     print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")
 
@@ -77,6 +77,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
             estimator,
             train_df[selected_cols],
             train_target,
+            groups = None if not split_by_group_flag else group_indicator,
             cv=cv_strategy,
             scoring=scoring,
             return_train_score=True,  # '

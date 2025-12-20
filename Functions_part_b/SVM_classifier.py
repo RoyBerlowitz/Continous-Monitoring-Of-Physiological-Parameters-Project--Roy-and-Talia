@@ -43,7 +43,7 @@ def perform_PCA(train_df, target, n_dimensions, name = "Individual Split"):
     return pca_df
 
 
-def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False):
+def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False, wrapper_text=''):
 
     # Here we preform the search for the best hyperparameters for the SVM model.
     # We will preform parallel run to accelerate time
@@ -155,7 +155,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
 
     cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_PRC')
 
-    excel_file_name = split_name +'_SVM_Random_Search_Results.xlsx'
+    excel_file_name = split_name + wrapper_text +'_SVM_Random_Search_Results.xlsx'
     cv_results_filtered.to_excel(excel_file_name, index=False)
     print(f"\n--- CV Results Saved to: {excel_file_name} ---")
     #we return the best model
