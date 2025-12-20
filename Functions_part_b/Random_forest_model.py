@@ -19,19 +19,20 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     pipeline = Pipeline([('Random_Forest', RandomForestClassifier(random_state=42))])
 
     # We will determine the ranges of the values of the parameters.
-    # we preform RandomSearch instead of GridSearch, as it allows to cover the space more completely.
+    # we preform Random Search instead of GridSearch, as it allows to cover the space more completely.
     # we look for the parameters that will award us with the best combination between good prediction and no overfitting.
-    # all of the parameters are randomly chosen as integers  from a declined range
-    # class weight is examined to be between None and balanced which gives more weight the minority group and by that creates more balanced model
-    # max sample detrmine which percent of the data will be transmitted to each tree
-    params_ranges = {'Random_Forest__n_estimators': randint(100, 500),
-                     'Random_Forest__max_depth': randint(10, 41),
-                     'Random_Forest__min_samples_split': randint(20, 100),
-                     'Random_Forest__max_samples': uniform(0.5, 0.4),
-                     'Random_Forest__class_weight': ['balanced', 'balanced_subsample'] }
+    # all the parameters are randomly chosen as integers from a declined range
+
+    params_ranges = {'Random_Forest__n_estimators': randint(100, 500), #how many trees in the ensemble give us the best result
+                     'Random_Forest__max_depth': randint(10, 41), # we look for the best depth, and limit the depth to prevent overfitting
+                     'Random_Forest__min_samples_split': randint(20, 100), #the minimal amount of sample to split - to prevent overfitting while catching the data patterns
+                     'Random_Forest__max_samples': uniform(0.5, 0.4), #max sample determine which percent of the data will be transmitted to each tree
+                     'Random_Forest__min_samples_leaf': randint(10, 100), #the minimal amount of sample in final leave - to prevent overfitting while catching the data patterns
+                     'Random_Forest__class_weight': ['balanced', 'balanced_subsample']     # class weight is examined to be between balanced_subsample and balanced which to under the level of balance we should create in the model
+                    }
 
     # we add scoring metrics we will examine in the Excel.
-    # we chose AUC, Accuracy, F1_score and sensitivity
+    # we chose AUC, Accuracy, F1_score, PRC, specificity, precision, and sensitivity
     # We added also cohen's kappa as it is more informative regarding the bias of the model towards the majority group
     kappa_scorer = make_scorer(cohen_kappa_score)
     specificity_scorer = make_scorer(recall_score, pos_label=0)
@@ -56,7 +57,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
 
     # Here we preform the search itself
     # We decided to evaluate our model by the PRC.
-    # PRC represnets the potential of the model in regard to the positive (which is the minority) group.
+    # PRC represents the potential of the model in regard to the positive (which is the minority) group.
     # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
     # which may indicate the best balance between sensitivity and precision
 
@@ -66,7 +67,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
         n_iter=n_iterations,  # number of iterations to check
         cv=cv_strategy,  # stratified K-folds to look for
         scoring=scoring_metrics,  # we find all the wanted metrics
-        refit='average_precision',  # AUC-ROC is the evaluation metric
+        refit='PRC',  # AUC-ROC is the evaluation metric
         n_jobs=n_jobs,
         verbose=3,
         random_state=42,  # to have consistent results
@@ -96,9 +97,9 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
         'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
         'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
         # Control columns
-        'mean_fit_time', 'rank_test_AUC'
+        'mean_fit_time', 'rank_test_PRC'
     ]
-    cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_AUC')
+    cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_PRC')
 
     excel_file_name = split_name + 'Random_Forrest_Search_Results.xlsx'
     cv_results_filtered.to_excel(excel_file_name, index=False)
@@ -117,12 +118,13 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, nam
     min_samples_split = best_parameters['Random_Forest__min_samples_split']
     class_weight = best_parameters['Random_Forest__class_weight']
     max_samples = best_parameters['Random_Forest__max_samples']
-    max_features = best_parameters.get('Random_Forest__max_features', 'sqrt')
+    min_sample_leaf = best_parameters.get('Random_Forest__min_samples_leaf')
     #we create the pipeline again
-    Random_Forest_pipeline = Pipeline([("Random_Forest", RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, min_samples_split = min_samples_split, class_weight = class_weight, max_samples = max_samples, random_state=42, n_jobs =n_jobs))])
+    Random_Forest_pipeline = Pipeline([("Random_Forest", RandomForestClassifier(n_estimators = n_estimators, max_depth = max_depth, min_samples_split = min_samples_split, min_samples_leaf= min_sample_leaf, class_weight = class_weight, max_samples = max_samples, random_state=42, oob_score=True, n_jobs =n_jobs))])
     print (f"Starting Training the Random Forrest for {name}...")
     # we fit the model to the data
-    best_Random_Forest_Model = Random_Forest_pipeline.fit(train_df, train_target)
+    best_Random_Forest_pipeline = Random_Forest_pipeline.fit(train_df, train_target)
+    best_Random_Forest_Model = best_Random_Forest_pipeline.named_steps['Random_Forest']
 
     # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
     # To use the PRC without overfitting which is based on the fact we find the best operating point with the data we trained on,

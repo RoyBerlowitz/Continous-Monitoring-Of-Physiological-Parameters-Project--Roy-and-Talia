@@ -1,10 +1,10 @@
 from sklearn.linear_model import LogisticRegression
 
 from .logistic_regression_model_helper_functions import logistic_random_search_multi, logistic_grid_search_multi
-from sklearn.model_selection import cross_val_predict
 from sklearn.metrics import roc_curve, precision_recall_curve, average_precision_score
 import numpy as np
 from .evaluate_model_functions import closest_point_roc
+from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold, StratifiedKFold
 
 def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None):
 
@@ -20,7 +20,7 @@ def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_grou
 
     return best_params_rand
 
-def train_logistic_regression(X_train, y_train, best_hp):
+def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = False):
 
     model = LogisticRegression(
         max_iter=1000,
@@ -34,9 +34,15 @@ def train_logistic_regression(X_train, y_train, best_hp):
     # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
     # we use the result to predict the probabilities and by that find the best operating point.
     # it is not exactly the same model, but it is close and justified estimation.
+    # we preserve the same logic regarding the group k-folds also here
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
+
     y_probs = cross_val_predict(model, X_train, y_train, cv=5, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve
-    precisions, recalls, thresholds = precision_recall_curve(X_train, y_probs)
+    precisions, recalls, thresholds = precision_recall_curve(y_train, y_probs)
     avg_prec = average_precision_score(y_train, y_probs)
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.

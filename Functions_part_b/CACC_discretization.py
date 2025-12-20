@@ -3,6 +3,7 @@ import numpy as np
 from typing import List, Tuple, Optional
 from scipy.stats import chi2_contingency
 
+
 def contingency_coefficient(attr: pd.Series, target: pd.Series) -> float:
     # This function computes the class-attribute Contingency Coefficient (CACC).
     # first we build the contigency value between each attribute to each label
@@ -51,7 +52,7 @@ def best_cut_point(values: np.ndarray, target: np.ndarray) -> Optional[Tuple[flo
     # we return the best cut and cacc if it not none
     return (best_cut, best_cacc) if best_cut is not None else None
 
-def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str, min_gain: float = 0.1, max_bins_limit=100) -> List[float]: #min_samples_to_split: int = 200) -> List[float]:
+def CACC_discretization(values: np.ndarray, target: np.ndarray, column_name: str, min_gain: float = 0.001, max_bins_limit=100) -> List[float]: #min_samples_to_split: int = 200) -> List[float]:
 
     # Here, we recursively discretize a continuous attribute using CACC.
     # we return sorted list of cut points.

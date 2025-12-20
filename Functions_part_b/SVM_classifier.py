@@ -114,7 +114,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
         n_iter=n_iterations,  # number of iterations to check
         cv=cv_strategy,  # stratified K-folds to look for
         scoring=scoring_metrics,  # we find all the wanted metrics
-        refit='average_precision',  # AUC-ROC is the evaluation metric
+        refit='PRC',  # AUC-ROC is the evaluation metric
         n_jobs=n_jobs,
         verbose=3,
         random_state=42,  # to have consistent results
@@ -150,10 +150,10 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
         'mean_test_AUC', 'mean_test_Accuracy', 'mean_test_Specificity', 'mean_test_Precision',
         'mean_test_Sensitivity', 'mean_test_F1', 'mean_test_PRC', 'mean_test_Kappa',
         # Control columns
-        'mean_fit_time', 'rank_test_AUC'
+        'mean_fit_time', 'rank_test_PRC'
     ]
 
-    cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_AUC')
+    cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_PRC')
 
     excel_file_name = split_name +'_SVM_Random_Search_Results.xlsx'
     cv_results_filtered.to_excel(excel_file_name, index=False)
@@ -161,15 +161,16 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     #we return the best model
     return best_parameters
 
-def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"):
+def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split", split_by_group_flag = False):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()
-    # we start by scaling again
+    # we normalize again to prevent data leakage and ensure normal data distribution
     steps = [
         ('scaler', StandardScaler())
     ]
-    # we seperated to cases in which we want to preform PCA and not. so we check if PCA was done
+    # we seperated to cases in which we want to preform PCA and not. so we check if PCA was done.
+    # if done, we preform PCA to reduce dimensionality, with the found number of components
     if 'pca__n_components' in best_parameters:
         pca_n_components = best_parameters['pca__n_components']
         steps.append(('pca', PCA(n_components=pca_n_components)))
@@ -179,8 +180,8 @@ def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"
     C = best_parameters['svm__C']
     #pca_n_components = best_parameters['pca__n_components']
     class_weights = best_parameters['svm__class_weight']
-
-    steps.append(('svm', SVC(
+    # we preform SVM with RBF kernel and the parameters we found
+    steps.append(('SVM', SVC(
         kernel='rbf',
         C=C,
         gamma=gamma,
@@ -189,24 +190,24 @@ def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"
         class_weight=class_weights
     )))
 
-    # best_SVM_parameters = Pipeline([
-    #     ('scaler', StandardScaler()),  # we normalize again to prevent data leakage and ensure normal data distribution
-    #     ('pca', PCA(n_components=pca_n_components)),  # we preform PCA to reduce dimensionality, with the found number of components
-    #     ('svm', SVC(kernel='rbf', C=C, gamma= gamma, random_state=42, probability=True, class_weight=class_weights))  # we preform SVM with RBF kernel and the parameters we found
-    # ])
-
     best_SVM_parameters = Pipeline(steps)
 
     print (f"Starting Training the SVM model for {name}...")
     # We fit the model with our parameters to the data
-    best_SVM_model = best_SVM_parameters.fit(train_df, train_target)
+    best_SVM_pipeline = best_SVM_parameters.fit(train_df, train_target)
+    best_SVM_model = best_SVM_pipeline.named_steps['SVM']
 
     # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
     # we face a challenge - we try to estimate the PRC without overfitting, which is non-trivial based on the fact we find the best operating point with the data we trained on.
     # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
     # we use the result to predict the probabilities and by that find the best operating point.
     # it is not exactly the same model, but it is close and justified estimation.
-    y_probs = cross_val_predict(best_SVM_model, train_df, train_target, cv=5, method='predict_proba')[:, 1]
+    # we preserve the same logic regarding the group k-folds also here
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
+    y_probs = cross_val_predict(best_SVM_model, train_df, train_target, cv=cv_strategy, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
     avg_prec = average_precision_score(train_target, y_probs)
