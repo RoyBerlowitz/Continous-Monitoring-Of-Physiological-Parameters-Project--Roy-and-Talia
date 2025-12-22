@@ -1,12 +1,13 @@
 import pandas as pd
 import numpy as np
-from sklearn.feature_selection import RFE
+from sklearn.feature_selection import RFE, RFECV
 from sklearn.model_selection import cross_validate
 from sklearn.metrics import make_scorer, cohen_kappa_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import StratifiedGroupKFold,StratifiedKFold, cross_val_predict
+
 
 
 from .consts import ModelNames
@@ -54,8 +55,63 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         # we define the estimator to be the XG_boost model with the selected parameters
         estimator = XGBClassifier(**clean_params, random_state=42, n_jobs=-1)
 
-    print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")
 
+    # print(f"Starting RFECV (Automatic Feature Selection) for {split_name} with {model_type}...")
+    #
+    # # הגדרת אסטרטגיית ה-CV (הוצאנו מחוץ ללולאה כי RFECV צריך אותה בפנים)
+    # if split_by_group_flag:
+    #     cv_strategy = StratifiedGroupKFold(n_splits=5)
+    # else:
+    #     cv_strategy = StratifiedKFold(n_splits=5)
+    #
+    # # הגדרת RFECV - הוא יבצע את ה-Backward וימדוד PRC (average_precision)
+    # # שים לב: הגדרנו scoring='average_precision' כדי לבחור לפי PRC
+    # selector = RFECV(
+    #     estimator=estimator,
+    #     step=1,
+    #     cv=cv_strategy,
+    #     scoring='average_precision',
+    #     min_features_to_select=1,
+    #     n_jobs=-1,
+    #     verbose=1
+    # )
+    #
+    # # הרצת התהליך
+    # # ב-RFECV מעבירים את ה-groups ישירות ל-fit
+    # selector.fit(train_df, train_target, groups=None if not split_by_group_flag else group_indicator)
+    #
+    # # חילוץ נתוני הריצה עבור כל כמות פיצ'רים (כדי לשמור לאקסל כמו קודם)
+    # # ב-RFECV החדש, התוצאות נשמרות ב-cv_results_
+    # means = selector.cv_results_['mean_test_score']
+    # stds = selector.cv_results_['std_test_score']
+    # n_features_range = range(1, len(means) + 1)
+    #
+    # results = []
+    # for i, n in enumerate(n_features_range):
+    #     row = {
+    #         'n_features': n,
+    #         'mean_test_PRC': means[i],
+    #         'std_test_PRC': stds[i]
+    #     }
+    #     results.append(row)
+    #
+    # # יצירת ה-DataFrame ושמירה לאקסל
+    # results_df = pd.DataFrame(results)
+    # file_name = f"{split_name}_{model_type}_RFECV_Performance.xlsx"
+    # results_df.to_excel(file_name, index=False)
+    #
+    # # חילוץ הפיצ'רים שנבחרו בנקודה האופטימלית
+    # n_optimal = selector.n_features_
+    # chosen_features = train_df.columns[selector.support_].tolist()
+    #
+    # print(f"\n--- Optimal number of features: {n_optimal} ---")
+    # print(f"--- Best PRC Score: {max(means):.4f} ---")
+    # print(f"--- Results saved to: {file_name} ---")
+    #
+    # return chosen_features
+
+    """ THIS is THE FORMER IMPLEMENTATION OF RFE IF THE NEW ONE WILL BE WORSE"""
+    print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")
     for n in n_features_range:
         print(f"Checking performance with top {n} features...")
 

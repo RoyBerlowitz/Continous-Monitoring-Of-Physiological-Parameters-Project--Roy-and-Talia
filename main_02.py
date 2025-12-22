@@ -25,6 +25,8 @@ wrapper_params_split_2 = {
 n_features_range = [3, 5, 7, 10, 12, 15, 17, 19, 20]
 # we define the model the wrapper should run on.
 wrapper_models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
+wrapper_models = [ModelNames.RANDOM_FOREST]
+
 # the wrapper parameters
 chosen_hp_split1 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_1[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_1[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
 chosen_hp_split2 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_2[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
@@ -155,9 +157,9 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
 
     return
 
-#run with wrapper to find best features
-run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
-                                force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
+#run with wrapper to find best features - this is what we chose
+run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=False, force_recompute_find_hp=False,
+                                force_recompute_train_model=False, force_recompute_evaluate_model=True, use_wrapper = True)
 #run with filter to find best features
-run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
-                                force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = False)
+# run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
+#                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = False)

@@ -9,7 +9,7 @@ from .evaluate_model_functions import closest_point_roc
 
 
 
-def find_best_random_forrest_parameters (train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = ''):
+def find_best_random_forrest_parameters (train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 100, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = ''):
     # Here we preform the search for the best hyperparameters for the SVM model.
     # We will preform parallel run to accelerate time
 
