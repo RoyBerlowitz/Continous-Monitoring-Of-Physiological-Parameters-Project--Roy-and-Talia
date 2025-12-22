@@ -28,8 +28,6 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # Tries to estimate how bias the model prediction towards the majority group, by dividing  (accuracy minus ration of majority group) / (1 minus ration of majority group)
     cohen_kappa = cohen_kappa_score(y_test, y_predicted)
 
-
-
     # ---------- ROC & AUC ----------
     roc_auc = roc_auc_score(y_test, y_prob) #Area Under the ROC Curve, higher better
     # FPR (False Positive Rate) = Routine misclassified as Handwashing
@@ -43,6 +41,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     precision, recall, prc_thresholds = precision_recall_curve(y_test, y_prob)
     best_prc_point = closest_point_prc(precision, recall, prc_thresholds)
     prc_auc = auc(recall, precision) # area under curve. higher better detection of label 1
+    precision_70, recall_70, threshold_70 = get_recall_70(precision, recall, prc_thresholds)
 
     # we are now defining 3 working points:
     # default - threshold =0.5
@@ -53,7 +52,8 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     working_points = [
         {'type': 'Original (0.5)', 'threshold': 0.5},
         {'type': 'Best_ROC_AUC', 'threshold': model.optimal_threshold_ROC_},
-        {'type': 'Best_PRC', 'threshold': model.optimal_threshold_PRC_}
+        {'type': 'Best_PRC', 'threshold': model.optimal_threshold_PRC_},
+        {'type': 'Recall 0.7', 'threshold': threshold_70},
     ]
 
     excel_results = []
@@ -211,6 +211,21 @@ def closest_point_prc(precision, recall, thresholds):
         'threshold': thresholds[idx] if idx < len(thresholds) else None,
         'distance': distances[idx]
     }
+
+def get_recall_70(precision, recall, thresholds):
+    """
+    :return: precision_at_70, recall_at_70, threshold_at_70
+    """
+    target_recall = 0.7
+    idx = np.argmin(np.abs(recall - target_recall))
+
+    precision_at_70 = precision[idx]
+    recall_at_70 = recall[idx]
+
+    # Threshold (only valid if idx < len(thresholds))
+    threshold_at_70 = thresholds[idx] if idx < len(thresholds) else 1.0
+
+    return precision_at_70, recall_at_70, threshold_at_70
 
 def save_model_outputs_to_xlsx(model_outputs, folder_name):
     df = pd.DataFrame(model_outputs)
