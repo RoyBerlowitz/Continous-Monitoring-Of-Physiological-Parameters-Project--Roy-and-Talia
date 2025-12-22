@@ -66,9 +66,9 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
     }
 
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5)
+        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5)
+        cv_strategy = StratifiedKFold(n_splits=5, random_state=42)
 
     xgb = XGBClassifierClassifier(objective='binary:logistic', eval_metric='logloss', random_state=random_state)
 
@@ -103,7 +103,7 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
 # We decided to use random search to cover the space of hyperparameters better, but left it in case we want to use that in the future
 
 
-def xgb_grid_search_multi(X_train, y_train, cv=5):
+def xgb_grid_search_multi(X_train, y_train, cv=5, random_state = 42):
     """
     XGBoost hyperparameter tuning with multiple scoring metrics using GridSearchCV.
 

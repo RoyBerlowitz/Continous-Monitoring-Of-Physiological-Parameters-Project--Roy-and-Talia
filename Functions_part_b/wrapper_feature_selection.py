@@ -69,9 +69,9 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         # we run cross validation the model with the "surviving" features
         # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
         if split_by_group_flag:
-            cv_strategy = StratifiedGroupKFold(n_splits=5)
+            cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42)
         else:
-            cv_strategy = StratifiedKFold(n_splits=5)
+            cv_strategy = StratifiedKFold(n_splits=5, random_state=42)
         # we preform the cross validation with the estimator and the chosen features
         cv_results = cross_validate(
             estimator,
