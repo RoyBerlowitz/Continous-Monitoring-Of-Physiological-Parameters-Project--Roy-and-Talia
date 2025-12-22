@@ -106,14 +106,14 @@ def logistic_random_search_multi(X_train, y_train, split_by_group_flag=False, gr
         {'solver': ['saga'], 'penalty': ['elasticnet'], 'C': loguniform(1e-3, 1e3), 'l1_ratio': [0.1, 0.5, 0.9], 'class_weight':[None, 'balanced']},
     ]
 
-    lr = LogisticRegression(max_iter=1000)
+    lr = LogisticRegression(max_iter=1000, random_state=42)
 
     # Here We determine the stratified K-Folds strategy.
     # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5)
+        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5)
+        cv_strategy = StratifiedKFold(n_splits=5, random_state=42)
 
     # Here we preform the search itself
     # We decided to evaluate our model by the PRC.
