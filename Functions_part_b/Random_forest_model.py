@@ -51,9 +51,9 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     # Here We determine the stratified K-Folds strategy.
     # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42)
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5, random_state=42)
+        cv_strategy = StratifiedKFold(n_splits=5)
 
     # Here we preform the search itself
     # We decided to evaluate our model by the PRC.
