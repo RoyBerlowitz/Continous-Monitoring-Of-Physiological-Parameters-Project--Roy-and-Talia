@@ -37,9 +37,9 @@ def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = Fa
     # it is not exactly the same model, but it is close and justified estimation.
     # we preserve the same logic regarding the group k-folds also here
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedKFold(n_splits=5)
 
     y_probs = cross_val_predict(model, X_train, y_train, groups=group_indicator, cv=cv_strategy, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve

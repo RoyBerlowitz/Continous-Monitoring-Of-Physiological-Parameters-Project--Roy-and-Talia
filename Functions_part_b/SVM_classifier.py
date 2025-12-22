@@ -98,9 +98,9 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     # Here We determine the stratified K-Folds strategy.
     # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=3, random_state=42, shuffle=True)
+        cv_strategy = StratifiedGroupKFold(n_splits=3)
     else:
-        cv_strategy = StratifiedKFold(n_splits=3, random_state=42, shuffle=True)
+        cv_strategy = StratifiedKFold(n_splits=3)
 
     # Here we preform the search itself
     # We decided to evaluate our model by the PRC.
@@ -204,9 +204,9 @@ def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"
     # it is not exactly the same model, but it is close and justified estimation.
     # we preserve the same logic regarding the group k-folds also here
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedKFold(n_splits=5)
     y_probs = cross_val_predict(best_SVM_model, train_df, train_target, cv=cv_strategy, method='predict_proba')[:, 1]
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)

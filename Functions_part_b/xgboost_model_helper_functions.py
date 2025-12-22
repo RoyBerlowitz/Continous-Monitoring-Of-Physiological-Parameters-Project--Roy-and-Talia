@@ -66,9 +66,9 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
     }
 
     if split_by_group_flag:
-        cv_strategy = StratifiedGroupKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
-        cv_strategy = StratifiedKFold(n_splits=5, random_state=42, shuffle=True)
+        cv_strategy = StratifiedKFold(n_splits=5)
 
     xgb = XGBClassifierClassifier(objective='binary:logistic', eval_metric='logloss', random_state=random_state)
 
