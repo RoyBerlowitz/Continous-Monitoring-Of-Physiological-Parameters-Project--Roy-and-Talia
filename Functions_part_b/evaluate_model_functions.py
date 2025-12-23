@@ -34,6 +34,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # TPR (True Positive Rate / Sensitivity) = Handwashing correctly detected
     fpr, tpr, roc_thresholds = roc_curve(y_test, y_prob)
     best_roc_point = closest_point_roc(fpr, tpr, roc_thresholds)
+    train_optimal_roc_point = get_roc_point_at_threshold(fpr, tpr, roc_thresholds, model.optimal_threshold_ROC_)
 
     # ---------- Precision-Recall Curve (PRC) ----------
     # Precision - How many predicted washings were correct
@@ -42,6 +43,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     best_prc_point = closest_point_prc(precision, recall, prc_thresholds)
     prc_auc = auc(recall, precision) # area under curve. higher better detection of label 1
     precision_70, recall_70, threshold_70 = get_recall_70(precision, recall, prc_thresholds)
+    train_optimal_prc_point = get_prc_point_at_threshold(recall, precision, prc_thresholds, model.optimal_threshold_PRC_)
 
     # we are now defining 3 working points:
     # default - threshold =0.5
@@ -131,7 +133,9 @@ def evaluate_one_model(model, model_name, X_test, y_test):
             'roc_auc': roc_auc,
             'prc_auc': prc_auc,
             'best_roc_point': best_roc_point,
-            'best_prc_point': best_prc_point
+            'best_prc_point': best_prc_point,
+            'train_optimal_prc_point': train_optimal_prc_point,
+            'train_optimal_roc_point': train_optimal_roc_point
         }
     }
 
@@ -149,6 +153,14 @@ def plot_ROC(model_outputs, folder_name):
                     edgecolors='black',
                     zorder=5,
                     label=f"Best Point (T={best_point['threshold']:.2f})")
+
+        train_optimal_roc_point = m['train_optimal_roc_point']
+        plt.scatter(train_optimal_roc_point[0], train_optimal_roc_point[1],
+                    s=100,
+                    marker='*',
+                    edgecolors='black',
+                    zorder=5,
+                    label=f"Train optimal ROC Point (T={train_optimal_roc_point[2]:.2f})")
 
     plt.plot([0, 1], [0, 1], linestyle='--')
     plt.xlabel('False Positive Rate')
@@ -177,6 +189,15 @@ def plot_PRC(model_outputs, folder_name):
                         edgecolors='black',
                         zorder=5,
                         label=f"Best PRC Point (T={best_point['threshold']:.2f})")
+
+        train_prc_point = m['train_optimal_prc_point']
+        if best_point:
+            plt.scatter(train_prc_point[1], train_prc_point[0],
+                        s=100,
+                        marker='D',
+                        edgecolors='black',
+                        zorder=5,
+                        label=f"Train optimal PRC Point (T={train_prc_point[2]:.2f})")
 
     plt.xlabel('Recall')
     plt.ylabel('Precision')
@@ -226,6 +247,28 @@ def get_recall_70(precision, recall, thresholds):
     threshold_at_70 = thresholds[idx] if idx < len(thresholds) else 1.0
 
     return precision_at_70, recall_at_70, threshold_at_70
+
+def get_prc_point_at_threshold(recall, precision, thresholds, threshold):
+    # Find the index of the threshold closest to T
+    idx = np.argmin(np.abs(thresholds - threshold))
+
+    # Get corresponding precision and recall
+    precision_at_T = precision[idx + 1]
+    recall_at_T = recall[idx + 1]
+    threshold_at_T = thresholds[idx]
+
+    return precision_at_T, recall_at_T, threshold_at_T
+
+def get_roc_point_at_threshold(fpr, tpr, thresholds, threshold):
+    # Find the index of the threshold closest to T
+    idx = np.argmin(np.abs(thresholds - threshold))
+
+    # Get corresponding FPR and TPR
+    fpr_at_T = fpr[idx]
+    tpr_at_T = tpr[idx]
+    threshold_at_T = thresholds[idx]
+
+    return fpr_at_T, tpr_at_T, threshold_at_T
 
 def save_model_outputs_to_xlsx(model_outputs, folder_name):
     df = pd.DataFrame(model_outputs)
