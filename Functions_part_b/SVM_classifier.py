@@ -161,7 +161,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     #we return the best model
     return best_parameters
 
-def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split", split_by_group_flag = False):
+def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Individual Split", split_by_group_flag = False):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()
@@ -211,6 +211,9 @@ def train_SVM(train_df, train_labels, best_parameters, name = "Individual Split"
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
     avg_prec = average_precision_score(train_target, y_probs)
+
+    #we add the calculated probabilities to the df used for obtaining the labeling per second
+    time_df["window_probability"] = y_probs
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represnt both senstivity and precision and by that hints a lot about the minority group

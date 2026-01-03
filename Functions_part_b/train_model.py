@@ -5,6 +5,7 @@ from .xgboost_model import train_xgboost, find_best_hp_xgboost
 from .SVM_classifier import find_best_SVM_parameters, train_SVM
 from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier
 from .consts import ModelNames
+from Functions_part_c.window_timing_translator_preprocessing import create_df_for_time_classification
 #from .Random_forest_model import
 
 def choose_hyperparameters(train_df, labels, model=ModelNames.SVM, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = ""):
@@ -48,7 +49,8 @@ def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_
     group_indicator=None
     if split_by_group_flag:
         group_indicator = X_selected['Group number']
-
+    # we create the dataframe we will use for the labeling of the seconds
+    df_for_time_classification = create_df_for_time_classification(X_selected)
     # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     train_x = train_x[[col for col in train_x.columns if col not in administrative_features]]
@@ -56,15 +58,17 @@ def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_
     # we call every model's train function. at the end we save the optimal threshold in the ROC curve
     # and the threshold which offers the best F1 in the PRC curve.
     if model_name == ModelNames.SVM:
-        SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag)
-        return SVM_model
+        SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag, time_df = df_for_time_classification, group_indicator = group_indicator)
+        return SVM_model, df_for_time_classification
     if model_name == ModelNames.RANDOM_FOREST:
         # the finding of threshold is based on the OOB data so no need for k-folds and group flag
-        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split")
-        return random_forest_model
+        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)
+        return random_forest_model, df_for_time_classification
     if model_name == ModelNames.LOGISTIC:
-        return train_logistic_regression( train_x, Y_train,best_parameters, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
+        logistic_regression_model = train_logistic_regression( train_x, Y_train,best_parameters, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)
+        return logistic_regression_model ,df_for_time_classification
     if model_name == ModelNames.XGBOOST:
-        return train_xgboost(train_x, Y_train, best_parameters, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
-
+        xgboost_model = train_xgboost(train_x, Y_train, best_parameters, split_by_group_flag=split_by_group_flag,
+                      group_indicator=group_indicator, time_df=df_for_time_classification)
+        return xgboost_model, df_for_time_classification
     return None

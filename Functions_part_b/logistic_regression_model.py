@@ -20,7 +20,7 @@ def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_grou
 
     return best_params_rand
 
-def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = False, group_indicator=None):
+def train_logistic_regression(X_train, y_train,best_hp, time_df, split_by_group_flag = False, group_indicator=None):
 
     model = LogisticRegression(
         max_iter=1000,
@@ -45,6 +45,9 @@ def train_logistic_regression(X_train, y_train,best_hp, split_by_group_flag = Fa
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(y_train, y_probs)
     avg_prec = average_precision_score(y_train, y_probs)
+
+    #we add the calculated probabilities to the df used for obtaining the labeling per second
+    time_df["window_probability"] = y_probs
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
