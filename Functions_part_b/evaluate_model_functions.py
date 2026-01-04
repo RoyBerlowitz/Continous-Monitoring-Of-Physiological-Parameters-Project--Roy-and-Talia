@@ -42,7 +42,6 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     precision, recall, prc_thresholds = precision_recall_curve(y_test, y_prob)
     best_prc_point = closest_point_prc(precision, recall, prc_thresholds)
     prc_auc = auc(recall, precision) # area under curve. higher better detection of label 1
-    precision_70, recall_70, threshold_70 = get_recall_70(precision, recall, prc_thresholds)
     train_optimal_prc_point = get_prc_point_at_threshold(recall, precision, prc_thresholds, model.optimal_threshold_PRC_)
 
     # we are now defining 3 working points:
@@ -55,7 +54,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
         {'type': 'Original (0.5)', 'threshold': 0.5},
         {'type': 'Best_ROC_AUC', 'threshold': model.optimal_threshold_ROC_},
         {'type': 'Best_PRC', 'threshold': model.optimal_threshold_PRC_},
-        {'type': 'Recall 0.7', 'threshold': threshold_70},
+        {'type': 'Recall 0.7', 'threshold': model.threshold_70},
     ]
 
     excel_results = []
@@ -119,7 +118,6 @@ def evaluate_one_model(model, model_name, X_test, y_test):
             'f1_score': f1,
             'confusion_matrix': confusion_matrx,
             'best_roc_point': best_roc_point,
-            'best_prc_point': best_prc_point
         })
 
     return {
@@ -242,6 +240,9 @@ def get_recall_70(precision, recall, thresholds):
 
     precision_at_70 = precision[idx]
     recall_at_70 = recall[idx]
+    print("Actual Recall:", recall_at_70)
+    print("Actual Precision:", precision_at_70)
+
 
     # Threshold (only valid if idx < len(thresholds))
     threshold_at_70 = thresholds[idx] if idx < len(thresholds) else 1.0

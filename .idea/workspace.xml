@@ -6,18 +6,12 @@
   <component name="ChangeListManager">
     <list default="true" id="5a93e656-ab41-41ca-9ffe-e1f059eade2a" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions/select_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/select_features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/CACC_discretization.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/CACC_discretization.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/Random_forest_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/Random_forest_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/SVM_classifier.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/SVM_classifier.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/evaluate_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/evaluate_model.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/extract_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/extract_features.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions/segment_signal.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions/segment_signal.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Functions_part_b/evaluate_model_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/evaluate_model_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model_helper_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/logistic_regression_model_helper_functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/select_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/select_features.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/xgboost_model.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/xgboost_model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Functions_part_b/xgboost_model_helper_functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/xgboost_model_helper_functions.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Functions_part_b/wrapper_feature_selection.py" beforeDir="false" afterPath="$PROJECT_DIR$/Functions_part_b/wrapper_feature_selection.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main_02.py" beforeDir="false" afterPath="$PROJECT_DIR$/main_02.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/run_part_a.py" beforeDir="false" afterPath="$PROJECT_DIR$/run_part_a.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -66,6 +60,8 @@
     &quot;Python.load_data.executor&quot;: &quot;Run&quot;,
     &quot;Python.main_02.executor&quot;: &quot;Run&quot;,
     &quot;Python.rb.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run_part_a.executor&quot;: &quot;Run&quot;,
+    &quot;Python.run_part_b.executor&quot;: &quot;Run&quot;,
     &quot;Python.segment_signal.executor&quot;: &quot;Run&quot;,
     &quot;Python.vet_features.executor&quot;: &quot;Run&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
@@ -105,6 +101,7 @@
       <workItem from="1764763952672" duration="9000" />
       <workItem from="1764764623716" duration="31991000" />
       <workItem from="1764840536270" duration="81089000" />
+      <workItem from="1766494901182" duration="2573000" />
     </task>
     <servers />
   </component>
@@ -113,18 +110,19 @@
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Continous_monitoring$SVM_classifier.coverage" NAME="SVM_classifier Coverage Results" MODIFIED="1765918505910" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$run_part_a.coverage" NAME="run_part_a Coverage Results" MODIFIED="1766273073256" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$feature_correlation.coverage" NAME="feature_correlation Coverage Results" MODIFIED="1764864146342" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$Random_forest_model.coverage" NAME="Random_forest_model Coverage Results" MODIFIED="1766105638976" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$Random_forest_model.coverage" NAME="Random_forest_model Coverage Results" MODIFIED="1766348543319" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$vet_features.coverage" NAME="vet_features Coverage Results" MODIFIED="1764965905645" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$segment_signal.coverage" NAME="segment_signal Coverage Results" MODIFIED="1764860096289" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$segment_signal.coverage" NAME="segment_signal Coverage Results" MODIFIED="1766269036047" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$load_data.coverage" NAME="load_data Coverage Results" MODIFIED="1764794333097" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features_helper_functions.coverage" NAME="extract_features_helper_functions Coverage Results" MODIFIED="1765049631519" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$evaluate_model_functions.coverage" NAME="evaluate_model_functions Coverage Results" MODIFIED="1766070062473" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$Project_A.coverage" NAME="Project_A Coverage Results" MODIFIED="1764683725690" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$run_part_b.coverage" NAME="run_part_b Coverage Results" MODIFIED="1765721474015" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$run_part_b.coverage" NAME="run_part_b Coverage Results" MODIFIED="1766252509232" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$rb.coverage" NAME="rb Coverage Results" MODIFIED="1764685041765" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$extract_features.coverage" NAME="extract_features Coverage Results" MODIFIED="1764779729972" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions" />
     <SUITE FILE_PATH="coverage/Continous_monitoring$select_features.coverage" NAME="select_features Coverage Results" MODIFIED="1765567187132" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/Functions_part_b" />
-    <SUITE FILE_PATH="coverage/Continous_monitoring$main_02.coverage" NAME="main_02 Coverage Results" MODIFIED="1766148120666" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/Continous_monitoring$main_02.coverage" NAME="main_02 Coverage Results" MODIFIED="1766494936593" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>

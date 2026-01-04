@@ -56,119 +56,119 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         estimator = XGBClassifier(**clean_params, random_state=42, n_jobs=-1)
 
 
-    # print(f"Starting RFECV (Automatic Feature Selection) for {split_name} with {model_type}...")
-    #
-    # # הגדרת אסטרטגיית ה-CV (הוצאנו מחוץ ללולאה כי RFECV צריך אותה בפנים)
-    # if split_by_group_flag:
-    #     cv_strategy = StratifiedGroupKFold(n_splits=5)
-    # else:
-    #     cv_strategy = StratifiedKFold(n_splits=5)
-    #
-    # # הגדרת RFECV - הוא יבצע את ה-Backward וימדוד PRC (average_precision)
-    # # שים לב: הגדרנו scoring='average_precision' כדי לבחור לפי PRC
-    # selector = RFECV(
-    #     estimator=estimator,
-    #     step=1,
-    #     cv=cv_strategy,
-    #     scoring='average_precision',
-    #     min_features_to_select=1,
-    #     n_jobs=-1,
-    #     verbose=1
-    # )
-    #
-    # # הרצת התהליך
-    # # ב-RFECV מעבירים את ה-groups ישירות ל-fit
-    # selector.fit(train_df, train_target, groups=None if not split_by_group_flag else group_indicator)
-    #
-    # # חילוץ נתוני הריצה עבור כל כמות פיצ'רים (כדי לשמור לאקסל כמו קודם)
-    # # ב-RFECV החדש, התוצאות נשמרות ב-cv_results_
-    # means = selector.cv_results_['mean_test_score']
-    # stds = selector.cv_results_['std_test_score']
-    # n_features_range = range(1, len(means) + 1)
-    #
-    # results = []
-    # for i, n in enumerate(n_features_range):
-    #     row = {
-    #         'n_features': n,
-    #         'mean_test_PRC': means[i],
-    #         'std_test_PRC': stds[i]
-    #     }
-    #     results.append(row)
-    #
-    # # יצירת ה-DataFrame ושמירה לאקסל
-    # results_df = pd.DataFrame(results)
-    # file_name = f"{split_name}_{model_type}_RFECV_Performance.xlsx"
-    # results_df.to_excel(file_name, index=False)
-    #
-    # # חילוץ הפיצ'רים שנבחרו בנקודה האופטימלית
-    # n_optimal = selector.n_features_
-    # chosen_features = train_df.columns[selector.support_].tolist()
-    #
-    # print(f"\n--- Optimal number of features: {n_optimal} ---")
-    # print(f"--- Best PRC Score: {max(means):.4f} ---")
-    # print(f"--- Results saved to: {file_name} ---")
-    #
-    # return chosen_features
+    print(f"Starting RFECV (Automatic Feature Selection) for {split_name} with {model_type}...")
 
-    """ THIS is THE FORMER IMPLEMENTATION OF RFE IF THE NEW ONE WILL BE WORSE"""
-    print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")
-    for n in n_features_range:
-        print(f"Checking performance with top {n} features...")
+    # הגדרת אסטרטגיית ה-CV (הוצאנו מחוץ ללולאה כי RFECV צריך אותה בפנים)
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
 
-        # We use RFE for the features selection regarding the wanted number of features.
-        # RFE removes the most redundant features in each iteration after creating the forest with all the features, until it reaches the most impactful feature
-        selector = RFE(estimator=estimator, n_features_to_select=n, step=1, verbose=0)
-        selector.fit(train_df, train_target)
-        # we save the columns to a list
-        selected_cols = train_df.columns[selector.support_].tolist()
+    # הגדרת RFECV - הוא יבצע את ה-Backward וימדוד PRC (average_precision)
+    # שים לב: הגדרנו scoring='average_precision' כדי לבחור לפי PRC
+    selector = RFECV(
+        estimator=estimator,
+        step=1,
+        cv=cv_strategy,
+        scoring='average_precision',
+        min_features_to_select=1,
+        n_jobs=-1,
+        verbose=1
+    )
 
-        # we run cross validation the model with the "surviving" features
-        # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
-        if split_by_group_flag:
-            cv_strategy = StratifiedGroupKFold(n_splits=5)
-        else:
-            cv_strategy = StratifiedKFold(n_splits=5)
-        # we preform the cross validation with the estimator and the chosen features
-        cv_results = cross_validate(
-            estimator,
-            train_df[selected_cols],
-            train_target,
-            groups = None if not split_by_group_flag else group_indicator,
-            cv=cv_strategy,
-            scoring=scoring,
-            return_train_score=True,  # '
-            n_jobs=-1,
-            verbose= 3
-        )
+    # הרצת התהליך
+    # ב-RFECV מעבירים את ה-groups ישירות ל-fit
+    selector.fit(train_df, train_target, groups=None if not split_by_group_flag else group_indicator)
 
-        #  we get the averages for the specific n features
+    # חילוץ נתוני הריצה עבור כל כמות פיצ'רים (כדי לשמור לאקסל כמו קודם)
+    # ב-RFECV החדש, התוצאות נשמרות ב-cv_results_
+    means = selector.cv_results_['mean_test_score']
+    stds = selector.cv_results_['std_test_score']
+    n_features_range = range(1, len(means) + 1)
+
+    results = []
+    for i, n in enumerate(n_features_range):
         row = {
             'n_features': n,
-            'Selected_Features': ", ".join(selected_cols)
+            'mean_test_PRC': means[i],
+            'std_test_PRC': stds[i]
         }
-
-        #  we add the metrics for the data we save
-        for metric in scoring.keys():
-            row[f'mean_train_{metric}'] = cv_results[f'train_{metric}'].mean()
-            row[f'mean_test_{metric}'] = cv_results[f'test_{metric}'].mean()
-
         results.append(row)
 
-    #  we create the excel
+    # יצירת ה-DataFrame ושמירה לאקסל
     results_df = pd.DataFrame(results)
+    file_name = f"{split_name}_{model_type}_RFECV_Performance.xlsx"
+    results_df.to_excel(file_name, index=False)
 
-    # we organize the column in a way that the excel will be best
-    cols = ['n_features', 'Selected_Features'] + \
-           [c for c in results_df.columns if 'mean_test' in c] + \
-           [c for c in results_df.columns if 'mean_train' in c]
-    # we save it to the excel
-    file_name = f"{split_name}_{model_type}_Feature_Count_Comparison.xlsx"
-    results_df[cols].to_excel(file_name, index=False)
+    # חילוץ הפיצ'רים שנבחרו בנקודה האופטימלית
+    n_optimal = selector.n_features_
+    chosen_features = train_df.columns[selector.support_].tolist()
 
-    print(f"\n--- Results saved to: {file_name} ---")
-    # we save the best row as the best PRC - this is the metric we evaluate the model by
-    best_row = results_df.loc[results_df['mean_test_PRC'].idxmax()]
-    chosen_features = best_row['Selected_Features'].split(", ")
-    print (f"selected {len(chosen_features)}")
+    print(f"\n--- Optimal number of features: {n_optimal} ---")
+    print(f"--- Best PRC Score: {max(means):.4f} ---")
+    print(f"--- Results saved to: {file_name} ---")
+
     return chosen_features
+
+    """ THIS is THE FORMER IMPLEMENTATION OF RFE IF THE NEW ONE WILL BE WORSE"""
+    # print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")
+    # for n in n_features_range:
+    #     print(f"Checking performance with top {n} features...")
+    #
+    #     # We use RFE for the features selection regarding the wanted number of features.
+    #     # RFE removes the most redundant features in each iteration after creating the forest with all the features, until it reaches the most impactful feature
+    #     selector = RFE(estimator=estimator, n_features_to_select=n, step=1, verbose=0)
+    #     selector.fit(train_df, train_target)
+    #     # we save the columns to a list
+    #     selected_cols = train_df.columns[selector.support_].tolist()
+    #
+    #     # we run cross validation the model with the "surviving" features
+    #     # For the group split, we will use a strategy that ensure the division is made in a way that 20% of the groups are the test in each iteration
+    #     if split_by_group_flag:
+    #         cv_strategy = StratifiedGroupKFold(n_splits=5)
+    #     else:
+    #         cv_strategy = StratifiedKFold(n_splits=5)
+    #     # we preform the cross validation with the estimator and the chosen features
+    #     cv_results = cross_validate(
+    #         estimator,
+    #         train_df[selected_cols],
+    #         train_target,
+    #         groups = None if not split_by_group_flag else group_indicator,
+    #         cv=cv_strategy,
+    #         scoring=scoring,
+    #         return_train_score=True,  # '
+    #         n_jobs=-1,
+    #         verbose= 3
+    #     )
+    #
+    #     #  we get the averages for the specific n features
+    #     row = {
+    #         'n_features': n,
+    #         'Selected_Features': ", ".join(selected_cols)
+    #     }
+    #
+    #     #  we add the metrics for the data we save
+    #     for metric in scoring.keys():
+    #         row[f'mean_train_{metric}'] = cv_results[f'train_{metric}'].mean()
+    #         row[f'mean_test_{metric}'] = cv_results[f'test_{metric}'].mean()
+    #
+    #     results.append(row)
+    #
+    # #  we create the excel
+    # results_df = pd.DataFrame(results)
+    #
+    # # we organize the column in a way that the excel will be best
+    # cols = ['n_features', 'Selected_Features'] + \
+    #        [c for c in results_df.columns if 'mean_test' in c] + \
+    #        [c for c in results_df.columns if 'mean_train' in c]
+    # # we save it to the excel
+    # file_name = f"{split_name}_{model_type}_Feature_Count_Comparison.xlsx"
+    # results_df[cols].to_excel(file_name, index=False)
+    #
+    # print(f"\n--- Results saved to: {file_name} ---")
+    # # we save the best row as the best PRC - this is the metric we evaluate the model by
+    # best_row = results_df.loc[results_df['mean_test_PRC'].idxmax()]
+    # chosen_features = best_row['Selected_Features'].split(", ")
+    # print (f"selected {len(chosen_features)}")
+    # return chosen_features
 

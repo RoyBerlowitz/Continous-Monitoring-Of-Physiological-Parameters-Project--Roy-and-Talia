@@ -111,6 +111,9 @@ def segment_signal(window_size, window_step, data_files, more_prints):
             #it the overlap is over 50% of the window
             if overlap_length >= 0.5 * window_length:
                 return 1
+            # we track the windows between 1 and no intersection at all. we will mark them as 2
+            if 0 < overlap_length <= 0.5 * window_length:
+                return 2
         # after looping over all the handwashes if there is no overlap of 50% with any of them - we return zero
         return 0
 
@@ -142,6 +145,11 @@ def segment_signal(window_size, window_step, data_files, more_prints):
     #Creating the labels vector
     Y_vector = X_matrix['Label']
     X_matrix = X_matrix.drop(columns=['Label'])
+
+    X_matrix.to_excel("X_timeseries.xlsx", index=False)
+    print(32*'-')
+    (print(f"the distribution of labels: {Y_vector.value_counts()}"))
+    print(32 * '-')
 
     return X_matrix, Y_vector
 

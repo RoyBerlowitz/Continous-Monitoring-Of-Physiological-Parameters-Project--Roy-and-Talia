@@ -1,5 +1,8 @@
 import copy
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 from .extract_features_helper_functions import *
 
 ##-------Main function - extract features-------##
@@ -31,7 +34,31 @@ def extract_features (X_matrix , data_files, more_prints):
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong baseline wander on the entire data from a certain recording in a certain sensor
                 new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
+
+                # if more_prints and sensor_name == "Acc" and axis == "X-AXIS":
+                #     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), sharex=True)
+                #
+                #     # גרף 1: לפני התיקון
+                #     ax1.plot(axis_data, color='indianred', alpha=0.8, label='Original Signal')
+                #     ax1.set_title(f'Before Baseline Correction - {sensor_name} {axis}')
+                #     ax1.set_ylabel('Amplitude')
+                #     ax1.grid(True, alpha=0.3)
+                #     ax1.legend()
+                #
+                #     # גרף 2: אחרי התיקון
+                #     ax2.plot(new_axis_data, color='seagreen', alpha=0.8, label='Filtered Signal')
+                #     ax2.set_title(f'After Baseline Correction (High-pass 0.5Hz)')
+                #     ax2.set_ylabel('Amplitude')
+                #     ax2.set_xlabel('Samples')
+                #     ax2.grid(True, alpha=0.3)
+                #     ax2.legend()
+                #
+                #     plt.tight_layout()
+                #     plt.show()
+
                 recording[sensor_name]['data'][axis + unit] = new_axis_data
+
+
 
         # We use the pre-defined function in order to get the data for each window from each recording
         applying_windows(recording, X_matrix)

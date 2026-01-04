@@ -2,10 +2,10 @@ import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from scipy.stats import loguniform, randint, uniform
-from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold
+from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,StratifiedKFold, cross_val_predict
 from sklearn.metrics import roc_curve, cohen_kappa_score, make_scorer, recall_score, precision_recall_curve, average_precision_score
 import numpy as np
-from .evaluate_model_functions import closest_point_roc
+from .evaluate_model_functions import closest_point_roc, get_recall_70
 
 
 
@@ -107,7 +107,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     # we return the best model
     return best_parameters
 
-def train_random_forest_classifier (train_df, train_labels, best_parameters, name = "Individual Split", n_jobs = -1):
+def train_random_forest_classifier (train_df, train_labels, best_parameters, time_df, name = "Individual Split", n_jobs = -1, split_by_group_flag = True, group_indicator=None):
     # This function is meant to fit the model with the selected hyperparameters to the data
     # we start by adjusting the dimension of the validation labels.
 
@@ -135,6 +135,9 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, nam
     precisions, recalls, thresholds = precision_recall_curve(train_target, oob_probs)
     avg_prec = average_precision_score(train_target, oob_probs)
 
+    #we add the calculated probabilities to the df used for obtaining the labeling per second
+    time_df["window_probability"] = oob_probs
+
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
@@ -145,6 +148,41 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, nam
     fpr, tpr, roc_thresholds = roc_curve(train_target, oob_probs)
     roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
     best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
+
+    precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
+    best_Random_Forest_Model.threshold_70 = threshold_70
+# ניסיון לתקן עם cross validation
+    # if split_by_group_flag:
+    #     cv_strategy = StratifiedGroupKFold(n_splits=5)
+    # else:
+    #     cv_strategy = StratifiedKFold(n_splits=5)
+    #
+    # y_probs = cross_val_predict(best_Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
+    #                             method='predict_proba')[:, 1]
+
+    ##we add the calculated probabilities to the df used for obtaining the labeling per second
+    #time_df["window_probability"] = oob_probs
+
+    # # we calculate the needed calculation for the PRC curve
+    # precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
+    # avg_prec = average_precision_score(train_target, y_probs)
+    #
+    # # Here we find the optimal threshold, which is the point which gives the best F1 score.
+    # # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    # f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+    # best_idx = np.argmax(f1_scores)
+    # best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[min(best_idx, len(thresholds) - 1)]
+    #
+    # # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
+    # fpr, tpr, roc_thresholds = roc_curve(train_target, y_probs)
+    # roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
+    # best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
+    #
+    # precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
+    # best_Random_Forest_Model.threshold_70 = threshold_70
+
+
+
 
     return best_Random_Forest_Model
 
