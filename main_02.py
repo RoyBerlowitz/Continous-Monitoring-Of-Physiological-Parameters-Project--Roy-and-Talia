@@ -1,5 +1,6 @@
 import pickle
 import numpy as np
+import time
 
 from Functions_part_b import (load_cache_or_compute, select_features, choose_hyperparameters, train_model,
                               evaluate_model, ModelNames, chosen_hp_split1, chosen_hp_split2, wrapper_feature_selection)
@@ -26,7 +27,7 @@ n_features_range = [3, 5, 7, 10, 12, 15, 17, 19, 20]
 # we define the model the wrapper should run on.
 wrapper_models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
 wrapper_models = [ModelNames.RANDOM_FOREST]
-
+# wrapper_models = [ModelNames.XGBOOST]
 # the wrapper parameters
 chosen_hp_split1 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_1[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_1[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
 chosen_hp_split2 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_2[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
@@ -97,7 +98,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
     stat_values =  load_cache_or_compute(
         f"{split_name}{wrapper_text}_evaluate_models.pkl",
         lambda: evaluate_model(list(trained_models.values()), list(trained_models.keys()),
-                               X_test[selected_feats], y_test,
+                               X_test[selected_feats+admin_features], y_test,
                                split_name = split_name,
                                save_model_outputs=True, wrapper_text=wrapper_text),
         force_recompute=force_recompute_evaluate_model,
@@ -157,9 +158,12 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
 
     return
 
+start_time = time.time()
 #run with wrapper to find best features - this is what we chose
 run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=False, force_recompute_find_hp=False,
                                 force_recompute_train_model=False, force_recompute_evaluate_model=True, use_wrapper = True)
 #run with filter to find best features
 # run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
 #                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = False)
+end_time = time.time()
+print(f"Total time: {end_time - start_time} sec")
