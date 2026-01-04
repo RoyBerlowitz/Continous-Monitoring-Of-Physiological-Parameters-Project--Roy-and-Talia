@@ -119,6 +119,7 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     # 3 takes only the closet neighbors, which is more accurate but less noise filtering
     # 5 takes the two nearest neighbors which filters noise more but less accuracte
     # 7 and more is the size of window so it is irrelevant
+# להתעסק בנקודות קצה
     random_thresholds = np.random.uniform(0.1, 0.9, size=n_iteration)
     random_filter_sizes = np.random.choice([3, 5], size=n_iteration)
     # we run it in parallel so the it runs faster
@@ -139,5 +140,5 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print(f"Best F1 Score:    {best_f1_median_threshold:.4f}")
     print("=" * 40)
     # we return both thresholds
-    return best_raw_threshold, best_median_threshold
+    return best_raw_threshold, best_median_threshold, best_filter_size
 
