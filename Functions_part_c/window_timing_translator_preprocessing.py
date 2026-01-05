@@ -70,9 +70,10 @@ def apply_smoothing(df, window_size=3):
     # we apply a median filter smoothing,
     # in order to prevent cases in which all of the neighbors are of one label and there is a mid second with distinct label, which is obviously a mislabel.
     # the window size determine the number of neighbors we look at - and the default 3 means if the sample before and after point on another label,
-    # we shall label it
+    # we shall label it.
+    # the mode constant and c_val = 0 tells him to add padding of zeros in the edges - as in the projects it was defined that we do not start to handwash immediately
     df['smoothed_prediction'] = df.groupby('recording_identifier')['prediction'].transform(
-        lambda x: median_filter(x, size=window_size)
+        lambda x: median_filter(x, size=window_size, mode='constant', cval=0)
     )
     return df
 

@@ -3,16 +3,22 @@ import pandas as pd
 import numpy as np
 import math
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold
-from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score
+from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score, cohen_kappa_score
 from window_timing_translator_preprocessing import apply_smoothing
 from joblib import Parallel, delayed
 
-def print_metrics_table(y_true, y_pred, title): # לא לשכוח לעשות פה בלמטה את ההפרדה למקרים שיש צורך בmedian filter ושאין צורך
-    """מחשב ומדפיס טבלת מדדים בצורה ברורה"""
+def print_metrics_table(y_true, y_pred, title):
+    # This function takes the prediction vs the real label and print the metrics for each
+    # we extract the precision
     p = precision_score(y_true, y_pred, zero_division=0)
-    s = recall_score(y_true, y_pred, zero_division=0)  # Sensitivity
+    # we extract the sensitivity
+    s = recall_score(y_true, y_pred, zero_division=0)
+    # we extract the accuracy
     a = accuracy_score(y_true, y_pred)
+    # we extract the F1 score
     f1 = f1_score(y_true, y_pred, zero_division=0)
+    # we extract cohen's kappa
+    kappa = cohen_kappa_score(y_true, y_pred)
 
     print(f"\n--- {title} ---")
     print(f"{'Metric':<15} | {'Value':<10}")
@@ -21,6 +27,7 @@ def print_metrics_table(y_true, y_pred, title): # לא לשכוח לעשות פ�
     print(f"{'Sensitivity':<15} | {s:.4f}")
     print(f"{'Accuracy':<15} | {a:.4f}")
     print(f"{'F1 Score':<15} | {f1:.4f}")
+    print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
 
 
 def get_absolute_threshold_raw(y_true, y_probs):
@@ -32,15 +39,20 @@ def get_absolute_threshold_raw(y_true, y_probs):
 
 
 def get_threshold_median(X_sec, y_probs, y_true, window_size, random_threshold):
+    # In oppose to the previous threshold, the threshold after median filtering is chosen via Random Search, meaning it select the best thresholg in the search.
+    # This function's purpose is to find the F1 score, which is the metric we wish to optimize, after the median filtering.
+    # Ar first, we compute the groups of recordings.
     groups = X_sec['recording_identifier'].values()
+    # we predict the label based on the examine threshold (the random threshold inout)
     preds = (y_probs >= random_threshold).astype(int)
-    # בניית DataFrame זמני לצורך ה-Groupby
+    # we create a groupby df to be able to identify between recording
     temp_df = pd.DataFrame({
         'recording_identifier': groups,
         'prediction': preds
     })
+    # we apply the median filer with selected window size, to minimze anomallies like one second which is labeled x while all it surrounding is y
     pred_df = apply_smoothing(temp_df, window_size)
-
+    # we return the f1 score that will be helpful for the decision
     return f1_score(y_true, pred_df, zero_division=0)
 
 

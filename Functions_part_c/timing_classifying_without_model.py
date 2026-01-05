@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import math
 from Functions_part_c.window_timing_translator_preprocessing import calculate_window_times
-from .choose_thresholds import get_threshold_median, get_absolute_threshold_raw
+from .choose_thresholds import get_threshold_median, get_absolute_threshold_raw, print_metrics_table
 from sklearn.metrics import f1_score, precision_recall_curve
 from scipy.ndimage import median_filter
 from sklearn.model_selection import StratifiedGroupKFold
@@ -114,6 +114,8 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print(f"Best F1 Score:    {f1_score(y_sec, y_pred_raw_threshold, zero_division=0):.4f}")
     print("=" * 40)
 
+    print_metrics_table(y_sec, y_pred_raw_threshold, "Metrics Table For Chosen Threshold Before Median Filtering")
+
     # we find the best threshold after applying median filter
     # we iterate by random search over wide variety of possibilites, and between two option of filter size:
     # 3 takes only the closet neighbors, which is more accurate but less noise filtering
@@ -131,6 +133,7 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     best_f1_median_threshold = median_results[best_idx]
     best_median_threshold = random_thresholds[best_idx]
     best_filter_size = random_filter_sizes[best_idx]
+    y_pred_after_median_filter = (y_probs >= best_median_threshold).astype(int)
 
     print("\n" + "=" * 40)
     print("      MEDIAN SEARCH RESULTS      ")
@@ -139,6 +142,10 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print(f"Best Threshold:   {best_median_threshold:.4f}")
     print(f"Best F1 Score:    {best_f1_median_threshold:.4f}")
     print("=" * 40)
-    # we return both thresholds
+
+
+    print_metrics_table(y_sec, y_pred_after_median_filter, "Metrics Table For Chosen Threshold After Median Filtering")
+
+# we return both thresholds
     return best_raw_threshold, best_median_threshold, best_filter_size
 
