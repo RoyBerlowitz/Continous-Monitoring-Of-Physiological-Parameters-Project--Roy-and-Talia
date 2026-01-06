@@ -17,7 +17,12 @@ def predict_times(train_df, test_df, data_files, classification_flag = "model", 
         threshold_no_median, threshold_with_median, filter_size = train_for_decision(train_x, train_y, group_indicator =train_x["Group number"] , n_iteration=50, n_jobs=-1)
         pred_y_no_median_filter =  (y_probs >= threshold_no_median).astype(int)
         pred_y_with_median_filter =  (y_probs >= threshold_with_median).astype(int)
-        smoothed_prediction = apply_smoothing(pred_y_with_median_filter, filter_size)
+        smoothing_temp_df = pd.DataFrame({
+            'recording_identifier': train_x['recording_identifier'].values,
+            'prediction': pred_y_with_median_filter
+        })
+        smoothed_prediction = apply_smoothing(smoothing_temp_df, filter_size)['smoothed_prediction']
+
         # pred_y_no_median_filter, smoothed_prediction are our predictions - צריך להכין פונקצית אבליואציה למול הלייבלים האמיתיים ולקבל גם אולי סיווג לפי שניות ממש
 
         # כאן צריך להוסיף מטריקות אבליואציה וכו'
