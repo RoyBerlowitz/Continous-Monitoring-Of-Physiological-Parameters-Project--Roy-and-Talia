@@ -4,7 +4,7 @@ import numpy as np
 import math
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold
 from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score, cohen_kappa_score
-from window_timing_translator_preprocessing import apply_smoothing
+from .window_timing_translator_preprocessing import apply_smoothing
 from joblib import Parallel, delayed
 
 def print_metrics_table(y_true, y_pred, title):
@@ -29,6 +29,8 @@ def print_metrics_table(y_true, y_pred, title):
     print(f"{'F1 Score':<15} | {f1:.4f}")
     print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
 
+    return {'Precision':p, 'Sensitivity':s, 'Accuracy':a, 'F1 Score':f1, 'Cohen Kappa':kappa}
+
 
 def get_absolute_threshold_raw(y_true, y_probs):
     # this function gets the absolute best threshold in regard of F1 score, the threshold which will maximize the F1 score.
@@ -42,7 +44,7 @@ def get_threshold_median(X_sec, y_probs, y_true, window_size, random_threshold):
     # In oppose to the previous threshold, the threshold after median filtering is chosen via Random Search, meaning it select the best thresholg in the search.
     # This function's purpose is to find the F1 score, which is the metric we wish to optimize, after the median filtering.
     # Ar first, we compute the groups of recordings.
-    groups = X_sec['recording_identifier'].values()
+    groups = X_sec['recording_identifier'].values
     # we predict the label based on the examine threshold (the random threshold inout)
     preds = (y_probs >= random_threshold).astype(int)
     # we create a groupby df to be able to identify between recording
@@ -53,7 +55,7 @@ def get_threshold_median(X_sec, y_probs, y_true, window_size, random_threshold):
     # we apply the median filer with selected window size, to minimze anomallies like one second which is labeled x while all it surrounding is y
     pred_df = apply_smoothing(temp_df, window_size)
     # we return the f1 score that will be helpful for the decision
-    return f1_score(y_true, pred_df, zero_division=0)
+    return f1_score(y_true, pred_df['smoothed_prediction'], zero_division=0)
 
 
 # להתעסק בזה בהמשך כדי לעשות cross validation

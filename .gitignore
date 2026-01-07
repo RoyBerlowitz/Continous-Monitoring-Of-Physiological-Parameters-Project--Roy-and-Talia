@@ -8,5 +8,7 @@ Continous_monitoring_venv/
 *.csv
 *.png
 *.jpg
+*.xml
+*.pkls
 ~$*
 X_features
