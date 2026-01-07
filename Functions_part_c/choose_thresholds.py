@@ -29,6 +29,8 @@ def print_metrics_table(y_true, y_pred, title):
     print(f"{'F1 Score':<15} | {f1:.4f}")
     print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
 
+    return {'Precision':p, 'Sensitivity':s, 'Accuracy':a, 'F1 Score':f1, 'Cohen Kappa':kappa}
+
 
 def get_absolute_threshold_raw(y_true, y_probs):
     # this function gets the absolute best threshold in regard of F1 score, the threshold which will maximize the F1 score.

@@ -101,12 +101,16 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
     return seconds_df, seconds_target
 
 def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs = -1 ):
-# this function is intended to help find the optimal threshold, the best working point in regard of maximizing the F1 score.
-# as we want to have our model sensitive to the minority group but with high precision. F1 score takes into account both.
+    # this function is intended to help find the optimal threshold, the best working point in regard of maximizing the F1 score.
+    # as we want to have our model sensitive to the minority group but with high precision. F1 score takes into account both.
     print("Started choosing thresholds...")
     #groups = group_indicator
-    # we get the probabilities
+    # we get the probabilities - these are from the cross validation kfolds done in the train
     y_probs = X_sec['weighted_prob'].values
+    # Note: the probabilities which were taken from the model for this part, was the probabilites which were extracted via cross validation on the validation set.
+    # in this cross validation process, every model was trained on different data, so they represent prob on unfamiliar data.
+    # Thus, they should represent well a similiar task to the test.
+
     # we get the best thresholf - before applying median filtering
     best_raw_threshold = get_absolute_threshold_raw(y_sec, y_probs)
     y_pred_raw_threshold = (y_probs >= best_raw_threshold).astype(int)
@@ -118,7 +122,7 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print(f"Best F1 Score:    {f1_score(y_sec, y_pred_raw_threshold, zero_division=0):.4f}")
     print("=" * 40)
 
-    print_metrics_table(y_sec, y_pred_raw_threshold, "Metrics Table For Chosen Threshold Before Median Filtering")
+    no_smoothing_stats = print_metrics_table(y_sec, y_pred_raw_threshold, "Metrics Table For Chosen Threshold Before Median Filtering TRAIN")
 
     # we find the best threshold after applying median filter
     # we iterate by random search over wide variety of possibilites, and between two option of filter size:
@@ -150,8 +154,8 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print("=" * 40)
 
 
-    print_metrics_table(y_sec, y_pred_after_median_filter, "Metrics Table For Chosen Threshold After Median Filtering")
+    with_smoothing_stats = print_metrics_table(y_sec, y_pred_after_median_filter, "Metrics Table For Chosen Threshold After Median Filtering TRAIN")
 
-# we return both thresholds
-    return best_raw_threshold, best_median_threshold, best_filter_size
+    # we return both thresholds
+    return best_raw_threshold, best_median_threshold, best_filter_size, {'train_no_smoothing': no_smoothing_stats, 'train_with_smoothing': with_smoothing_stats}
 
