@@ -56,16 +56,19 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
         # we obtain each recording data
         recording_data = windows_df[windows_df['recording_identifier'] == recording]
         # we go over all the complete seconds from the start to end of each recording
-        recording_seconds = range(int(math.floor(recording_data['window_starting_point'].min())), int(math.floor(recording_data['window_ending_point'].max() + 1)))
+        # recording_seconds = range(int(math.floor(recording_data['window_starting_point'].min())), int(math.floor(recording_data['window_ending_point'].max() + 1)))
+        recording_seconds = range(int(math.floor(recording_data['First second of the activity'].min())), int(math.floor(recording_data['Last second of the activity'].max() + 1)))
         # creates a dict whose keys are the seconds and the assigned values are None
         dict_of_sec_vals = dict.fromkeys(recording_seconds)
         # we get the exact seconds in which handwashing was operated
-        handwashing_times = recording_data["Handwashing time"]
+        handwashing_times = recording_data["Handwashing time"].iloc[0]
+
         # we iterate over every row of the recording data, which in that context is a window
         for index, row in recording_data.iterrows():
             # we find the weights for each second in the window
-            window_time_list = calculate_time_point_weights (row["window_times"], row['window_starting_point'], row['window_ending_point'], weights_method = weight_flag)
-            # we get the probability which was already predicted by model 
+            # window_time_list = calculate_time_point_weights (row["window_times"], row['window_starting_point'], row['window_ending_point'], weights_method = weight_flag)
+            window_time_list = calculate_time_point_weights(row["window_times"], row['First second of the activity'], row['Last second of the activity'], weights_method = weight_flag)
+            # we get the probability which was already predicted by model
             window_prob = row["window_probability"]
             for sec_dict in window_time_list:
                 second = sec_dict["time_point"]
@@ -89,7 +92,8 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
             # for each second, we calculate the weighted average probabillity
             weighted_prob = dict_of_sec_vals[second]["contribution"] / dict_of_sec_vals[second]["weight"]
             # we add the data for each second
-            seconds_df.append({"recording_identifier": recording,"second": second, "weighted_prob": weighted_prob, "label": label, 'Group number': row["Group number"]})
+            # seconds_df.append({"recording_identifier": recording,"second": second, "weighted_prob": weighted_prob, "label": label, 'Group number': row["Group number"]})
+            seconds_df.append({"recording_identifier": recording, "second": second, "weighted_prob": weighted_prob, "label": label,'Group number': recording_data["c"]})
     # we obtain the seconds df and second target, and return it
     seconds_df = pd.DataFrame(seconds_df)
     seconds_target = seconds_df['label']
@@ -97,11 +101,11 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
     return seconds_df, seconds_target
 
 def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs = -1 ):
-# this function is intended to help find the optimal threshold, the best working point in regard of maximizing the F1 score.
-# as we want to have our model sensitive to the minority group but with high precision. F1 score takes into account both.
+    # this function is intended to help find the optimal threshold, the best working point in regard of maximizing the F1 score.
+    # as we want to have our model sensitive to the minority group but with high precision. F1 score takes into account both.
     print("Started choosing thresholds...")
     #groups = group_indicator
-    # we get the probabilities
+    # we get the probabilities - these are from the cross validation kfolds done in the train
     y_probs = X_sec['weighted_prob'].values
 
     # Note: the probabilities which were taken from the model for this part, was the probabilites which were extracted via cross validation on the validation set.
@@ -119,7 +123,7 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print(f"Best F1 Score:    {f1_score(y_sec, y_pred_raw_threshold, zero_division=0):.4f}")
     print("=" * 40)
 
-    print_metrics_table(y_sec, y_pred_raw_threshold, "Metrics Table For Chosen Threshold Before Median Filtering")
+    no_smoothing_stats = print_metrics_table(y_sec, y_pred_raw_threshold, "Metrics Table For Chosen Threshold Before Median Filtering TRAIN")
 
     # we find the best threshold after applying median filter
     # we iterate by random search over wide variety of possibilites, and between two option of filter size:
@@ -128,10 +132,12 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     # 7 and more is the size of window so it is irrelevant
     random_thresholds = np.random.uniform(0.1, 0.9, size=n_iteration)
     random_filter_sizes = np.random.choice([3, 5], size=n_iteration)
+
     # we run it in parallel so the it runs faster
-    median_results = (Parallel(n_jobs=n_jobs)
-                   (delayed(get_threshold_median(X_sec, y_probs, y_sec, threshold, filter_size)
-                            for threshold, filter_size in zip(random_thresholds, random_filter_sizes))))
+    median_results = Parallel(n_jobs=n_jobs)(
+        delayed(get_threshold_median)(X_sec, y_probs, y_sec, filter_size, threshold)
+        for threshold, filter_size in zip(random_thresholds, random_filter_sizes)
+    )
     # we find the best filter from the random search after median filtering
     best_idx = np.argmax(median_results)
     best_f1_median_threshold = median_results[best_idx]
@@ -148,8 +154,8 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     print("=" * 40)
 
 
-    print_metrics_table(y_sec, y_pred_after_median_filter, "Metrics Table For Chosen Threshold After Median Filtering")
+    with_smoothing_stats = print_metrics_table(y_sec, y_pred_after_median_filter, "Metrics Table For Chosen Threshold After Median Filtering TRAIN")
 
-# we return both thresholds
-    return best_raw_threshold, best_median_threshold, best_filter_size
+    # we return both thresholds
+    return best_raw_threshold, best_median_threshold, best_filter_size, {'train_no_smoothing': no_smoothing_stats, 'train_with_smoothing': with_smoothing_stats}
 
