@@ -13,11 +13,22 @@ import PyEMD
 
 def fix_baseline_wander(data, sampling_frequency, filter_order=5, cutoff_frequency=0.5):
     # The idea is to compute baseline wander in order to create more representative view of the data.
-    # In order to do so, Butterworth HPF is applied on the data, in order to get rid of the low frequencies's noise.
+    # In order to do so, Butterworth HPF is applied on the data, in order to get rid of the low frequencies' noise.
     # The sampling frequency is known as it was defined by us, and the cutoff_frequency was chosen to be 0.5 as most physiological movement are at 1 Hz and more.
     nyquist_frequency = sampling_frequency * 0.5
     normal_cutoff = cutoff_frequency / nyquist_frequency
     b, a = butter(filter_order, normal_cutoff, btype='high', analog=False)
+    corrected_data = filtfilt(b, a, data)
+
+    return corrected_data
+
+def apply_low_pass_filter(data, sampling_frequency, filter_order=5, cutoff_frequency=10):
+    # The idea is to filter irrelevant frequencies for handwashing.
+    # In order to do so, Butterworth LPF is applied on the data, in order to get rid of the high frequencies' noise.
+    # The sampling frequency is known as it was defined by us, and the cutoff_frequency was chosen to be 10 as signal processing marked it as reasonable point
+    nyquist_frequency = sampling_frequency * 0.5
+    normal_cutoff = cutoff_frequency / nyquist_frequency
+    b, a = butter(filter_order, normal_cutoff, btype='low', analog=False)
     corrected_data = filtfilt(b, a, data)
 
     return corrected_data
@@ -672,12 +683,17 @@ def calculate_frequency_domain_features(data_list, sampling_rate=50):
 
         # let's find spectral entropy.
         # Measures how much energy is spread across frequencies (high entropy) or concentrated (low entropy).
-        norm_psd = psd / np.max(psd)
+        norm_psd = psd / (np.max(psd)  + 1e-10)
         spectral_entropy = entropy(norm_psd)
 
         # let's find the total Energy of the signal in the frequency domain
         # It may indicate about the how powerfull is the signal.
         total_energy = np.sum(psd)
+
+        # according to the signal processing procedure done, we want to examine what happens between the cutoff frequencies - which are 0.5 Hz and 10 Hz
+        band_mask = (frequencies >= 0.5) & (frequencies <= 10)
+        frequencies = frequencies[band_mask]
+        psd = psd[band_mask]
 
         # let's find the Frequency Centroid.
         # It is the mass center of the spectrum,
@@ -696,7 +712,15 @@ def calculate_frequency_domain_features(data_list, sampling_rate=50):
         psd_skewness = compute_skewness(norm_psd)
         psd_kurtosis = compute_kurtosis(norm_psd)
 
-    return spectral_entropy, total_energy, freq_centroid, dominant_freq, freq_variance, psd_skewness, psd_kurtosis
+        # we want to examine the energy withing the band, as it can be indicator to how much of the energy signal is centered there
+        band_energy = np.sum(psd) # as now the psd is within the band
+        # we also want to measure the ratio between to the band energy to the entire energy, as it hints how concentrated the energy is
+        band_to_tot_energy_ratio = band_energy / (np.max(total_energy)  + 1e-10)
+        # at last, we want to understand how much the peak stands out above the average -
+        # in the signal analysis of handwashing, it appeared that there is such a significant bump there compared to other situations
+        freq_peak_to_avg = np.max(psd) / (np.mean(psd) + 1e-10)
+
+    return spectral_entropy, total_energy, freq_centroid, dominant_freq, freq_variance, psd_skewness, psd_kurtosis, band_energy, band_to_tot_energy_ratio, freq_peak_to_avg
 
 def add_frequency_domain_features(df, column_list, num_features, more_prints):
     # This function is meant to find features dependent on the frequency domain.
@@ -705,7 +729,7 @@ def add_frequency_domain_features(df, column_list, num_features, more_prints):
 
     new_columns = {}
     feature_suffixes = ['spectral_entropy', 'total_energy', 'frequency_centroid',
-                        'dominant_frequency', 'frequency_variance','psd_skewness' , 'psd_kurtosis']
+                        'dominant_frequency', 'frequency_variance','psd_skewness' , 'psd_kurtosis', 'band_energy', 'band_to_tot_energy_ratio', 'freq_peak_to_avg']
     for column in column_list:
         #For each sensor, we will calculate each metric for every axis, and also for the magnitude of all the axes combined
         sampling_frequency = 50

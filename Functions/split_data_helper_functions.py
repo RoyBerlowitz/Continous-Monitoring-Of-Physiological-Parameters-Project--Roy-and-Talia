@@ -1,6 +1,6 @@
 from sklearn.model_selection import GroupShuffleSplit
 
-def split_by_recording(df, y, recording_col, test_size=0.2, random_state=42):
+def split_by_recording(df, y, recording_col, test_size=0.4, random_state=42):
     """
     Splits df & y so that rows from the same recording stay together.
 

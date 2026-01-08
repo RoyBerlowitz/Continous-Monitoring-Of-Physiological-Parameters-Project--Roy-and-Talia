@@ -24,8 +24,8 @@ def feature_normalization(X_train,X_test,method='IQR'):
     X_test_norm[features] = norm_test.reshape(-1, len(features))
 
     return X_train_norm, X_test_norm, scaler
-
-def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=20, K= 10, threshold=0.8):
+# we changed to 40 to allow adding more features but remaining with maximum 40 to reduce number of features
+def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=40, K= 10, threshold=0.8):
     #This function tries to find the 20 best features by using a filter method with the CFS metric.
     #It takes as an input X_train, which is the matrix that contains the data and the features
     #It also receives Y_train which gives the labels for each window.
@@ -44,6 +44,8 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
     # We want to keep the best features
     best_features = []
     results_log = []
+    # we initialize this score to be -infinity, as we want the subset to contain at least one feature
+    previous_best_score = -np.inf
     if more_prints: print("started searching for best features")
     # As each iteration will add a feature to the best features (we are implementing forward algorithm),
     # we limit the while loop until we find N best features - which mean we have N item in the best_features list
@@ -82,9 +84,17 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             if CFS_score > best_score:
                 best_score = CFS_score
                 column_to_add = column
+        # we create a stopping rule, which is stopping when there is no improvement in cfs
+        if best_score < previous_best_score:
+            if more_prints: print(f"Iteration {len(best_features) + 1}:")
+            if more_prints: print(f"  No Feature Added, with the score {best_score} being worse than the previos score of {previous_best_score}")
+            if more_prints: print(f"Current Subset of features: {best_features}")
+            if more_prints: print(f"  Final Subset Score: {best_score:.4f}")
+            break
         #We add the chosen feature to the list of best features, and remove it from the candidates - as it was chosen
         best_features.append(column_to_add)
         candidate_columns.remove(column_to_add)
+        # we save the best score for the later comparison with the new best score
         if more_prints: print(f"Iteration {len(best_features)}:")
         if more_prints: print(f"  Feature Added: {column_to_add}")
         if more_prints: print(f"Current Subset of features: {best_features}")
