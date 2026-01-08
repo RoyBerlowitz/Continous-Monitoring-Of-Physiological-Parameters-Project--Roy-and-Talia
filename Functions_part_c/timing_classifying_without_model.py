@@ -103,7 +103,12 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     #groups = group_indicator
     # we get the probabilities
     y_probs = X_sec['weighted_prob'].values
-    # we get the best thresholf - before applying median filtering
+
+    # Note: the probabilities which were taken from the model for this part, was the probabilites which were extracted via cross validation on the validation set.
+    # in this cross validation process, every model was trained on different data, so they represent prob on unfamiliar data.
+    # Thus, they should represent well a similiar task to the test.
+
+    # we get the best threshold - before applying median filtering
     best_raw_threshold = get_absolute_threshold_raw(y_probs, y_sec)
     y_pred_raw_threshold = (y_probs >= best_raw_threshold).astype(int)
 
@@ -121,7 +126,6 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     # 3 takes only the closet neighbors, which is more accurate but less noise filtering
     # 5 takes the two nearest neighbors which filters noise more but less accuracte
     # 7 and more is the size of window so it is irrelevant
-# להתעסק בנקודות קצה
     random_thresholds = np.random.uniform(0.1, 0.9, size=n_iteration)
     random_filter_sizes = np.random.choice([3, 5], size=n_iteration)
     # we run it in parallel so the it runs faster
