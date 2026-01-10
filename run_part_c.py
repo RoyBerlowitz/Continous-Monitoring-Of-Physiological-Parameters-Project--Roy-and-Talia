@@ -31,7 +31,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
     models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
     models = [ModelNames.RANDOM_FOREST] #roee
-    models = [ModelNames.XGBOOST] #talia
+    #models = [ModelNames.XGBOOST] #talia
 
     split_name = 'split2'
     use_wrapper = True
@@ -166,7 +166,8 @@ if __name__ == "__main__":
     # all_res = {}
     # for i in range(10):
     #     res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False, force_recompute_find_hp=False,force_recompute_train_model=True, force_recompute_evaluate_model=True)
-    #     all_res[gs] = res[ModelNames.XGBOOST]
+    #     print(f"gs is {gs}")
+    #     all_res[tuple(gs)] = res[ModelNames.RANDOM_FOREST]
     #
     # rows = []
     #
@@ -180,4 +181,4 @@ if __name__ == "__main__":
     #         rows.append(row)
     #
     # df = pd.DataFrame(rows)
-    # df.to_csv("model_results_all_runs.csv", index=False)
+    # df.to_csv("CV_model_results_all_runs.csv", index=False)

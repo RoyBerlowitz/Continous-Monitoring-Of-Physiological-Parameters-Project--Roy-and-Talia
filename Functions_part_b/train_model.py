@@ -3,7 +3,7 @@ import copy
 from .logistic_regression_model import train_logistic_regression, find_best_hp_logistic_regression
 from .xgboost_model import train_xgboost, find_best_hp_xgboost
 from .SVM_classifier import find_best_SVM_parameters, train_SVM
-from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier
+from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier, train_random_forest_ensemble
 from .consts import ModelNames
 from Functions_part_c.window_timing_translator_preprocessing import create_df_for_time_classification
 #from .Random_forest_model import
@@ -63,6 +63,7 @@ def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_
     if model_name == ModelNames.RANDOM_FOREST:
         # the finding of threshold is based on the OOB data so no need for k-folds and group flag
         random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)
+        #random_forest_model = train_random_forest_ensemble(train_x, Y_train,best_parameters,df_for_time_classification, group_indicator, n_splits=5)
         return random_forest_model, df_for_time_classification
     if model_name == ModelNames.LOGISTIC:
         logistic_regression_model = train_logistic_regression( train_x, Y_train,best_parameters, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)

@@ -68,7 +68,7 @@ def get_handwashing_times (df_for_timing_classification,data_files):
     # we return the data frame with the handwashing times
     return df_for_timing_classification
 
-def calculate_window_times(window_starting_point, window_ending_point):
+def calculate_window_times (window_starting_point, window_ending_point):
     # we calculate the times between the starting and ending point of the window.
     # we get every complete second between them and the first and last
     window_times = [window_starting_point] + list(range(math.ceil(window_starting_point), math.floor(window_ending_point) + 1)) + [window_ending_point]
@@ -85,7 +85,12 @@ def apply_smoothing(df, window_size=3):
     )
     return df
 
+def create_test_time_df(X_test, model, selected_feats):
+    df_for_time_classification = create_df_for_time_classification(X_test)
+    y_prob = model.predict_proba(X_test[selected_feats])[:, 1]
+    df_for_time_classification["window_probability"] = y_prob
 
+    return df_for_time_classification
 
 
 

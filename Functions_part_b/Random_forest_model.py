@@ -126,63 +126,117 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, tim
     best_Random_Forest_pipeline = Random_Forest_pipeline.fit(train_df, train_target)
     best_Random_Forest_Model = best_Random_Forest_pipeline.named_steps['Random_Forest']
 
-    # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
-    # To use the PRC without overfitting which is based on the fact we find the best operating point with the data we trained on,
-    # we use the OOB - each tree is not fed with the entire data, so the OOB data is the data the tree was not trained on.
-    # we use this data to predict the probabilities and by that find the best operating point.
-    oob_probs = best_Random_Forest_Model.oob_decision_function_[:, 1]
-    # we calculate the needed calculation for the PRC curve
-    precisions, recalls, thresholds = precision_recall_curve(train_target, oob_probs)
-    avg_prec = average_precision_score(train_target, oob_probs)
-
-    #we add the calculated probabilities to the df used for obtaining the labeling per second
-    time_df["window_probability"] = oob_probs
-
-    # Here we find the optimal threshold, which is the point which gives the best F1 score.
-    # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
-    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
-    best_idx = np.argmax(f1_scores)
-    best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[best_idx]
-
-    # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
-    fpr, tpr, roc_thresholds = roc_curve(train_target, oob_probs)
-    roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
-    best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
-
-    precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
-    best_Random_Forest_Model.threshold_70 = threshold_70
-# ניסיון לתקן עם cross validation
-    # if split_by_group_flag:
-    #     cv_strategy = StratifiedGroupKFold(n_splits=5)
-    # else:
-    #     cv_strategy = StratifiedKFold(n_splits=5)
-    #
-    # y_probs = cross_val_predict(best_Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
-    #                             method='predict_proba')[:, 1]
-
-    ##we add the calculated probabilities to the df used for obtaining the labeling per second
-    #time_df["window_probability"] = oob_probs
-
+    # # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
+    # # To use the PRC without overfitting which is based on the fact we find the best operating point with the data we trained on,
+    # # we use the OOB - each tree is not fed with the entire data, so the OOB data is the data the tree was not trained on.
+    # # we use this data to predict the probabilities and by that find the best operating point.
+    # oob_probs = best_Random_Forest_Model.oob_decision_function_[:, 1]
     # # we calculate the needed calculation for the PRC curve
-    # precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
-    # avg_prec = average_precision_score(train_target, y_probs)
+    # precisions, recalls, thresholds = precision_recall_curve(train_target, oob_probs)
+    # avg_prec = average_precision_score(train_target, oob_probs)
+    #
+    # #we add the calculated probabilities to the df used for obtaining the labeling per second
+    # time_df["window_probability"] = oob_probs
     #
     # # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
     # f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     # best_idx = np.argmax(f1_scores)
-    # best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[min(best_idx, len(thresholds) - 1)]
+    # best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[best_idx]
     #
     # # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
-    # fpr, tpr, roc_thresholds = roc_curve(train_target, y_probs)
+    # fpr, tpr, roc_thresholds = roc_curve(train_target, oob_probs)
     # roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
     # best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
     #
     # precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
     # best_Random_Forest_Model.threshold_70 = threshold_70
+# ניסיון לתקן עם cross validation
+    if split_by_group_flag:
+        cv_strategy = StratifiedGroupKFold(n_splits=5)
+    else:
+        cv_strategy = StratifiedKFold(n_splits=5)
 
+    y_probs = cross_val_predict(best_Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
+                                method='predict_proba')[:, 1]
 
+    #we add the calculated probabilities to the df used for obtaining the labeling per second
+    time_df["window_probability"] = y_probs
 
+    # we calculate the needed calculation for the PRC curve
+    precisions, recalls, thresholds = precision_recall_curve(train_target, y_probs)
+    avg_prec = average_precision_score(train_target, y_probs)
+
+    # Here we find the optimal threshold, which is the point which gives the best F1 score.
+    # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+    best_idx = np.argmax(f1_scores)
+    best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[min(best_idx, len(thresholds) - 1)]
+
+    # We will also find the ROC-AUC optimal point - which is the closet one to the (0,1)
+    fpr, tpr, roc_thresholds = roc_curve(train_target, y_probs)
+    roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
+    best_Random_Forest_Model.optimal_threshold_ROC_ = roc_res['threshold']
+
+    precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
+    best_Random_Forest_Model.threshold_70 = threshold_70
 
     return best_Random_Forest_Model
 
+
+def train_random_forest_ensemble(train_df, train_labels, best_parameters, time_df, group_indicator, n_splits=5):
+    train_target = train_labels.values.ravel()
+
+    # ניקוי שמות הפרמטרים מה-Pipeline
+    rf_params = {k.replace('Random_Forest__', ''): v for k, v in best_parameters.items()}
+
+    # בדיקה האם יש לנו אינדיקטור לקבוצות (משתתפים)
+    if group_indicator is not None:
+        cv = StratifiedGroupKFold(n_splits=n_splits)
+        split_args = {'groups': group_indicator}
+        print(f"Training Ensemble with StratifiedGroupKFold (Groups provided)")
+    else:
+        cv = StratifiedKFold(n_splits=n_splits)
+        split_args = {}
+        print(f"Training Ensemble with StratifiedKFold (No groups)")
+
+    ensemble_models = []
+    oof_probs = np.zeros(len(train_target))
+
+    # הפעלת ה-CV עם הטיפול הנכון ב-groups
+    for train_idx, val_idx in cv.split(train_df, train_target, **split_args):
+        model = RandomForestClassifier(**rf_params, random_state=42, n_jobs=-1)
+
+        # אימון על הפולד הנוכחי
+        X_fold_train = train_df.iloc[train_idx]
+        y_fold_train = train_target[train_idx]
+        model.fit(X_fold_train, y_fold_train)
+
+        # שמירת פרדיקציות ה-OOF
+        oof_probs[val_idx] = model.predict_proba(train_df.iloc[val_idx])[:, 1]
+        ensemble_models.append(model)
+
+    # חישוב ספים על ה-OOF המאוחד
+    precisions, recalls, thresholds = precision_recall_curve(train_target, oof_probs)
+    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+    best_idx = np.argmax(f1_scores)
+
+    # מציאת סף 70% רגישות
+    p70, r70, t70 = get_recall_70(precisions, recalls, thresholds)
+
+    # בניית האובייקט הסופי
+    class ForestEnsemble:
+        def __init__(self, models, threshold_prc, threshold_70):
+            self.models = models
+            self.optimal_threshold_PRC_ = threshold_prc
+            self.optimal_threshold_ROC_ = threshold_prc  # ניתן להוסיף חישוב ROC בנפרד
+            self.threshold_70 = threshold_70
+
+        def predict_proba(self, X):
+            # ממוצע הסתברויות מכל המודלים באנסמבל
+            all_probs = np.array([m.predict_proba(X)[:, 1] for m in self.models])
+            mean_prob = np.mean(all_probs, axis=0)
+            return np.column_stack([1 - mean_prob, mean_prob])
+    model = ForestEnsemble(ensemble_models, thresholds[min(best_idx, len(thresholds) - 1)], t70)
+    time_df["window_probability"] = model.predict_proba(train_df)[:, 1]
+    return model

@@ -42,7 +42,7 @@ def find_redundancy_matrix(df):
 def MRMR_feature_selection (df, label_vector, candidate_columns ,stopping_criteria, more_prints = True):
     # Here, we preform the feature selection according to the MRMR algorirthm.
     # The function takes as an input a df with the feature columns and label vector which is the target.
-    #  (FIX IT) it is given a stopping criteria, whch tells the function to stop adding features, and also candidate columns which are the columns we wish to examine.
+    #  (FIX IT) it is given a stopping criteria, which tells the function to stop adding features, and also candidate columns which are the columns we wish to examine.
     best_features = []
     results_log = []
     #we start by finding the relevance vector and redundancy matrix, instead of computing calculation in each iteration again.

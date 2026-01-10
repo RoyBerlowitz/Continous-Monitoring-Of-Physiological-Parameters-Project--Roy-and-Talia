@@ -35,6 +35,7 @@ def print_metrics_table(y_true, y_pred, title):
 def get_absolute_threshold_raw(y_true, y_probs):
     # this function gets the absolute best threshold in regard of F1 score, the threshold which will maximize the F1 score.
     # we get it on the raw data, without applying median filtering
+
     prec, rec, thresh = precision_recall_curve(y_true, y_probs)
     f1 = (2 * prec * rec) / (prec + rec + 1e-10)
     return thresh[np.argmax(f1[:-1])]

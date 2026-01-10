@@ -121,3 +121,15 @@ def discretize_colum(df: pd.DataFrame, column: str, cut_points: List[float]) -> 
 
     return discretized_series
 
+def run_cacc_for_column(df: pd.DataFrame, col_name: str, y_target: pd.Series):
+    # This function takes as an input a dataframe and the column name which represent the feature column that should be discretized and a a target series.
+    # we first take the values of tje target and column and turn them to be np array
+    values = df[col_name].values
+    target = y_target.values
+    # we find the cut point acording to CACC algorithm
+    cut_points = CACC_discretization(values, target, col_name)
+
+    # we discretized the data acordding to the found cut points to be labeled as zero to the number of cut points found - 1
+    discretized_series = discretize_colum(df, col_name, cut_points)
+
+    return col_name, discretized_series, cut_points

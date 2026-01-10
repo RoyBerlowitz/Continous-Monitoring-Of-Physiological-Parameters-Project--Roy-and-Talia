@@ -38,6 +38,9 @@ def calculate_time_point_weights (window_times, window_starting_point, window_en
                 # if we use the gaussian weighting
                 # we choose sigma to be the difference between adjacent windows
                 weight = np.exp(-(mid_point_distance_from_mean)**2/ (2*((overlap*window_duration)**2)))
+            # if the we do not want any weighting
+            elif weights_method is None:
+                weight = 1
             # for each second dict we save the computed weight and how much of a second it is
             time_dict["weight"] = weight
             time_dict ["coverage"] = window_times[i+1] - window_times[i]
@@ -113,7 +116,7 @@ def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs =
     # Thus, they should represent well a similiar task to the test.
 
     # we get the best threshold - before applying median filtering
-    best_raw_threshold = get_absolute_threshold_raw(y_probs, y_sec)
+    best_raw_threshold = get_absolute_threshold_raw(y_sec,y_probs)
     y_pred_raw_threshold = (y_probs >= best_raw_threshold).astype(int)
 
     print("\n" + "=" * 40)

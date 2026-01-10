@@ -21,6 +21,7 @@ def evaluate_one_model(model, model_name, X_test, y_test):
     # take the prob of being in class Handwashing
     y_prob = model.predict_proba(X_test)[:, 1]
     y_predicted = model.predict(X_test)
+
     # ---------- Accuracy ----------
     accuracy = accuracy_score(y_test, y_predicted)
 

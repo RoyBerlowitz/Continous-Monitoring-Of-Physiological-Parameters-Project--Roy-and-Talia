@@ -84,8 +84,9 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             if CFS_score > best_score:
                 best_score = CFS_score
                 column_to_add = column
-        # we create a stopping rule, which is stopping when there is no improvement in cfs
-        if best_score < previous_best_score:
+        # we create a stopping rule, which is stopping when there is no improvement in cfs.
+        # We want to remain with at least 10 features so we put it as a condition
+        if best_score < previous_best_score and len(best_features) >= 10:
             if more_prints: print(f"Iteration {len(best_features) + 1}:")
             if more_prints: print(f"  No Feature Added, with the score {best_score} being worse than the previos score of {previous_best_score}")
             if more_prints: print(f"Current Subset of features: {best_features}")
@@ -94,6 +95,8 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
         #We add the chosen feature to the list of best features, and remove it from the candidates - as it was chosen
         best_features.append(column_to_add)
         candidate_columns.remove(column_to_add)
+        # we set the previous best score to be the best score found in this iteration
+        previous_best_score = best_score
         # we save the best score for the later comparison with the new best score
         if more_prints: print(f"Iteration {len(best_features)}:")
         if more_prints: print(f"  Feature Added: {column_to_add}")

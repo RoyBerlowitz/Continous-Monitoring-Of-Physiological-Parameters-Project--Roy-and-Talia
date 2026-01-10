@@ -47,10 +47,11 @@ def train_logistic_regression(X_train, y_train,best_hp, time_df, split_by_group_
     avg_prec = average_precision_score(y_train, y_probs)
 
     #we add the calculated probabilities to the df used for obtaining the labeling per second
-    time_df["window_probability"] = y_probs
+    if time_df is not None:
+        time_df["window_probability"] = y_probs
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
-    # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    # F1 score represent both sensitivity and precision and by that hints a lot about the minority group
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     best_idx = np.argmax(f1_scores)
     model.optimal_threshold_PRC_ = thresholds[best_idx]
@@ -61,7 +62,6 @@ def train_logistic_regression(X_train, y_train,best_hp, time_df, split_by_group_
     model.optimal_threshold_ROC_ = roc_res['threshold']
     return model
 
-    return model
 
 #possible hyperparams
 #Regularization

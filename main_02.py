@@ -160,8 +160,10 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
 
 start_time = time.time()
 #run with wrapper to find best features - this is what we chose
-run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True,
+run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=False,
                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
+# run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=False,
+#                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
 #run with filter to find best features
 # run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=True, force_recompute_select_features=True, force_recompute_find_hp=True,
 #                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = False)
