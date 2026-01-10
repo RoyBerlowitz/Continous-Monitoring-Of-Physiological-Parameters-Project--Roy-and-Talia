@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from .window_timing_translator_preprocessing import get_handwashing_times, apply_smoothing
 from .timing_classifying_without_model import translate_prediction_into_time_point_prediction_with_weights, train_for_decision, print_metrics_table
-from .evaluate_test_by_second import evaluate_test_by_second, save_all_stats
+from .evaluate_test_by_second import evaluate_test_by_second_no_model,evaluate_test_by_second_with_model, save_all_stats
 from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model
 
 

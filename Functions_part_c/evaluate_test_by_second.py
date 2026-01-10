@@ -39,7 +39,8 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
     return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
 
 def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
-    y_prob = model.predict_proba(X_test)[:, 1]
+    test_for_calculation = X_test[["prob_1", "prob_2", "prob_3", "prob_4"]]
+    y_prob = model.predict_proba(test_for_calculation)[:, 1]
     chosen_threshold = model.optimal_threshold_PRC_
     predicted_y = (y_probs >= chosen_threshold).astype(int)
     result_df = pd.DataFrame({
