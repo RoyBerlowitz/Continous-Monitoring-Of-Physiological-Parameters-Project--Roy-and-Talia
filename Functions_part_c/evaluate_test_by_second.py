@@ -39,10 +39,14 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
     return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
 
 def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
+    # we get the results for the model
     test_for_calculation = X_test[["prob_1", "prob_2", "prob_3", "prob_4"]]
+    # we extract the probabilities from the model
     y_prob = model.predict_proba(test_for_calculation)[:, 1]
     chosen_threshold = model.optimal_threshold_PRC_
+    # based on the found optimal threshold, we classify each time point
     predicted_y = (y_probs >= chosen_threshold).astype(int)
+    # we create the results data frame
     result_df = pd.DataFrame({
         'recording_identifier': X_test['recording_identifier'].values,
         'second': X_test['second'].values,
@@ -55,7 +59,7 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
     for recording in smoothing_temp_df['recording_identifier'].unique():
         # we extract the per-second results
         recording_dict[recording] = result_df[result_df['recording_identifier'] == recording].copy()
-
+    # these are the results of classification
     results =   print_metrics_table(y_test, predicted_y,f"Metrics Table For Chosen Threshold for {model_name}  - TEST")
     return results, recording_dict
 

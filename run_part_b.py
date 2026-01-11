@@ -120,23 +120,23 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
 
     split1_vet_features, split2_vet_features = part_a_res
 
-    # #split1
-    split1_X_train, split1_X_test, split1_y_train, split1_y_test, scalers = split1_vet_features
-    if not use_wrapper:
-        # running with filter selection
-        run_part_b_specific_dataset(split1_X_train, split1_X_test, split1_y_train, split1_y_test, None, models, 'split_1',split_by_group_flag=False, use_wrapper=False,save_cache=save_cache,
-                                    force_recompute_select_features=force_recompute_select_features, force_recompute_find_hp=force_recompute_find_hp,
-                                    force_recompute_train_model=force_recompute_train_model, force_recompute_evaluate_model=force_recompute_evaluate_model,
-                                    chosen_hp=[0])
-    else:
-        #runing with wrapper selection
-        run_part_b_specific_dataset(split1_X_train, split1_X_test, split1_y_train, split1_y_test, None, wrapper_models, 'split_1',split_by_group_flag=False,
-                                    use_wrapper=True, save_cache=save_cache,
-                                    force_recompute_select_features=force_recompute_select_features,
-                                    force_recompute_find_hp=force_recompute_find_hp,
-                                    force_recompute_train_model=force_recompute_train_model,
-                                    force_recompute_evaluate_model=force_recompute_evaluate_model,
-                                    chosen_hp=chosen_hp_split1)
+    # # #split1
+    # split1_X_train, split1_X_test, split1_y_train, split1_y_test, scalers = split1_vet_features
+    # if not use_wrapper:
+    #     # running with filter selection
+    #     run_part_b_specific_dataset(split1_X_train, split1_X_test, split1_y_train, split1_y_test, None, models, 'split_1',split_by_group_flag=False, use_wrapper=False,save_cache=save_cache,
+    #                                 force_recompute_select_features=force_recompute_select_features, force_recompute_find_hp=force_recompute_find_hp,
+    #                                 force_recompute_train_model=force_recompute_train_model, force_recompute_evaluate_model=force_recompute_evaluate_model,
+    #                                 chosen_hp=[0])
+    # else:
+    #     #runing with wrapper selection
+    #     run_part_b_specific_dataset(split1_X_train, split1_X_test, split1_y_train, split1_y_test, None, wrapper_models, 'split_1',split_by_group_flag=False,
+    #                                 use_wrapper=True, save_cache=save_cache,
+    #                                 force_recompute_select_features=force_recompute_select_features,
+    #                                 force_recompute_find_hp=force_recompute_find_hp,
+    #                                 force_recompute_train_model=force_recompute_train_model,
+    #                                 force_recompute_evaluate_model=force_recompute_evaluate_model,
+    #                                 chosen_hp=chosen_hp_split1)
 
     #split2
     X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler = split2_vet_features
@@ -160,8 +160,8 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
 
 start_time = time.time()
 #run with wrapper to find best features - this is what we chose
-run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=False,
-                                force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
+run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=False,
+                                force_recompute_train_model=False, force_recompute_evaluate_model=False, use_wrapper = False)
 # run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=False,
 #                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
 #run with filter to find best features

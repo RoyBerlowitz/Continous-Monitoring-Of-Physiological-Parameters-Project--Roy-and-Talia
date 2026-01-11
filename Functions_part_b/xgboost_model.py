@@ -34,8 +34,6 @@ def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42,  split_by
         **best_hp
     )
 
-    model.fit(X_train, y_train_encoded)
-
     # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
     # we face a challenge - we try to estimate the PRC without overfitting, which is non-trivial based on the fact we find the best operating point with the data we trained on.
     # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
@@ -48,6 +46,8 @@ def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42,  split_by
         cv_strategy = StratifiedKFold(n_splits=5)
 
     y_probs = cross_val_predict(model, X_train, y_train_encoded, groups=group_indicator, cv=cv_strategy, method='predict_proba')[:, 1]
+
+    model.fit(X_train, y_train_encoded)
     # we calculate the needed calculation for the PRC curve
     precisions, recalls, thresholds = precision_recall_curve(y_train_encoded, y_probs)
     avg_prec = average_precision_score(y_train_encoded, y_probs)

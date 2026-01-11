@@ -157,7 +157,7 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, tim
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
 
-    y_probs = cross_val_predict(best_Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
+    y_probs = cross_val_predict(Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
                                 method='predict_proba')[:, 1]
 
     #we add the calculated probabilities to the df used for obtaining the labeling per second
