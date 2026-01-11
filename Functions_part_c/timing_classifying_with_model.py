@@ -127,47 +127,49 @@ from sklearn.metrics import precision_recall_curve
 
 
 def train_markov_model(seconds_df, target, group_indicator, n_splits=5):
-    # 1. הכנת הנתונים המלאים לאימון הסופי
+    # we train the markovian model
+    # we start by preparing the data
     X_full, y_full, lengths_full = prepare_data_for_hmm(seconds_df, target)
 
+    # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
+    # we face a challenge - we try to estimate the PRC without overfitting, which is non-trivial based on the fact we find the best operating point with the data we trained on.
+    # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
+    # we use the result to predict the probabilities and by that find the best operating point.
+    # it is not exactly the same model, but it is close and justified estimation.
+    # we preserve the same logic regarding the group k-folds also here
+    # we use stratified groups k-fold to resemble the challenge the model faces
     cv = StratifiedGroupKFold(n_splits=n_splits)
     oof_probs = np.zeros(len(y_full))
-
     print(f"Starting Manual CV for HMM with {n_splits} folds...")
 
-    # 2. לולאת ה-CV הידנית
-    # אנחנו עושים split על ה-df המקורי כדי לשמור על גישה למזהי ההקלטות
+    # here we create the cv lopp
     for train_idx, val_idx in cv.split(seconds_df, target, groups=group_indicator):
-        # הפרדת ה-DF עבור הפולד הנוכחי
+        # we get the datasets for this fold
         df_train = seconds_df.iloc[train_idx]
         df_val = seconds_df.iloc[val_idx]
         y_train = target.iloc[train_idx]
         y_val = target.iloc[val_idx]
 
-        # הכנת נתונים לטריין של הפולד (כולל lengths של הטריין)
+        # we prepare the data for this fold, both train and validatiom
         X_train_fold, y_train_fold, lengths_train_fold = prepare_data_for_hmm(df_train, y_train)
+        X_val_fold, y_val_fold, lengths_val_fold = prepare_data_for_hmm(df_val, y_val)
 
-        # הכנת נתונים לוולידציה של הפולד (כולל lengths של הוולידציה - קריטי!)
-        X_val_fold, _, lengths_val_fold = prepare_data_for_hmm(df_val, y_val)
-
-        # אימון המודל על הטריין של הפולד
+        # we train the hidden markov model on the folds data
         fold_model = train_supervised_hmm(X_train_fold, y_train_fold, lengths_train_fold)
 
-        # חיזוי הסתברויות לסט הולידציה (OOF) - שימוש ב-lengths_val_fold
-        # אנו מניחים ש-predict_proba מחזירה מטריצה עם 2 עמודות (0 ו-1)
+        # we predict the probabilities of the model
         probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
         oof_probs[val_idx] = probs[:, 1]
 
-    # 3. חישוב סף אופטימלי על בסיס כל ה-OOF המצטבר
+    # we find the optimal threshold in terms of maximizing F1 score based on the cross-validation predictions - unbiased data
     precisions, recalls, thresholds = precision_recall_curve(y_full, oof_probs)
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     best_idx = np.argmax(f1_scores)
-
-    # thresholds קצר ב-1 מ-precisions/recalls ב-sklearn
     optimal_threshold = thresholds[min(best_idx, len(thresholds) - 1)]
 
-    # 4. אימון המודל הסופי על כל הדאטה (Refit)
+    # we train the model on the entire data
     final_model = train_supervised_hmm(X_full, y_full, lengths_full)
+    # we declare the optimal threshold
     final_model.optimal_threshold_PRC_ = optimal_threshold
 
     print(f"Final HMM Optimal Threshold: {optimal_threshold:.4f}")
