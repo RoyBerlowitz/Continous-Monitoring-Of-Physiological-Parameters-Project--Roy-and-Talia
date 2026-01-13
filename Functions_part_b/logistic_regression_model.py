@@ -23,7 +23,7 @@ def find_best_hp_logistic_regression(X_train, y_train, split_name, split_by_grou
 def train_logistic_regression(X_train, y_train,best_hp, time_df, split_by_group_flag = False, group_indicator=None):
 
     model = LogisticRegression(
-        max_iter=1000,
+        max_iter=10000,
         random_state=42,
         **best_hp
     )

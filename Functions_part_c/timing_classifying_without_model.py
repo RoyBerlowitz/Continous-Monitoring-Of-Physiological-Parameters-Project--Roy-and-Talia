@@ -26,8 +26,24 @@ def calculate_time_point_weights (window_times, window_starting_point, window_en
     for i in range(0,len(window_times)-1):
             # we create the dict for each time point
             time_dict = {}
-            # we take the floor according to the pre-described convention
             time_dict ["time_point"] = math.floor(window_times[i])
+            time_dict ["coverage"] = window_times[i+1] - window_times[i]
+
+            # we take the floor according to the pre-described convention
+            second_start = math.floor(window_times[i])
+            second_end = second_start + 1
+            # we conduct a check to make sure the window that start in x-7 won't count as a window for sec x
+            overlap = max(
+                0.0,
+                min(window_times[i + 1], second_end) -
+                max(window_times[i], second_start)
+            )
+
+            if overlap == 0:
+                continue
+
+            time_dict["time_point"] = second_start
+            time_dict["coverage"] = overlap
             # the weighting will be done based on the distance between the  mid point of 'narrower window' and the mid point of the window
             mid_point_time = 0.5*(window_times[i] + window_times[i+1])
             mid_point_distance_from_mean = np.abs(mean_time_point - mid_point_time)
@@ -43,7 +59,6 @@ def calculate_time_point_weights (window_times, window_starting_point, window_en
                 weight = 1
             # for each second dict we save the computed weight and how much of a second it is
             time_dict["weight"] = weight
-            time_dict ["coverage"] = window_times[i+1] - window_times[i]
             time_list.append(time_dict)
     return time_list
 
@@ -92,8 +107,12 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
             # if the second was indeed part of the handwashing period, the label changes to 1
             if second in handwashing_times:
                 label = 1
-            # for each second, we calculate the weighted average probabillity
-            weighted_prob = dict_of_sec_vals[second]["contribution"] / dict_of_sec_vals[second]["weight"]
+                # if we do not have information or window in the sec - we classify as zero, thus zero weight
+            if second not in dict_of_sec_vals or dict_of_sec_vals[second]["weight"] == 0:
+                weighted_prob = 0
+            else:
+                # for each second, we calculate the weighted average probabillity
+                weighted_prob = dict_of_sec_vals[second]["contribution"] / dict_of_sec_vals[second]["weight"]
             # we add the data for each second
             # seconds_df.append({"recording_identifier": recording,"second": second, "weighted_prob": weighted_prob, "label": label, 'Group number': row["Group number"]})
             seconds_df.append({"recording_identifier": recording, "second": second, "weighted_prob": weighted_prob, "label": label,'Group number': recording_data["c"]})

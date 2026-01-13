@@ -1,6 +1,7 @@
 import pandas as pd
-import numpy as np
 import math
+import numpy as np
+
 from Functions_part_c.window_timing_translator_preprocessing import calculate_window_times
 from Functions_part_c.timing_classifying_without_model import calculate_time_point_weights
 from Functions_part_c.markov_model import prepare_data_for_hmm,train_supervised_hmm
@@ -25,6 +26,13 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
     for recording in recordings:
         # we obtain each recording data
         recording_data = windows_df[windows_df['recording_identifier'] == recording]
+
+        dupes = recording_data.duplicated(subset=['First second of the activity']).sum()
+        if dupes > 0:
+            print(f"🚨 Recording {recording} has {dupes} duplicate windows!")
+            # פתרון זמני:
+            recording_data = recording_data.drop_duplicates(subset=['First second of the activity'])
+
         # we go over all the complete seconds from the start to end of each recording
         # recording_seconds = range(int(math.floor(recording_data['window_starting_point'].min())), int(math.floor(recording_data['window_ending_point'].max() + 1)))
         recording_seconds = range(int(math.floor(recording_data['First second of the activity'].min())), int(math.floor(recording_data['Last second of the activity'].max() + 1)))
@@ -59,7 +67,34 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
             # if the second was indeed part of the handwashing period, the label changes to 1
             if second in handwashing_times:
                 label = 1
-            list_of_probabilities = get_4_probs(dict_of_sec_vals[second]["coverage"], dict_of_sec_vals[second]["prob"])
+            # # בתוך הלולאה שעוברת על השניות (for second in recording_seconds):
+            # current_probs = dict_of_sec_vals[second]["prob"]
+            #
+            # if len(current_probs) > 5:  # כאן הבעיה מתחילה
+            #     print(f"\n🔍 Root Cause Analysis - Recording: {recording}, Second: {second}")
+            #     print(f"Number of windows found: {len(current_probs)}")
+            #
+            #     # חיפוש חלונות המקור שגרמו לזה בתוך ה-recording_data
+            #     source_windows = recording_data[
+            #         (recording_data['First second of the activity'] <= second) &
+            #         (recording_data['Last second of the activity'] >= second)
+            #         ].copy()
+            #
+            #     # הדפסה שתחשוף את הבעיה: האם הזמנים זהים? האם האינדקסים כפולים?
+            #     print("Source Windows details:")
+            #     # נציג את זמן ההתחלה בדיוק של 15 ספרות כדי לראות בעיות Float
+            #     cols_to_show = ['First second of the activity', 'Last second of the activity', 'window_probability']
+            #     for idx, row in source_windows.iterrows():
+            #         print(
+            #             f"Index: {idx} | Start: {row['First second of the activity']:.15f} | Prob: {row['window_probability']}")
+            #
+            #     # בדיקת כפילויות לוגית "שקופה"
+            #     is_time_duplicated = source_windows['First second of the activity'].duplicated().any()
+            #     print(f"Are there identical 'First second' values? {is_time_duplicated}")
+            #
+            #     # עצירת הריצה כדי שתוכל לראות את הפלט (אופציונלי)
+            #     # raise ValueError("Stopping to inspect logs")
+            list_of_probabilities = get_4_probs(dict_of_sec_vals[second]["coverage"], dict_of_sec_vals[second]["prob"], second, recording)
 
             # list_of_probabilities = []
             # # we iterate over the probabilities from each window
@@ -107,7 +142,7 @@ def nearest_valid(c):
     #     print(f"invalid coverage {c}")
     return VALID_COVERAGES[np.argmin(np.abs(VALID_COVERAGES - c))]
 
-def get_4_probs(coverage, probs):
+def get_4_probs(coverage, probs, sec, recording):
     # there are diff possibilities of coverage for each second. ie [1, 0.25],[1, 1, 1, 0.75] ,[0.75, 1, 1, 1, 0.25],[1, 1, 1]
     # we are aiming to get 4 probabilities for each second.
         # if the coverage is [1,1,1,1] then each probability is used
@@ -124,24 +159,41 @@ def get_4_probs(coverage, probs):
         return probs.tolist()
 
     # Split full / partial
-    full_mask = coverage == 1
+    full_mask = (coverage == 1.0)
     partial_mask = ~full_mask
 
     full_probs = probs[full_mask]
+    result = list(full_probs)
     partial_probs = probs[partial_mask]
     partial_cov = coverage[partial_mask]
-
-    result = list(full_probs)
-
     # [0.75, 1, 1, 1, 0.25] or [0.5, 1, 1, 1, 0.5]
-    if len(coverage) == 5:
-        result.insert(0, coverage[0]*probs[0] + coverage[-1]*probs[-1])
-        return result
+    if np.any(partial_mask):
+        weighted_partial = np.sum(partial_probs * partial_cov) / np.sum(partial_cov)
+        result.insert(0,weighted_partial)
+        if len(result) == 4:
+            return result
+        elif len(result) < 4:
+            # Weighted mean of partials if exist
+            if len(partial_probs) > 0:
+                weighted_partial = np.sum(coverage * probs) / np.sum(coverage)
+            else:
+                weighted_partial = None
+
+            # Fill until 4
+            while len(result) < 4:
+                if weighted_partial is not None:
+                    result.append(weighted_partial)
+                else:
+                    # fallback: mean of all
+                    result.append(np.mean(probs))
+
+    # if len(coverage) == 5:
+    #     result.insert(0, coverage[0]*probs[0] + coverage[-1]*probs[-1])
+    #     return result
 
     if len(coverage) > 4:
-        print(f'ERROR coverage more that 4 ${coverage}')
+        print(f'ERROR coverage more that 4 ${coverage} - {len(coverage)} sec {sec} recording {recording}')
 
-    # Weighted mean of partials if exist
     if len(partial_probs) > 0:
         weighted_partial = np.sum(coverage * probs) / np.sum(coverage)
     else:
