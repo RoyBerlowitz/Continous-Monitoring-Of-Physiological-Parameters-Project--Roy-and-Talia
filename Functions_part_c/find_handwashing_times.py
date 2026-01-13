@@ -3,7 +3,7 @@ import numpy as np
 from .window_timing_translator_preprocessing import get_handwashing_times, apply_smoothing
 from .timing_classifying_without_model import translate_prediction_into_time_point_prediction_with_weights, train_for_decision, print_metrics_table
 from .evaluate_test_by_second import evaluate_test_by_second_no_model,evaluate_test_by_second_with_model, save_all_stats
-from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model, logistic_regression_for_second_classification
+from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model, logistic_regression_for_second_classification, train_markov_model
 from consts import ModelNamesSecondClassification
 
 def predict_times(train_df, test_df, data_files, model_name, classification_flag = ModelNamesSecondClassification.NO_MODEL, weight_flag = "Gaussian Weight"):
@@ -39,7 +39,13 @@ def predict_times(train_df, test_df, data_files, model_name, classification_flag
         test_x, test_y = translate_prediction_into_time_point_prediction_for_model (test_df, weight_flag=None)
         if classification_flag == ModelNamesSecondClassification.LOGISTIC:
             model = logistic_regression_for_second_classification(train_x, train_y)
-            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, model, model_name)
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, model, model_name+'_LR_second_classification')
             all_stats = { **test_stats}
             save_all_stats(all_stats, model_name+'_LR_second_classification', recording_dict)
+            return all_stats
+        if classification_flag == ModelNamesSecondClassification.MARKOV:
+            model = train_markov_model(train_x, train_y)
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, model, model_name + '_markov_second_classification')
+            all_stats = {**test_stats}
+            save_all_stats(all_stats, model_name + '_markov_second_classification', recording_dict)
             return all_stats

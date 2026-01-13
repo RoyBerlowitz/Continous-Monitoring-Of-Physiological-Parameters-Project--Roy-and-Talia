@@ -32,9 +32,11 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
     models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
     models = [ModelNames.RANDOM_FOREST] #roee
-    #models = [ModelNames.XGBOOST] #talia
+    # models = [ModelNames.XGBOOST] #talia
 
-    seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC]
+    seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
+    # seconds_classification_models = [ModelNamesSecondClassification.MARKOV]
+
 
     split_name = 'split2'
     use_wrapper = True
