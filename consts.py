@@ -7,6 +7,7 @@ class ModelNames:
 class ModelNamesSecondClassification:
     NO_MODEL = "no_model"
     LOGISTIC = "logistic"
+    MARKOV = "markov"
 
 chosen_hp_split1 = {
     ModelNames.XGBOOST: [

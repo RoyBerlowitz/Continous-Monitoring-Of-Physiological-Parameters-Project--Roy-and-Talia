@@ -178,9 +178,10 @@ from sklearn.model_selection import StratifiedGroupKFold
 from sklearn.metrics import precision_recall_curve
 
 
-def train_markov_model(seconds_df, target, group_indicator, n_splits=5):
+def train_markov_model(seconds_df, target, n_splits=5):
     # we train the markovian model
     # we start by preparing the data
+    group_indicator = seconds_df['Group number']
     X_full, y_full, lengths_full = prepare_data_for_hmm(seconds_df, target)
 
     # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
