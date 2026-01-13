@@ -3,8 +3,8 @@ import copy
 from .logistic_regression_model import train_logistic_regression, find_best_hp_logistic_regression
 from .xgboost_model import train_xgboost, find_best_hp_xgboost
 from .SVM_classifier import find_best_SVM_parameters, train_SVM
-from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier, train_random_forest_ensemble
-from .consts import ModelNames
+from .Random_forest_model import find_best_random_forrest_parameters, train_random_forest_classifier
+from consts import ModelNames
 from Functions_part_c.window_timing_translator_preprocessing import create_df_for_time_classification
 #from .Random_forest_model import
 

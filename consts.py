@@ -4,6 +4,10 @@ class ModelNames:
     XGBOOST = "xgboost"
     RANDOM_FOREST = "random_forest"
 
+class ModelNamesSecondClassification:
+    NO_MODEL = "no_model"
+    LOGISTIC = "logistic"
+
 chosen_hp_split1 = {
     ModelNames.XGBOOST: [
         {'run_name':'1','params':{}}

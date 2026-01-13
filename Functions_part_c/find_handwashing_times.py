@@ -3,16 +3,16 @@ import numpy as np
 from .window_timing_translator_preprocessing import get_handwashing_times, apply_smoothing
 from .timing_classifying_without_model import translate_prediction_into_time_point_prediction_with_weights, train_for_decision, print_metrics_table
 from .evaluate_test_by_second import evaluate_test_by_second_no_model,evaluate_test_by_second_with_model, save_all_stats
-from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model
+from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model, logistic_regression_for_second_classification
+from consts import ModelNamesSecondClassification
 
-
-def predict_times(train_df, test_df, data_files, model_name, classification_flag = "model", weight_flag = "Gaussian Weight"):
+def predict_times(train_df, test_df, data_files, model_name, classification_flag = ModelNamesSecondClassification.NO_MODEL, weight_flag = "Gaussian Weight"):
     # This the function that preforms the final classification to seconds
     # we obtain the handwashing seconds for each train and test df
     train_df = get_handwashing_times(train_df, data_files)
     test_df = get_handwashing_times(test_df, data_files)
     # if we choose to classify with no model
-    if classification_flag == "No model":
+    if classification_flag == ModelNamesSecondClassification.NO_MODEL:
         train_x, train_y = translate_prediction_into_time_point_prediction_with_weights (train_df, weight_flag)
         test_x, test_y = translate_prediction_into_time_point_prediction_with_weights (test_df, weight_flag)
         # we preform the choice of the threshold
@@ -32,14 +32,14 @@ def predict_times(train_df, test_df, data_files, model_name, classification_flag
         test_stats, recording_dict = evaluate_test_by_second_no_model(test_x, test_y, threshold_no_median, threshold_with_median, filter_size)
         # we save evaluation metrics
         all_stats = {**train_stats, **test_stats}
-        save_all_stats(all_stats, model_name, recording_dict)
-    elif classification_flag == "model":
+        save_all_stats(all_stats, model_name+'_no_model_for_second_classification', recording_dict)
+        return all_stats
+    else:
         train_x, train_y = translate_prediction_into_time_point_prediction_for_model (train_df, weight_flag=None)
         test_x, test_y = translate_prediction_into_time_point_prediction_for_model (test_df, weight_flag=None)
-        if model_name == "logistic_regression":
-            model = logistic_regression_for_second_classification(train_x, train_x)
-            test_stats, recording_dict = evaluate_test_by_second_with_model(X_test, y_test, model, model_name)
-        all_stats = { **test_stats}
-        save_all_stats(all_stats, model_name, recording_dict)
-
-    return all_stats
+        if classification_flag == ModelNamesSecondClassification.LOGISTIC:
+            model = logistic_regression_for_second_classification(train_x, train_y)
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, model, model_name)
+            all_stats = { **test_stats}
+            save_all_stats(all_stats, model_name+'_LR_second_classification', recording_dict)
+            return all_stats

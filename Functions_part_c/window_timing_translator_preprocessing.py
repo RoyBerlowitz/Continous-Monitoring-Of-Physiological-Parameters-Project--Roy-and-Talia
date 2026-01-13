@@ -71,7 +71,9 @@ def get_handwashing_times (df_for_timing_classification,data_files):
 def calculate_window_times (window_starting_point, window_ending_point):
     # we calculate the times between the starting and ending point of the window.
     # we get every complete second between them and the first and last
-    window_times = [window_starting_point] + list(range(math.ceil(window_starting_point), math.floor(window_ending_point) + 1)) + [window_ending_point]
+
+    # there was an issue of getting  [0.0, 0, 1, 2, 3, 4, 5, 6, 7, 7.0] so we added the set to eliminate duplicated
+    window_times = sorted(set([window_starting_point] + list(range(math.ceil(window_starting_point), math.floor(window_ending_point) + 1)) + [window_ending_point]))
     return window_times
 
 def apply_smoothing(df, window_size=3):

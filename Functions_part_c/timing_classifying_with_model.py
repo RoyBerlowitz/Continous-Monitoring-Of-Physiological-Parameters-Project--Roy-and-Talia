@@ -14,15 +14,10 @@ from joblib import Parallel, delayed
 from sklearn.model_selection import  StratifiedGroupKFold, cross_val_predict
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
-
-
-
-
-
 def translate_prediction_into_time_point_prediction_for_model (windows_df, weight_flag = None ):
     # This Function is meant to switch from windows to seconds, by taking into consideration overlapping.
     # weight_flag is None as we do not weight - we keep each probability seperated.
-    # we start by obtaining all the unique recording identifier, as this will be done on each ientifier seperately
+    # we start by obtaining all the unique recording identifier, as this will be done on each identifier separately
     recordings =  windows_df['recording_identifier'].unique()
     # we will create a new df which is based on seconds instead of windows
     seconds_df = []
@@ -54,56 +49,113 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
                 if dict_of_sec_vals[second] is None:
                     dict_of_sec_vals[second] = {"prob": [window_prob], "coverage": [coverage]}
                 # we save the probability from each window and in adjacent location we save the coverage.
-                dict_of_sec_vals[second]["prob"].append(window_prob)
-                dict_of_sec_vals[second]["coverage"].append(coverage)
+                else:
+                    dict_of_sec_vals[second]["prob"].append(window_prob)
+                    dict_of_sec_vals[second]["coverage"].append(coverage)
+
         # we go over the dict keys which is the seconds of the recording
         for second in dict_of_sec_vals.keys():
             label = 0
             # if the second was indeed part of the handwashing period, the label changes to 1
             if second in handwashing_times:
                 label = 1
-            list_of_probabilities = []
-            # we iterate over the probabilities from each window
-            for i in range(len(dict_of_sec_vals[second])):
-                # if the coverage is one - we just take the prob
-                if dict_of_sec_vals[second]["coverage"][i] == 1:
-                    list_of_probabilities.append(dict_of_sec_vals[second]["prob"][i])
-                else:
-                    # if the coverage is not one, we find its complements and calculate a weighted average of their probabilities.
-                    for j in range(i,len(dict_of_sec_vals)):
-                        if (dict_of_sec_vals[second]["coverage"][i] + dict_of_sec_vals[second]["coverage"][j]) == 1:
-                            list_of_probabilities.append(dict_of_sec_vals[second]["coverage"][i]*dict_of_sec_vals[second]["prob"][i] + dict_of_sec_vals[second]["coverage"][j]*dict_of_sec_vals[second]["prob"][j])
-                            # we remove the complementary to avoid double weighting
-                            dict_of_sec_vals[second]["coverage"].pop(dict_of_sec_vals[second]["coverage"][j])
-                            dict_of_sec_vals[second]["prob"].pop(dict_of_sec_vals[second]["prob"][j])
-            # we have 25% overlap, so each time point, apart from the edges, should have 4 probabilities.
-            # for the edges in which there are less prob, we take the average
-            if len(list_of_probabilities) < 4:
-                if len(list_of_probabilities) > 0:
-                    # we calcualte the mean prob of the second
-                    mean_val = sum(list_of_probabilities) / len(list_of_probabilities)
+            list_of_probabilities = get_4_probs(dict_of_sec_vals[second]["coverage"], dict_of_sec_vals[second]["prob"])
 
-                    # we calculate how many missing probs
-                    padding_size = 4 - len(list_of_probabilities)
-
-                    # we add the padding
-                    list_of_probabilities.extend([mean_val] * padding_size)
-                else:
-                    # in case the list is completely empty
-                    list_of_probabilities = [0.0] * 4
-            # if there are more than 4 - something not working - we raise value error
-            elif len(list_of_probabilities) > 4:
+            # list_of_probabilities = []
+            # # we iterate over the probabilities from each window
+            # for i in range(len(dict_of_sec_vals[second])):
+            #     # if the coverage is one - we just take the prob
+            #     if dict_of_sec_vals[second]["coverage"][i] == 1:
+            #         list_of_probabilities.append(dict_of_sec_vals[second]["prob"][i])
+            #     else:
+            #         # if the coverage is not one, we find its complements and calculate a weighted average of their probabilities.
+            #         for j in range(i,len(dict_of_sec_vals)):
+            #             if (dict_of_sec_vals[second]["coverage"][i] + dict_of_sec_vals[second]["coverage"][j]) == 1:
+            #                 list_of_probabilities.append(dict_of_sec_vals[second]["coverage"][i]*dict_of_sec_vals[second]["prob"][i] + dict_of_sec_vals[second]["coverage"][j]*dict_of_sec_vals[second]["prob"][j])
+            #                 # we remove the complementary to avoid double weighting
+            #                 dict_of_sec_vals[second]["coverage"].pop(dict_of_sec_vals[second]["coverage"][j])
+            #                 dict_of_sec_vals[second]["prob"].pop(dict_of_sec_vals[second]["prob"][j])
+            # # we have 25% overlap, so each time point, apart from the edges, should have 4 probabilities.
+            # # for the edges in which there are less prob, we take the average
+            # if len(list_of_probabilities) < 4:
+            #     if len(list_of_probabilities) > 0:
+            #         # we calcualte the mean prob of the second
+            #         mean_val = sum(list_of_probabilities) / len(list_of_probabilities)
+            #
+            #         # we calculate how many missing probs
+            #         padding_size = 4 - len(list_of_probabilities)
+            #
+            #         # we add the padding
+            #         list_of_probabilities.extend([mean_val] * padding_size)
+            #     else:
+            #         # in case the list is completely empty
+            #         list_of_probabilities = [0.0] * 4
+            # # if there are more than 4 - something not working - we raise value error
+            if len(list_of_probabilities) > 4:
                 raise ValueError (f"more windows than expected for second{second} in recording {recordings}")
-
-
-
             # seconds_df.append({"recording_identifier": recording,"second": second, "weighted_prob": weighted_prob, "label": label, 'Group number': row["Group number"]})
-            seconds_df.append({"recording_identifier": recording, "second": second, "prob_1": list_of_probabilities[0],"prob_2": list_of_probabilities[1], "prob_3": list_of_probabilities[2], "prob_4": list_of_probabilities[3],"label": label,'Group number': recording_data["c"]})
+            seconds_df.append({"recording_identifier": recording, "second": second, "prob_1": list_of_probabilities[0],"prob_2": list_of_probabilities[1], "prob_3": list_of_probabilities[2], "prob_4": list_of_probabilities[3],"label": label,'Group number': recording_data["c"].iloc[0]})
     # we obtain the seconds df and second target, and return it
     seconds_df = pd.DataFrame(seconds_df)
     seconds_target = seconds_df['label']
     seconds_df = seconds_df.drop(columns=['label'])
     return seconds_df, seconds_target
+
+def nearest_valid(c):
+    VALID_COVERAGES = np.array([1.0, 0.75, 0.5, 0.25])
+    # if c not in VALID_COVERAGES:
+    #     print(f"invalid coverage {c}")
+    return VALID_COVERAGES[np.argmin(np.abs(VALID_COVERAGES - c))]
+
+def get_4_probs(coverage, probs):
+    # there are diff possibilities of coverage for each second. ie [1, 0.25],[1, 1, 1, 0.75] ,[0.75, 1, 1, 1, 0.25],[1, 1, 1]
+    # we are aiming to get 4 probabilities for each second.
+        # if the coverage is [1,1,1,1] then each probability is used
+        # if coverage is [0.25,1,1,1,0.75] then the probabilities of 1 are used and the weighted sum of 0.25,0.75
+        # the rest of the cases are only for signal edge and not relevant to many seconds (abt 5secs in beginning and 5 in end)
+        # other cases are whatever is coverage 1 will be used and to complete the set of 4 probs then the rest will be padded using a weighted mean of all probs
+        # additionally, if something has a coverage that is not 1,0.25,0.5,0,75 (bc end of recording didnt have enough) we will round to these nums
+
+    coverage = np.array([nearest_valid(c) for c in coverage])
+    probs = np.array(probs)
+
+    # Case A: perfect coverage
+    if len(coverage) == 4 and np.all(coverage == 1):
+        return probs.tolist()
+
+    # Split full / partial
+    full_mask = coverage == 1
+    partial_mask = ~full_mask
+
+    full_probs = probs[full_mask]
+    partial_probs = probs[partial_mask]
+    partial_cov = coverage[partial_mask]
+
+    result = list(full_probs)
+
+    # [0.75, 1, 1, 1, 0.25] or [0.5, 1, 1, 1, 0.5]
+    if len(coverage) == 5:
+        result.append(coverage[0]*probs[0] + coverage[-1]*probs[-1])
+        return result
+
+    if len(coverage) > 4:
+        print(f'ERROR coverage more that 4 ${coverage}')
+
+    # Weighted mean of partials if exist
+    if len(partial_probs) > 0:
+        weighted_partial = np.sum(coverage * probs) / np.sum(coverage)
+    else:
+        weighted_partial = None
+
+    # Fill until 4
+    while len(result) < 4:
+        if weighted_partial is not None:
+            result.append(weighted_partial)
+        else:
+            # fallback: mean of all
+            result.append(np.mean(probs))
+
+    return result[:4]
 
 def logistic_regression_for_second_classification (seconds_df, y):
     # we train a logistic regression for classifying per seconds.
@@ -111,10 +163,10 @@ def logistic_regression_for_second_classification (seconds_df, y):
     # we take the relevant columns for train and eval
     x = seconds_df[["prob_1", "prob_2", "prob_3", "prob_4"]].copy()
     # we define the group indicator to be the group number
-    group_indicator = seconds_df ['Group number']
+    group_indicator = seconds_df['Group number']
     # we find the best hyperparameters
     best_param = find_best_hp_logistic_regression(x, y, split_name = "Split 2", split_by_group_flag=True, group_indicator=group_indicator,
-                                    wrapper_text='')
+                                    wrapper_text='_wrapper')
     # we train the model and find the optimal threshold
     logistic_model = train_logistic_regression(x, y, best_param, time_df = None, split_by_group_flag=True, group_indicator=group_indicator)
     return logistic_model
@@ -174,10 +226,6 @@ def train_markov_model(seconds_df, target, group_indicator, n_splits=5):
 
     print(f"Final HMM Optimal Threshold: {optimal_threshold:.4f}")
     return final_model
-
-
-
-
 
 
 

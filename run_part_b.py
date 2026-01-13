@@ -3,8 +3,9 @@ import numpy as np
 import time
 
 from Functions_part_b import (load_cache_or_compute, select_features, choose_hyperparameters, train_model,
-                              evaluate_model, ModelNames, chosen_hp_split1, chosen_hp_split2, wrapper_feature_selection)
+                              evaluate_model, wrapper_feature_selection)
 from Functions_part_b.select_features import select_features
+from consts import (ModelNames, chosen_hp_split1, chosen_hp_split2)
 
 # Here are some definition for the part b running.
 # the administrative features are the feature which hold the details of every recording. they are important to keep, but the model should not train on them
