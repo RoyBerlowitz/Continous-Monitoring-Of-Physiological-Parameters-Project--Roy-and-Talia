@@ -135,7 +135,7 @@ def get_4_probs(coverage, probs):
 
     # [0.75, 1, 1, 1, 0.25] or [0.5, 1, 1, 1, 0.5]
     if len(coverage) == 5:
-        result.append(coverage[0]*probs[0] + coverage[-1]*probs[-1])
+        result.insert(0, coverage[0]*probs[0] + coverage[-1]*probs[-1])
         return result
 
     if len(coverage) > 4:
