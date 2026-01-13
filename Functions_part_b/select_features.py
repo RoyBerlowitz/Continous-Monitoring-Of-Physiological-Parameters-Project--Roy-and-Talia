@@ -1,6 +1,5 @@
 from .wrapper_feature_selection import select_features_wrapper
 from .filter_feature_selection import  select_features_filter
-from .consts import ModelNames
 
 admin_features = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
 

@@ -1,16 +1,11 @@
 import pandas as pd
-import numpy as np
-from sklearn.feature_selection import RFE, RFECV
-from sklearn.model_selection import cross_validate
+from sklearn.feature_selection import RFECV
 from sklearn.metrics import make_scorer, cohen_kappa_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import StratifiedGroupKFold,StratifiedKFold, cross_val_predict
+from sklearn.model_selection import StratifiedGroupKFold,StratifiedKFold
 
-
-
-from .consts import ModelNames
+from consts import ModelNames
 
 
 def select_features_wrapper(train_df, train_labels, frozen_params,

@@ -7,9 +7,10 @@ import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 
 from Functions_part_b import (select_features, choose_hyperparameters, train_model,
-                              evaluate_model, ModelNames, chosen_hp_split1, chosen_hp_split2, wrapper_feature_selection)
+                              evaluate_model, wrapper_feature_selection)
 from Functions_part_b.select_features import select_features
 from Functions_part_c import (load_cache_or_compute, load_data, predict_times, create_test_time_df)
+from consts import (ModelNames, ModelNamesSecondClassification, chosen_hp_split1, chosen_hp_split2)
 
 # the administrative features are the feature which hold the details of every recording. they are important to keep, but the model should not train on them
 admin_features = ['First second of the activity','Last second of the activity','Participant ID','Group number','Recording number','Protocol']
@@ -32,6 +33,8 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
     models = [ModelNames.RANDOM_FOREST] #roee
     #models = [ModelNames.XGBOOST] #talia
+
+    seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC]
 
     split_name = 'split2'
     use_wrapper = True
@@ -134,12 +137,14 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     # Choose thresholds and get evaluation metrics
     model_stats = {}
     for model_name in models:
-        model_stats[model_name] = load_cache_or_compute(
-            f"{split_name}_{model_name}{wrapper_text}_choose_threshold_and_stas_per_second.pkl",
-            lambda: predict_times(train_time_dfs[model_name], test_time_dfs[model_name], data_files, model_name,"No model"),
-            force_recompute=force_recompute_best_th,
-            save=save_cache
-        )
+        model_stats[model_name]={}
+        for second_model in seconds_classification_models:
+            model_stats[model_name][second_model] = load_cache_or_compute(
+                f"{split_name}_{model_name}{wrapper_text}_choose_threshold_and_stas_per_second.pkl",
+                lambda: predict_times(train_time_dfs[model_name], test_time_dfs[model_name], data_files, model_name,second_model),
+                force_recompute=force_recompute_best_th,
+                save=save_cache
+            )
 
     # # Here, we evaluate the model.
     # stat_values =  load_cache_or_compute(
@@ -162,7 +167,13 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
 # ========================================================= Run =========================================================
 if __name__ == "__main__":
-    run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False, force_recompute_find_hp=False, force_recompute_train_model=True, force_recompute_evaluate_model=True)
+    run_part_c(save_cache=True,
+               force_recompute_load_data=False,
+               force_recompute_select_features=False,
+               force_recompute_find_hp=False,
+               force_recompute_train_model=False,
+               force_recompute_test_time_dfs=False,
+               force_recompute_best_th = True, )
     # all_res = {}
     # for i in range(10):
     #     res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False, force_recompute_find_hp=False,force_recompute_train_model=True, force_recompute_evaluate_model=True)

@@ -45,7 +45,7 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
     y_prob = model.predict_proba(test_for_calculation)[:, 1]
     chosen_threshold = model.optimal_threshold_PRC_
     # based on the found optimal threshold, we classify each time point
-    predicted_y = (y_probs >= chosen_threshold).astype(int)
+    predicted_y = (y_prob >= chosen_threshold).astype(int)
     # we create the results data frame
     result_df = pd.DataFrame({
         'recording_identifier': X_test['recording_identifier'].values,
@@ -56,7 +56,7 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
     # to see the per-second classification, we iterate over each recording and create a df to compare the true label to the prediction with and without median filtering
     recording_dict = {}
     # we get the unique recording identifiers
-    for recording in smoothing_temp_df['recording_identifier'].unique():
+    for recording in result_df['recording_identifier'].unique():
         # we extract the per-second results
         recording_dict[recording] = result_df[result_df['recording_identifier'] == recording].copy()
     # these are the results of classification
