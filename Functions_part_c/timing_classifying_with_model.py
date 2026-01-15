@@ -67,33 +67,6 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
             # if the second was indeed part of the handwashing period, the label changes to 1
             if second in handwashing_times:
                 label = 1
-            # # בתוך הלולאה שעוברת על השניות (for second in recording_seconds):
-            # current_probs = dict_of_sec_vals[second]["prob"]
-            #
-            # if len(current_probs) > 5:  # כאן הבעיה מתחילה
-            #     print(f"\n🔍 Root Cause Analysis - Recording: {recording}, Second: {second}")
-            #     print(f"Number of windows found: {len(current_probs)}")
-            #
-            #     # חיפוש חלונות המקור שגרמו לזה בתוך ה-recording_data
-            #     source_windows = recording_data[
-            #         (recording_data['First second of the activity'] <= second) &
-            #         (recording_data['Last second of the activity'] >= second)
-            #         ].copy()
-            #
-            #     # הדפסה שתחשוף את הבעיה: האם הזמנים זהים? האם האינדקסים כפולים?
-            #     print("Source Windows details:")
-            #     # נציג את זמן ההתחלה בדיוק של 15 ספרות כדי לראות בעיות Float
-            #     cols_to_show = ['First second of the activity', 'Last second of the activity', 'window_probability']
-            #     for idx, row in source_windows.iterrows():
-            #         print(
-            #             f"Index: {idx} | Start: {row['First second of the activity']:.15f} | Prob: {row['window_probability']}")
-            #
-            #     # בדיקת כפילויות לוגית "שקופה"
-            #     is_time_duplicated = source_windows['First second of the activity'].duplicated().any()
-            #     print(f"Are there identical 'First second' values? {is_time_duplicated}")
-            #
-            #     # עצירת הריצה כדי שתוכל לראות את הפלט (אופציונלי)
-            #     # raise ValueError("Stopping to inspect logs")
             list_of_probabilities = get_4_probs(dict_of_sec_vals[second]["coverage"], dict_of_sec_vals[second]["prob"], second, recording)
 
             # list_of_probabilities = []

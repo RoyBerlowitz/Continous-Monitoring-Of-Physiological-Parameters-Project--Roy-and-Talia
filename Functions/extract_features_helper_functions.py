@@ -667,7 +667,7 @@ def PSD_for_signal(signal, sampling_rate=50):
     from scipy.signal import welch
     # This function receives a signal and calculate its PSD and frequencies.
     # PSD is the measure of signal's power content versus frequency, and it is more useful for cases where the signal is noisy and not harmonic.
-    frequencies, psd = welch(signal, fs=sampling_rate, nperseg=len(signal))
+    frequencies, psd = welch(signal, fs=sampling_rate, nperseg=256)
     # nperseg decides how many samples will be calculated in each iteration of PSD analyzing.
     # we take the number of samples in the window.
     # we get as output the vector of frequencies and the vector of PSD values that fit the matching frequency
