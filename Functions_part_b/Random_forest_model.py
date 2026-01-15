@@ -151,12 +151,20 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, tim
     #
     # precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
     # best_Random_Forest_Model.threshold_70 = threshold_70
-# ניסיון לתקן עם cross validation
+
+
+    #Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.
+    # we face a challenge - we try to estimate the PRC without overfitting, which is non-trivial based on the fact we find the best operating point with the data we trained on.
+    # we use the Cross-validation prediction - we train again but in a 5-folds scheme, so we get each time the probabilities on data the model "did not see".
+    # we use the result to predict the probabilities and by that find the best operating point.
+    # it is not exactly the same model, but it is close and justified estimation.
+    # we preserve the same logic regarding the group k-folds also here
     if split_by_group_flag:
         cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
+        # if we use split 2 - we want to split by groups
         cv_strategy = StratifiedKFold(n_splits=5)
-
+    # we define the cross validation pipeline
     y_probs = cross_val_predict(Random_Forest_pipeline, train_df, train_target, groups=group_indicator, cv=cv_strategy,
                                 method='predict_proba')[:, 1]
 
@@ -183,60 +191,60 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, tim
 
     return best_Random_Forest_Model
 
-
-def train_random_forest_ensemble(train_df, train_labels, best_parameters, time_df, group_indicator, n_splits=5):
-    train_target = train_labels.values.ravel()
-
-    # ניקוי שמות הפרמטרים מה-Pipeline
-    rf_params = {k.replace('Random_Forest__', ''): v for k, v in best_parameters.items()}
-
-    # בדיקה האם יש לנו אינדיקטור לקבוצות (משתתפים)
-    if group_indicator is not None:
-        cv = StratifiedGroupKFold(n_splits=n_splits)
-        split_args = {'groups': group_indicator}
-        print(f"Training Ensemble with StratifiedGroupKFold (Groups provided)")
-    else:
-        cv = StratifiedKFold(n_splits=n_splits)
-        split_args = {}
-        print(f"Training Ensemble with StratifiedKFold (No groups)")
-
-    ensemble_models = []
-    oof_probs = np.zeros(len(train_target))
-
-    # הפעלת ה-CV עם הטיפול הנכון ב-groups
-    for train_idx, val_idx in cv.split(train_df, train_target, **split_args):
-        model = RandomForestClassifier(**rf_params, random_state=42, n_jobs=-1)
-
-        # אימון על הפולד הנוכחי
-        X_fold_train = train_df.iloc[train_idx]
-        y_fold_train = train_target[train_idx]
-        model.fit(X_fold_train, y_fold_train)
-
-        # שמירת פרדיקציות ה-OOF
-        oof_probs[val_idx] = model.predict_proba(train_df.iloc[val_idx])[:, 1]
-        ensemble_models.append(model)
-
-    # חישוב ספים על ה-OOF המאוחד
-    precisions, recalls, thresholds = precision_recall_curve(train_target, oof_probs)
-    f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
-    best_idx = np.argmax(f1_scores)
-
-    # מציאת סף 70% רגישות
-    p70, r70, t70 = get_recall_70(precisions, recalls, thresholds)
-
-    # בניית האובייקט הסופי
-    class ForestEnsemble:
-        def __init__(self, models, threshold_prc, threshold_70):
-            self.models = models
-            self.optimal_threshold_PRC_ = threshold_prc
-            self.optimal_threshold_ROC_ = threshold_prc  # ניתן להוסיף חישוב ROC בנפרד
-            self.threshold_70 = threshold_70
-
-        def predict_proba(self, X):
-            # ממוצע הסתברויות מכל המודלים באנסמבל
-            all_probs = np.array([m.predict_proba(X)[:, 1] for m in self.models])
-            mean_prob = np.mean(all_probs, axis=0)
-            return np.column_stack([1 - mean_prob, mean_prob])
-    model = ForestEnsemble(ensemble_models, thresholds[min(best_idx, len(thresholds) - 1)], t70)
-    time_df["window_probability"] = model.predict_proba(train_df)[:, 1]
-    return model
+#
+# def train_random_forest_ensemble(train_df, train_labels, best_parameters, time_df, group_indicator, n_splits=5):
+#     train_target = train_labels.values.ravel()
+#
+#     # ניקוי שמות הפרמטרים מה-Pipeline
+#     rf_params = {k.replace('Random_Forest__', ''): v for k, v in best_parameters.items()}
+#
+#     # בדיקה האם יש לנו אינדיקטור לקבוצות (משתתפים)
+#     if group_indicator is not None:
+#         cv = StratifiedGroupKFold(n_splits=n_splits)
+#         split_args = {'groups': group_indicator}
+#         print(f"Training Ensemble with StratifiedGroupKFold (Groups provided)")
+#     else:
+#         cv = StratifiedKFold(n_splits=n_splits)
+#         split_args = {}
+#         print(f"Training Ensemble with StratifiedKFold (No groups)")
+#
+#     ensemble_models = []
+#     oof_probs = np.zeros(len(train_target))
+#
+#     # הפעלת ה-CV עם הטיפול הנכון ב-groups
+#     for train_idx, val_idx in cv.split(train_df, train_target, **split_args):
+#         model = RandomForestClassifier(**rf_params, random_state=42, n_jobs=-1)
+#
+#         # אימון על הפולד הנוכחי
+#         X_fold_train = train_df.iloc[train_idx]
+#         y_fold_train = train_target[train_idx]
+#         model.fit(X_fold_train, y_fold_train)
+#
+#         # שמירת פרדיקציות ה-OOF
+#         oof_probs[val_idx] = model.predict_proba(train_df.iloc[val_idx])[:, 1]
+#         ensemble_models.append(model)
+#
+#     # חישוב ספים על ה-OOF המאוחד
+#     precisions, recalls, thresholds = precision_recall_curve(train_target, oof_probs)
+#     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
+#     best_idx = np.argmax(f1_scores)
+#
+#     # מציאת סף 70% רגישות
+#     p70, r70, t70 = get_recall_70(precisions, recalls, thresholds)
+#
+#     # בניית האובייקט הסופי
+#     class ForestEnsemble:
+#         def __init__(self, models, threshold_prc, threshold_70):
+#             self.models = models
+#             self.optimal_threshold_PRC_ = threshold_prc
+#             self.optimal_threshold_ROC_ = threshold_prc  # ניתן להוסיף חישוב ROC בנפרד
+#             self.threshold_70 = threshold_70
+#
+#         def predict_proba(self, X):
+#             # ממוצע הסתברויות מכל המודלים באנסמבל
+#             all_probs = np.array([m.predict_proba(X)[:, 1] for m in self.models])
+#             mean_prob = np.mean(all_probs, axis=0)
+#             return np.column_stack([1 - mean_prob, mean_prob])
+#     model = ForestEnsemble(ensemble_models, thresholds[min(best_idx, len(thresholds) - 1)], t70)
+#     time_df["window_probability"] = model.predict_proba(train_df)[:, 1]
+#     return model
