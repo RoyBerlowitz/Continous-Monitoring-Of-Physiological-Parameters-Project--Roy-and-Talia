@@ -58,6 +58,58 @@ def evaluate_one_model(model, model_name, X_test, y_test):
         {'type': 'Recall 0.7', 'threshold': model.threshold_70},
     ]
 
+
+    ## if u want to get metrics at one thresh and print =================================================
+    # def print_metrics_table(y_true, y_pred, y_prob=None, title="Metrics"):
+    #     """
+    #     Print classification metrics including Precision, Recall (Sensitivity), Accuracy,
+    #     F1 Score, Cohen's Kappa, PR AUC, and ROC AUC.
+    #
+    #     Parameters:
+    #     - y_true : true labels
+    #     - y_pred : predicted labels
+    #     - y_prob : predicted probabilities for positive class (required for AUC metrics)
+    #     - title  : title for the table
+    #     """
+    #     from sklearn.metrics import precision_score, recall_score, accuracy_score, f1_score, cohen_kappa_score
+    #     from sklearn.metrics import precision_recall_curve, roc_auc_score, auc
+    #
+    #     # Basic metrics
+    #     p = precision_score(y_true, y_pred, zero_division=0)
+    #     s = recall_score(y_true, y_pred, zero_division=0)
+    #     a = accuracy_score(y_true, y_pred)
+    #     f1 = f1_score(y_true, y_pred, zero_division=0)
+    #     kappa = cohen_kappa_score(y_true, y_pred)
+    #
+    #     # PR AUC
+    #     if y_prob is not None:
+    #         precision, recall, _ = precision_recall_curve(y_true, y_prob)
+    #         pr_auc = auc(recall, precision)
+    #         # ROC AUC
+    #         roc_auc = roc_auc_score(y_true, y_prob)
+    #     else:
+    #         pr_auc = None
+    #         roc_auc = None
+    #
+    #     # Print metrics table
+    #     print(f"\n--- {title} ---")
+    #     print(f"{'Metric':<15} | {'Value':<10}")
+    #     print("-" * 28)
+    #     print(f"{'Precision':<15} | {p:.4f}")
+    #     print(f"{'Sensitivity':<15} | {s:.4f}")
+    #     print(f"{'Accuracy':<15} | {a:.4f}")
+    #     print(f"{'F1 Score':<15} | {f1:.4f}")
+    #     print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
+    #     if pr_auc is not None:
+    #         print(f"{'PR AUC':<15} | {pr_auc:.4f}")
+    #     if roc_auc is not None:
+    #         print(f"{'ROC AUC':<15} | {roc_auc:.4f}")
+    #
+    # y_pred_test = (y_prob >= model.optimal_threshold_ROC_).astype(int)
+    #
+    # print_metrics_table(y_test,y_pred_test, y_prob, 'Results from test on model trained on train' )
+    # ===================================================================================================================================================
+
     excel_results = []
 
     for wp in working_points:

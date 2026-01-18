@@ -65,4 +65,51 @@ def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42,  split_by
     fpr, tpr, roc_thresholds = roc_curve(y_train_encoded, y_probs)
     roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
     model.optimal_threshold_ROC_ = roc_res['threshold']
+
+    # if you want to print metrics ================================================================
+    # print(model.optimal_threshold_ROC_)
+    # y_prob_train = model.predict_proba(X_train)[:, 1]
+    # y_pred_cv = (y_probs >= model.optimal_threshold_ROC_).astype(int)
+    # y_pred_train = (y_prob_train >= model.optimal_threshold_ROC_).astype(int)
+    # print_metrics_table(y_train, y_pred_cv, y_probs, 'Results from train cross-validation')
+    # print_metrics_table(y_train, y_pred_train, y_prob_train, 'Results from train on model trained on train')
+    # ================================================================================================
+
     return model
+
+
+def print_metrics_table(y_true, y_pred, y_prob=None, title="Metrics"):
+    # Precision, recall, accuracy, F1, Cohen's kappa
+    from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score, \
+        cohen_kappa_score, precision_recall_curve, auc, roc_auc_score
+
+    # Basic metrics
+    p = precision_score(y_true, y_pred, zero_division=0)
+    s = recall_score(y_true, y_pred, zero_division=0)
+    a = accuracy_score(y_true, y_pred)
+    f1 = f1_score(y_true, y_pred, zero_division=0)
+    kappa = cohen_kappa_score(y_true, y_pred)
+
+    # PR AUC
+    if y_prob is not None:
+        precision, recall, _ = precision_recall_curve(y_true, y_prob)
+        pr_auc = auc(recall, precision)
+        # ROC AUC
+        roc_auc = roc_auc_score(y_true, y_prob)
+    else:
+        pr_auc = None
+        roc_auc = None
+
+    # Print metrics table
+    print(f"\n--- {title} ---")
+    print(f"{'Metric':<15} | {'Value':<10}")
+    print("-" * 28)
+    print(f"{'Precision':<15} | {p:.4f}")
+    print(f"{'Sensitivity':<15} | {s:.4f}")
+    print(f"{'Accuracy':<15} | {a:.4f}")
+    print(f"{'F1 Score':<15} | {f1:.4f}")
+    print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
+    if pr_auc is not None:
+        print(f"{'PR AUC':<15} | {pr_auc:.4f}")
+    if roc_auc is not None:
+        print(f"{'ROC AUC':<15} | {roc_auc:.4f}")
