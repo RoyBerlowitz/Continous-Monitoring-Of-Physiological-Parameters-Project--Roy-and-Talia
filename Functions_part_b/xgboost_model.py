@@ -9,14 +9,14 @@ from sklearn.preprocessing import LabelEncoder
 
 
 
-def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None, wrapper_text = ''):
+def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None, wrapper_text = '', subsampling_flg = False):
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
     # results_grid.to_excel(f'{split_name}_xgboost_results_xgb_grid.xlsx')
     # print(f'Saved {split_name}_xgboost_results_xgb_grid.xlsx')
 
     # Randomized search
-    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator)
+    best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator,subsampling_flg = subsampling_flg)
     results_rand.to_excel(f'{split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
     print(f'Saved {split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
 

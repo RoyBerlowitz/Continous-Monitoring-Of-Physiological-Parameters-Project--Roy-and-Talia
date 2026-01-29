@@ -5,7 +5,8 @@ from xgboost import XGBClassifier
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.base import ClassifierMixin
-
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.under_sampling import RandomUnderSampler
 result_cols_to_save = [
         'params',
         # TRAIN SCORE
@@ -24,7 +25,7 @@ class XGBClassifierClassifier(XGBClassifier, ClassifierMixin):
     def _estimator_type(self):
         return "classifier"
 
-def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_indicator=None, n_iter=30, random_state=42):
+def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_indicator=None, n_iter=30, random_state=42, subsampling_flg=False):
     """
     XGBoost hyperparameter tuning with multiple scoring metrics using RandomizedSearchCV.
 
@@ -52,17 +53,29 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
 
     }
 
-    pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
-
+    #if we preform sub sampling
+    if subsampling_flg:
+        sampling_ratio = 0.25
+        pos_weight = 4.0
+        pipeline = ImbPipeline([
+            ('sampler', RandomUnderSampler(sampling_strategy=sampling_ratio, random_state=random_state)),
+            ('xgb', XGBClassifierClassifier(objective='binary:logistic', eval_metric='logloss', random_state=random_state))
+        ])
+    else:
+            pos_weight = (y_train == 0).sum() / (y_train == 1).sum()
+            pipeline = ImbPipeline([
+                ('xgb',
+                 XGBClassifierClassifier(objective='binary:logistic', eval_metric='logloss', random_state=random_state))
+            ])
     # Define distributions for random search
     param_distributions = {
-        'n_estimators': randint(50, 300),
-        'max_depth': randint(3, 10),
-        'learning_rate': loguniform(0.01, 0.3),
-        'subsample': uniform(0.6, 0.4),
-        'colsample_bytree': uniform(0.6, 0.4),
-        'gamma': uniform(0, 0.3),
-        'scale_pos_weight': [1, pos_weight]
+        'xgb__n_estimators': randint(50, 300),
+        'xgb__max_depth': randint(3, 10),
+        'xgb__learning_rate': loguniform(0.01, 0.3),
+        'xgb__subsample': uniform(0.6, 0.4),
+        'xgb__colsample_bytree': uniform(0.6, 0.4),
+        'xgb__gamma': uniform(0, 0.3),
+        'xgb__scale_pos_weight': [1, pos_weight]
     }
 
     if split_by_group_flag:
@@ -70,7 +83,6 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
 
-    xgb = XGBClassifierClassifier(objective='binary:logistic', eval_metric='logloss', random_state=random_state)
 
     # Here we preform the search itself
     # We decided to evaluate our model by the PRC.
@@ -78,7 +90,7 @@ def xgb_random_search_multi(X_train, y_train, split_by_group_flag=False, group_i
     # By finding the point that maximizes the F1 score in the PRC column, we can reach to the pont that hold the best potential F1 score,
     # which may indicate the best balance between sensitivity and precision
     random_search = RandomizedSearchCV(
-        xgb,
+        pipeline,
         param_distributions,
         n_iter=n_iter,
         cv=cv_strategy,
