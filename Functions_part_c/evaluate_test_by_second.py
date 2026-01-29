@@ -78,17 +78,36 @@ def save_all_stats(all_stats, model_name, recording_dict):
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         # the main sheet is the metric sheet
         df_main.to_excel(writer, sheet_name="Overall_Summary")
+        all_recordings_list = []
 
         # we iterate over recording dist
         for rec_name, rec_data in recording_dict.items():
-            # we transform the dict per recording to df
+            if "second" in rec_data:
+                rec_data["Start"] = rec_data.pop("second")
+
             recording_df = pd.DataFrame(rec_data)
+
+            recording_df["End"] = recording_df["Start"] + 1
+
+            cols = ["Start", "End"] + [c for c in recording_df.columns if c not in ["Start", "End"]]
+            recording_df = recording_df[cols]
 
             # we define the name to be the recording identifier
             clean_sheet_name = rec_name
             # we add the sheets
-            recording_df.to_excel(writer, sheet_name=clean_sheet_name, index=False)
+            # recording_df.to_excel(writer, sheet_name=clean_sheet_name, index=False)
+            all_recordings_list.append(recording_df)
 
+
+        final_df = pd.concat(all_recordings_list, ignore_index=True)
+
+        cols_to_keep = [c for c in ["Start", "End", "true_label", "recording_identifier"] if c in final_df.columns]
+        real_df_final = final_df[cols_to_keep].copy()
+
+        pred_df_final = final_df.drop(columns=["true_label"], errors='ignore')
+
+        pred_df_final.to_excel(writer, sheet_name="02_train_pred", index=False)
+        real_df_final.to_excel(writer, sheet_name="02_train_label", index=False)
     print(f"--- All results and recordings saved to: {file_path} ---")
 def create_folder_for_saving(split_name):
     base_dir = "model_outputs"

@@ -6,17 +6,27 @@ from sklearn.model_selection import RandomizedSearchCV, StratifiedGroupKFold,Str
 from sklearn.metrics import roc_curve, cohen_kappa_score, make_scorer, recall_score, precision_recall_curve, average_precision_score
 import numpy as np
 from .evaluate_model_functions import closest_point_roc, get_recall_70
+from imblearn.pipeline import Pipeline as ImbPipeline
+from imblearn.under_sampling import RandomUnderSampler
 
 
 
-def find_best_random_forrest_parameters (train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 100, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = ''):
+def find_best_random_forrest_parameters (train_df, train_labels, group_indicator, n_jobs = -1, n_iterations = 100, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = '', subsampling_flg = False):
     # Here we preform the search for the best hyperparameters for the SVM model.
     # We will preform parallel run to accelerate time
 
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()
-    # We create a pipeline of how we process the data in the stages of training the model
-    pipeline = Pipeline([('Random_Forest', RandomForestClassifier(random_state=42))])
+    # # We create a pipeline of how we process the data in the stages of training the model
+    # pipeline = Pipeline([('Random_Forest', RandomForestClassifier(random_state=42))])
+
+    steps = []
+    if subsampling_flg:
+        steps.append(('undersample', RandomUnderSampler(sampling_strategy=0.25, random_state=42)))
+
+    steps.append(('Random_Forest', RandomForestClassifier(random_state=42)))
+
+    pipeline = ImbPipeline(steps)
 
     # We will determine the ranges of the values of the parameters.
     # we preform Random Search instead of GridSearch, as it allows to cover the space more completely.

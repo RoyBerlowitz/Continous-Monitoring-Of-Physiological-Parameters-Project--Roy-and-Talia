@@ -36,7 +36,7 @@ chosen_hp_split2 = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames
 
 
 
-def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models_to_run, split_name, split_by_group_flag=False, use_wrapper=False, chosen_hp=None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True):
+def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models_to_run, split_name, split_by_group_flag=False, use_wrapper=False, chosen_hp=None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, subsampling_flg = False):
 
     features = [col for col in X_train.columns if col not in admin_features]
     wrapper_text = "" if not use_wrapper else "_wrapper"
@@ -77,15 +77,15 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
         #get best hyperparameters
         model_best_hp = load_cache_or_compute(
             f"{split_name}_{model_name}{wrapper_text}_best_hp.pkl",
-            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name+model_name,split_by_group_flag=split_by_group_flag,wrapper_text=wrapper_text),
+            lambda: choose_hyperparameters(X_selected,y_train,model_name,split_name=split_name+model_name,split_by_group_flag=split_by_group_flag,wrapper_text=wrapper_text, subsampling_flg = subsampling_flg),
             force_recompute=force_recompute_find_hp,
             save=save_cache
         )
 
         #train chosen model
-        trained_models[model_name] = load_cache_or_compute(
+        trained_models[model_name],df_for_time_classification = load_cache_or_compute(
             f"{split_name}_{model_name}{wrapper_text}_trained_model.pkl",
-            lambda: train_model(X_selected, y_train, model_best_hp, model_name,split_by_group_flag=split_by_group_flag),
+            lambda: train_model(X_selected, y_train, model_best_hp, model_name,split_by_group_flag=split_by_group_flag, subsampling_flg = subsampling_flg),
             force_recompute=force_recompute_train_model,
             save=save_cache
         )
@@ -110,7 +110,7 @@ def run_part_b_specific_dataset(X_train, X_test, y_train, y_test, scaler, models
 
     return  stat_values
 
-def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper=False):
+def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = None, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper=False, subsampling_flg = False):
     #here we preform the entire run_part_b
     models = [ModelNames.LOGISTIC, ModelNames.XGBOOST, ModelNames.SVM, ModelNames.RANDOM_FOREST]  #all
 
@@ -146,7 +146,7 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
         run_part_b_specific_dataset(X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler, models, 'split_2', split_by_group_flag=True, use_wrapper=False, save_cache=save_cache,
                                 force_recompute_select_features=force_recompute_select_features, force_recompute_find_hp=force_recompute_find_hp,
                                 force_recompute_train_model=force_recompute_train_model, force_recompute_evaluate_model=force_recompute_evaluate_model,
-                                chosen_hp=[0])
+                                chosen_hp=[0], subsampling_flg = subsampling_flg)
     else:
         #runing with wrapper selection
         run_part_b_specific_dataset(X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler, wrapper_models, 'split_2', split_by_group_flag=True,
@@ -154,15 +154,15 @@ def run_part_b(chosen_hp_split1=None, chosen_hp_split2=None, wrapper_models = No
                                 force_recompute_select_features=force_recompute_select_features,
                                 force_recompute_find_hp=force_recompute_find_hp,
                                 force_recompute_train_model=force_recompute_train_model,
-                                force_recompute_evaluate_model=force_recompute_evaluate_model,
+                                force_recompute_evaluate_model=force_recompute_evaluate_model,subsampling_flg = subsampling_flg,
                                 chosen_hp=chosen_hp_split2)
 
     return
 
 start_time = time.time()
 #run with wrapper to find best features - this is what we chose
-run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=True, force_recompute_find_hp=False,
-                                force_recompute_train_model=False, force_recompute_evaluate_model=False, use_wrapper = False)
+run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=True,
+                                force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True, subsampling_flg = False)
 # run_part_b(chosen_hp_split1, chosen_hp_split2, wrapper_models, save_cache=False, force_recompute_select_features=False, force_recompute_find_hp=False,
 #                                 force_recompute_train_model=True, force_recompute_evaluate_model=True, use_wrapper = True)
 #run with filter to find best features
