@@ -753,14 +753,20 @@ def add_frequency_domain_features(df, column_list, num_features, more_prints):
 
 #------ Derivative features------##
 
-def compute_derivatives(data_list, sampling_rate=50):
+def compute_derivatives(data_list, sampling_rate=50, window_size = 1):
     # We add metrics which are connected to the derivative, whose physical interpretation is the velocity and acceleration.
     # By looking at the velocity and acceleration, we can learn about the change in movement during the period we are looking at.
     data_list = safe_unwrap(data_list)
     if data_list is not None:
         # we receive the data of this window and the sampling rate, and calculate the first and second derivative - the velocity and acceleration.
-        velocity =  np.diff(data_list) / (1/sampling_rate)
-        acceleration = np.diff(velocity) / (1/sampling_rate)
+        # to get more informative features, we based the calculation not on the last sample, but on a small window of samples.
+        # after checking the MI on several window sizes, we came to conclusion that 7 samples gave the best results
+        velocity = (data_list[window_size:] - data_list[:-window_size]) / (window_size *(1/sampling_rate))
+        acceleration = (velocity[window_size:] - velocity[:-window_size]) / (window_size * (1/sampling_rate)) if len(
+            velocity) > window_size else np.array([np.nan])
+        # velocity =  np.diff(data_list) / (1/sampling_rate)
+        # acceleration = np.diff(velocity) / (1/sampling_rate)
+
 
         #we find the standard deviation of the movement to see how the velocity and acceleration changed during the window
         velocity_std = np.std(velocity)
