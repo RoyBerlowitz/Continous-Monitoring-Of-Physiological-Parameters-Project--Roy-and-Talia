@@ -27,15 +27,15 @@ chosen_hp = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames.RANDOM
 
 
 
-def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_test_time_dfs=True, force_recompute_best_th = True, force_recompute_evaluate_model=True):
+def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_test_time_dfs=True, force_recompute_best_th = True, grp = None, force_recompute_evaluate_model=True):
     start_time = time.time()
 
     models = [ModelNames.XGBOOST, ModelNames.RANDOM_FOREST]
-    models = [ModelNames.RANDOM_FOREST] #roee
+    # models = [ModelNames.RANDOM_FOREST] #roee
     # models = [ModelNames.XGBOOST] #talia
 
     seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
-    #seconds_classification_models = [ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
+    # seconds_classification_models = [ModelNamesSecondClassification.LOGISTIC]
 
 
     split_name = 'split2'
@@ -50,7 +50,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     X_train, X_test, y_train, y_test, scaler = split2_vet_features
 
     #split test train again. remove all protocol
-    resplit_train_test = True
+    resplit_train_test = False
     if resplit_train_test:
         X_all = pd.concat([X_train, X_test], axis=0)
         y_all = pd.concat([y_train, y_test], axis=0)
@@ -61,13 +61,28 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         X_all = X_all.loc[mask]
         y_all = y_all.loc[mask]
 
-        groups = X_all['Group number'] #'Participant ID',
-        gss = GroupShuffleSplit(n_splits=1, test_size=0.1)
-        train_idx, test_idx = next(gss.split(X_all, y_all, groups))
-        X_train = X_all.iloc[train_idx]
-        X_test = X_all.iloc[test_idx]
-        y_train = y_all.iloc[train_idx]
-        y_test = y_all.iloc[test_idx]
+        X_all['Group number'] = X_all['Group number']+X_all['Participant ID']
+        print(X_all['Group number'].unique())
+
+        def split_by_group_tuple(X, y, group_tuple, group_col='Group number'):
+            test_mask = X[group_col].isin(group_tuple)
+
+            X_test = X.loc[test_mask]
+            y_test = y.loc[test_mask]
+
+            X_train = X.loc[~test_mask]
+            y_train = y.loc[~test_mask]
+
+            return X_train, X_test, y_train, y_test
+
+        X_train, X_test, y_train, y_test=split_by_group_tuple(X_all, y_all, [grp])
+        # groups = X_all['Group number'] #'Participant ID',
+        # gss = GroupShuffleSplit(n_splits=1, test_size=0.2)
+        # train_idx, test_idx = next(gss.split(X_all, y_all, groups))
+        # X_train = X_all.iloc[train_idx]
+        # X_test = X_all.iloc[test_idx]
+        # y_train = y_all.iloc[train_idx]
+        # y_test = y_all.iloc[test_idx]
         print(X_test['Group number'].unique())
 
     ## ---------------- load data files ----------------
@@ -80,6 +95,16 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         force_recompute=force_recompute_load_data,
         save=save_cache
     )
+
+    # if you change and run with leave on participant out
+    # new_data_files = {}
+    # for key, value in data_files.items():
+    #     parts = key.split('_')  # ['58', '20', 'A']
+    #     new_key = f"{parts[0]}{parts[2]}_{parts[1]}_{parts[2]}"
+    #     new_data_files[new_key] = value
+    #
+    # data_files = new_data_files
+
 
     print('\033[32mData loaded\033[0m')
 
@@ -141,7 +166,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         model_stats[model_name]={}
         for second_model in seconds_classification_models:
             model_stats[model_name][second_model] = load_cache_or_compute(
-                f"{split_name}_{model_name}{wrapper_text}_choose_threshold_and_stas_per_second.pkl",
+                f"{split_name}_{model_name}_{second_model}{wrapper_text}_choose_threshold_and_stas_per_second.pkl",
                 lambda: predict_times(train_time_dfs[model_name], test_time_dfs[model_name], data_files, model_name,second_model),
                 force_recompute=force_recompute_best_th,
                 save=save_cache
@@ -168,28 +193,48 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
 # ========================================================= Run =========================================================
 if __name__ == "__main__":
-    run_part_c(save_cache=True,
-               force_recompute_load_data=False,
-               force_recompute_select_features=False,
-               force_recompute_find_hp=False,
-               force_recompute_train_model=False,
-               force_recompute_test_time_dfs=False,
-               force_recompute_best_th = True, )
-    all_res = {}
-    for i in range(20):
-        res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False, force_recompute_find_hp=True5 ,force_recompute_train_model=True, force_recompute_evaluate_model=True)
-        all_res[tuple(gs)] = res[ModelNames.RANDOM_FOREST]
-
-    rows = []
-
-    for run_num, run_results in all_res.items():
-        for model_name, metrics in run_results.items():
-            row = {
-                "run": run_num,
-                "model": model_name,
-                **metrics
-            }
-            rows.append(row)
-
-    df = pd.DataFrame(rows)
-    df.to_csv("CV_model_results_all_runs.csv", index=False)
+    run_part_c(save_cache=True)
+    # run_part_c(save_cache=True,
+    #            force_recompute_load_data=False,
+    #            force_recompute_select_features=False,
+    #            force_recompute_find_hp=False,
+    #            force_recompute_train_model=True,
+    #            force_recompute_test_time_dfs=True,
+    #            force_recompute_best_th = True, )
+    # grps = ['15A','27A','31A','42A','58A','64A','79A','93A', '15B','27B','31B','42B','58B','64B','79B','93B']
+    # # pairs = list(itertools.combinations(grps, 2))
+    #
+    # all_res = {}
+    # for gr in grps:
+    #     res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False,
+    #                          force_recompute_find_hp=True, force_recompute_train_model=True,
+    #                          # force_recompute_find_hp=False, force_recompute_train_model=False,
+    #                          force_recompute_evaluate_model=True, force_recompute_test_time_dfs=True, grp=gr)
+    #     print(f"gs is {gs}")
+    #     all_res[tuple(gs)] = res[ModelNames.XGBOOST]
+    #
+    # print(all_res)
+    #
+    # # all_res = {}
+    # # for i in range(10):
+    # #     res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False,
+    # #                          force_recompute_find_hp=True,force_recompute_train_model=True, force_recompute_evaluate_model=True, force_recompute_test_time_dfs=True)
+    # #     print(f"gs is {gs}")
+    # #     all_res[tuple(gs)] = res[ModelNames.XGBOOST]
+    # #
+    # #
+    # # print(all_res)
+    #
+    # rows = []
+    #
+    # for run_num, run_results in all_res.items():
+    #     for model_name, metrics in run_results.items():
+    #         row = {
+    #             "run": run_num,
+    #             "model": model_name,
+    #             **metrics
+    #         }
+    #         rows.append(row)
+    #
+    # df = pd.DataFrame(rows)
+    # df.to_csv("CV_model_results_all_runs_every_participant_logistic.csv", index=False)

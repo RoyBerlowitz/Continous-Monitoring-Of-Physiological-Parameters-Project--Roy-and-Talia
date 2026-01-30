@@ -4,25 +4,25 @@ from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_se
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold, StratifiedKFold
 from sklearn.metrics import roc_curve, precision_recall_curve, average_precision_score
 import numpy as np
-from .evaluate_model_functions import closest_point_roc
 from sklearn.preprocessing import LabelEncoder
 
+from ..EvaluateModels.evaluate_model_functions import closest_point_roc
 
 
-def find_best_hp_xgboost(X_train, y_train, split_name, split_by_group_flag = False, group_indicator = None, wrapper_text = '', subsampling_flg = False):
+def find_best_hp_xgboost(X_train, y_train, split_by_group_flag = False, group_indicator = None, subsampling_flg = False):
     # Grid search
     # best_xgb_grid, best_params_grid, results_grid = xgb_grid_search_multi(X_train, y_train)
-    # results_grid.to_excel(f'{split_name}_xgboost_results_xgb_grid.xlsx')
-    # print(f'Saved {split_name}_xgboost_results_xgb_grid.xlsx')
+    # results_grid.to_excel(f'xgboost_results_xgb_grid.xlsx')
+    # print(f'Saved xgboost_results_xgb_grid.xlsx')
 
     # Randomized search
     best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator,subsampling_flg = subsampling_flg)
-    results_rand.to_excel(f'{split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
-    print(f'Saved {split_name}{wrapper_text}_xgboost_results_xgb_rand.xlsx')
+    results_rand.to_excel(f'xgboost_results_xgb_rand.xlsx')
+    print(f'Saved xgboost_results_xgb_rand.xlsx')
 
     return best_params_rand
 
-def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42,  split_by_group_flag = False, group_indicator=None):
+def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42, split_by_group_flag = False, group_indicator=None):
     # we encode the labels to be ints
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
