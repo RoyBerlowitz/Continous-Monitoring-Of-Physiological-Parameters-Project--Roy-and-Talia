@@ -106,6 +106,11 @@ def save_all_stats(all_stats, model_name, recording_dict):
 
         pred_df_final = final_df.drop(columns=["true_label"], errors='ignore')
 
+        # להשתמש בגרסא הבאה להגשה
+        # cols_to_keep = [c for c in ["Start", "End", "true_label"] if c in final_df.columns]
+        # real_df_final = final_df[cols_to_keep].copy()
+        #
+        # pred_df_final = final_df.drop(columns=["true_label", "recording_identifier"], errors='ignore')
         pred_df_final.to_excel(writer, sheet_name="02_train_pred", index=False)
         real_df_final.to_excel(writer, sheet_name="02_train_label", index=False)
     print(f"--- All results and recordings saved to: {file_path} ---")

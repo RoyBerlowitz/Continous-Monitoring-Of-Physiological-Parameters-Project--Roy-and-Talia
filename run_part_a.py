@@ -13,7 +13,7 @@ from Functions_part_b.Random_forest_model import train_random_forest_classifier
 from Functions_part_b.evaluate_model import evaluate_model
 from Functions_part_b.train_model import train_model
 from Functions_part_b.evaluate_model import  evaluate_model
-from Functions_part_b.consts import  ModelNames
+#from Functions_part_b.consts import  ModelNames
 #from Functions_part_b.wrapper_feature_selection import wrapper_selection
 
 
@@ -63,12 +63,13 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
         save=save_cache
     )
 
+
     print('\033[32mSegmentation completed\033[0m')
 
     ##--------------- Part B: Feature Extraction -----------##
     X_features = load_cache_or_compute(
         "X_features.pkl",
-        lambda: extract_features(X_matrix, data_files, more_prints),
+        lambda: extract_features(X_matrix, Y_vector, data_files, more_prints, test_flag=False),
         force_recompute=force_recompute_features,
         save=save_cache
     )
@@ -139,7 +140,7 @@ data_path = os.path.join(script_directory, "data")
 
 if __name__ == "__main__":
     start_time = time.time()
-    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features = True)
+    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True, force_recompute_vet_features = True)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")

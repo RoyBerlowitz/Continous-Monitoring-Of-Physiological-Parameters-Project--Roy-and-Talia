@@ -3,6 +3,15 @@ import sklearn as sk
 import pandas as pd
 import numpy as np
 import PyEMD
+import torch
+import torch.nn as nn
+from Functions.train_cnn import embedder_cnn, train_one_epoch
+from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import GroupShuffleSplit
+import os
+from sklearn.metrics import f1_score
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+
 #from joblib import Parallel, delayed
 
 ##-------Part B: Feature Extraction - Helper Functions-------
@@ -815,6 +824,209 @@ def add_derivative_features(df, column_list, num_features, more_prints):
             num_features += len(feature_suffixes)
     df_new = pd.concat([df, pd.DataFrame(new_columns)], axis=1)
     return df_new, num_features
+
+##-------Embedding by CNN - feature -------##
+# --- Helper to fix array lengths ---
+def pad_or_trim(data, target_len):
+    """
+    Ensures the array is exactly target_len long.
+    - If shorter: Pads with zeros at the end.
+    - If longer: Truncates from the end.
+    """
+    # Force data to be 1D array before length check
+    data = np.array(data).ravel()
+
+    if len(data) == target_len:
+        return data
+    if len(data) > target_len:
+        return data[:target_len]
+    else:
+        # Pad with zeros
+        return np.pad(data, (0, target_len - len(data)), 'constant')
+
+
+# --- Helper: Convert DataFrame columns (arrays) to Tensor ---
+def prepare_tensor_data(df, column_list):
+    """Stacks array columns into a (N, Channels, Time) tensor."""
+    x_data = []
+
+    # 1. Determine the common target length
+    # We take the median length of the first column to be robust against outliers
+    first_col_arrays = df[column_list[0]].values
+
+    # Use ravel() here to ensure we get the length of the actual 1D signal
+    # This handles cases where data is stored as [array(...)] or array([[...]])
+    lengths = [len(np.array(x).ravel()) for x in first_col_arrays if x is not None]
+
+    if not lengths:
+        raise ValueError("No valid arrays found in DataFrame to determine length.")
+
+    target_len = int(np.median(lengths))
+    # print(f"Aligning all windows to length: {target_len}")
+
+    for col in column_list:
+        if col not in df.columns:
+            raise ValueError(f"Column {col} missing from DataFrame")
+
+        # 2. Apply pad_or_trim to every cell in the column
+        col_values = df[col].values
+
+        # Use pad_or_trim which now internally handles the flattening
+        processed_col = [pad_or_trim(x, target_len) for x in col_values]
+
+        col_stack = np.stack(processed_col)
+        x_data.append(col_stack)
+
+    # Stack channels: (Channels, N, Time) -> Transpose to (N, Channels, Time)
+    x_array = np.stack(x_data, axis=1)
+    return torch.tensor(x_array, dtype=torch.float32)
+
+
+# --- MAIN FUNCTION ---
+def get_cnn_embeddings(df,
+                       target,
+                       group_col,
+                       column_list,
+                       test_flag=False,  # 'train' or 'test'
+                       model_path='cnn_weights.pth',
+                       embedding_size=16,
+                       num_epochs=30,
+                       batch_size=32):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    mode_str = "Test" if test_flag else "Train"
+    print(f"--- CNN Pipeline | Mode: {mode_str} | Device: {device} ---")
+
+    # 1. Prepare Full Data Tensor (for everyone)
+    print("Preparing data tensors...")
+    X_full = prepare_tensor_data(df, column_list)
+
+    # Initialize Model Structure
+    model = embedder_cnn(number_of_channels=len(column_list), number_of_classes=2, embedding_size=embedding_size)
+    model.to(device)
+
+    # ==========================================
+    # LOGIC BRANCH: TRAINING MODE
+    # ==========================================
+    if not test_flag:
+        print(f"Training mode detected. Splitting data by Group: '{group_col}'...")
+
+        # Prepare targets
+        y_full = torch.tensor(target.values, dtype=torch.long)
+        groups = df[group_col].values
+
+        num_neg = (y_full == 0).sum()
+        num_pos = (y_full == 1).sum()
+
+        # כדי למנוע חלוקה באפס
+        if num_pos == 0: num_pos = 1
+
+        pos_weight = num_neg / num_pos
+        class_weights = torch.tensor([1.0, float(pos_weight)]).to(device)
+
+        print(f"Imbalance Detected: Neg={num_neg}, Pos={num_pos}. Using Class Weights: {class_weights.cpu().numpy()}")
+
+        # --- Group Shuffle Split (Train vs Validation) ---
+        gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
+        try:
+            train_idx, val_idx = next(gss.split(X_full, y_full, groups))
+        except StopIteration:
+            print("Warning: Only 1 group found. Using simple random split instead of group split.")
+            indices = np.arange(len(X_full))
+            np.random.shuffle(indices)
+            split_point = int(0.8 * len(X_full))
+            train_idx, val_idx = indices[:split_point], indices[split_point:]
+
+        # Create DataLoaders
+        train_ds = TensorDataset(X_full[train_idx], y_full[train_idx])
+        val_ds = TensorDataset(X_full[val_idx], y_full[val_idx])
+
+        train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+        val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
+
+        print(f"Train samples: {len(train_idx)} | Validation samples: {len(val_idx)}")
+
+        # Setup Optimizer
+        criterion = nn.CrossEntropyLoss(weight=class_weights)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+        #adding LR scheduler to adjust LR if the model stacks
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+        # Training Loop
+        best_val_loss = float('inf')
+
+        for epoch in range(num_epochs):
+            # Train
+            train_loss = train_one_epoch(train_loader, model, optimizer, criterion, device)
+
+            # Validation
+            model.eval()
+            val_loss = 0.0
+            all_preds = []
+            all_targets = []
+            with torch.no_grad():
+                for data, target in val_loader:
+                    data, target = data.to(device), target.to(device)
+                    outputs = model(data)
+                    loss = criterion(outputs, target)
+                    val_loss += loss.item()
+
+                    _, predicted = torch.max(outputs, 1)
+                    all_preds.extend(predicted.cpu().numpy())
+                    all_targets.extend(target.cpu().numpy())
+
+            val_loss /= len(val_loader)
+            #val_acc = 100 * correct / total
+            # adjusting the LR if for 3 epochs there is no imporvement
+            old_lr = optimizer.param_groups[0]['lr']
+            scheduler.step(val_loss)
+            new_lr = optimizer.param_groups[0]['lr']
+            val_f1 = f1_score(all_targets, all_preds, zero_division=0)
+            lr_msg = f" | LR dropped to {new_lr:.6f}!" if new_lr != old_lr else ""
+            #if (epoch + 1) % 5 == 0 or epoch == 0:
+            if epoch is not None:
+                print(
+                    f"Epoch {epoch + 1:02d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val F1: {val_f1:.2f}%")
+
+            # Save Checkpoint
+            if val_loss < best_val_loss:
+                best_val_loss = val_loss
+                torch.save(model.state_dict(), model_path)
+
+        print(f"Training finished. Best model saved to: {model_path}")
+
+    # ==========================================
+    # LOGIC BRANCH: TEST MODE (OR POST-TRAINING)
+    # ==========================================
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"Model weights not found at {model_path}. Run with test_flag=False first!")
+
+    # print(f"Loading weights from {model_path} for feature extraction...")
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+
+    # ==========================================
+    # FEATURE EXTRACTION (INFERENCE)
+    # ==========================================
+    # print("Extracting embeddings...")
+
+    extract_loader = DataLoader(TensorDataset(X_full), batch_size=batch_size, shuffle=False)
+
+    all_embeddings = []
+    with torch.no_grad():
+        for batch in extract_loader:
+            data = batch[0].to(device)
+            emb = model.get_embedding(data)
+            all_embeddings.append(emb)
+
+    final_embeddings_matrix = np.vstack(all_embeddings)
+
+    emb_cols = [f'cnn_emb_{i}' for i in range(embedding_size)]
+    emb_df = pd.DataFrame(final_embeddings_matrix, columns=emb_cols, index=df.index)
+
+    result_df = pd.concat([df, emb_df], axis=1)
+
+    print(f"Done. Added {embedding_size} embedding features.")
+    return result_df
 
 ##-------EMD features - wasn't used at the end-------##
 
