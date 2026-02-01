@@ -27,11 +27,16 @@ def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42, split_by_
     le = LabelEncoder()
     y_train_encoded = le.fit_transform(y_train)
 
+    best_hp_xgb = {
+        k.replace('xgb__', ''): v #remove __xgb from param name
+        for k, v in best_hp.items()
+    }
+
     model = XGBClassifierClassifier(
         random_state=random_state,
         eval_metric='logloss',
         objective='binary:logistic',
-        **best_hp
+        **best_hp_xgb
     )
 
     # Here, we try to use the power of the PRC curve to find the best operating point in regard of F1.

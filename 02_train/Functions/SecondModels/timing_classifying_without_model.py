@@ -108,7 +108,7 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
             if second in handwashing_times:
                 label = 1
                 # if we do not have information or window in the sec - we classify as zero, thus zero weight
-            if second not in dict_of_sec_vals or dict_of_sec_vals[second]["weight"] == 0:
+            if (second not in dict_of_sec_vals) or (not dict_of_sec_vals[second]) or (dict_of_sec_vals[second]["weight"] == 0):
                 weighted_prob = 0
             else:
                 # for each second, we calculate the weighted average probabillity

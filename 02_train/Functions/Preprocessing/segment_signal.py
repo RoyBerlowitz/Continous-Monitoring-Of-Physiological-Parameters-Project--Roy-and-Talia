@@ -111,9 +111,6 @@ def segment_signal(window_size, window_step, data_files, more_prints=False):
             #it the overlap is over 50% of the window
             if overlap_length >= 0.5 * window_length:
                 return 1
-            # we track the windows between 1 and no intersection at all. we will mark them as 2
-            if 0 < overlap_length <= 0.5 * window_length:
-                return 2
         # after looping over all the handwashes if there is no overlap of 50% with any of them - we return zero
         return 0
 

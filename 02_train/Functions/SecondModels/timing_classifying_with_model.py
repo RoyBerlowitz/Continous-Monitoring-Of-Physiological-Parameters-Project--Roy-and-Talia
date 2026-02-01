@@ -63,6 +63,7 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
 
         # we go over the dict keys which is the seconds of the recording
         for second in dict_of_sec_vals.keys():
+            if dict_of_sec_vals[second] is None: dict_of_sec_vals[second] = {'coverage': [0], 'prob': [0]} #there are edge cases of recording ending at 89.0 sec and then sec 89 is not in window_time_list so doesnt have coverage or weight
             label = 0
             # if the second was indeed part of the handwashing period, the label changes to 1
             if second in handwashing_times:
