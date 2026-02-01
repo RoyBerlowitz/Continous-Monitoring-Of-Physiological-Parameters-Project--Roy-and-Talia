@@ -19,6 +19,9 @@ import re
 def evaluate_one_model(model, model_name, X_test, y_test):
     # predict_proba - the prob of each row to be in each class.
     # take the prob of being in class Handwashing
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID',
+                               'Group number', 'Recording number', 'Protocol']
+    X_test = X_test[[col for col in X_test.columns if col not in administrative_features]]
     y_prob = model.predict_proba(X_test)[:, 1]
     y_predicted = model.predict(X_test)
 

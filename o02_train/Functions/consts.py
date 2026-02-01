@@ -32,9 +32,11 @@ class RecomputeFunctionsConfig:
     segment_signal: bool = True
     extract_features: bool = True
     split_data: bool = True
-    vet_features_and_normalize: bool = True
+    feature_normalization: bool = True
+    vet_features: bool = True
     select_features: bool = True
     choose_hyperparameters: bool = True
     train_window_model: bool = True
     create_test_time_df: bool = True
-    prediction_by_second: bool = True
+    train_second_model: bool = True
+    evaluate_models: bool = True

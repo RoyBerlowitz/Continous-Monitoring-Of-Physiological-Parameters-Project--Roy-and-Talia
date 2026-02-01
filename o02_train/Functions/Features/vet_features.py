@@ -25,6 +25,26 @@ def feature_normalization(X_train,X_test,method='IQR'):
 
     return X_train_norm, X_test_norm, scaler
 
+def feature_normalization_train(X_train,method='IQR'):
+    features = [col for col in X_train.columns if col not in columns_not_to_normalize]
+
+    #train norm
+    norm_train, scaler = normalize_fit(X_train[features].values, method)
+    X_train_norm = X_train.copy()
+    X_train_norm[features] = norm_train.reshape(-1, len(features)) #this reshape makes the num of rows automatic (-1) and columns len of features. reshapes if flatten happened
+
+    return X_train_norm, scaler
+
+def feature_normalization_test(X_test,scaler):
+    features = [col for col in X_test.columns if col not in columns_not_to_normalize]
+
+    #test norm - uses scaler from the train data set
+    norm_test = normalize_transform(X_test[features].values, scaler)
+    X_test_norm = X_test.copy()
+    X_test_norm[features] = norm_test.reshape(-1, len(features))
+
+    return X_test_norm
+
 # we changed to 40 to allow adding more features but remaining with maximum 40 to reduce number of features
 def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=40, K= 10, threshold=0.8):
     #This function tries to find the 20 best features by using a filter method with the CFS metric.
@@ -127,50 +147,66 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
             break
     return best_features, results_log
 
-def vet_features_and_normalize(all_split_data, more_prints=False):
-    split2_X_train, split2_X_test, split2_Y_train, split2_Y_test = all_split_data
-    X_vetting, X_test_norm, scaler = feature_normalization(split2_X_train, split2_X_test, method='IQR')
-    X_vetting, X_test_norm = vet_features(X_vetting, X_test_norm, split2_Y_train, more_prints, split_name="Group normalization")
+def normalize_train(X_train):
+    X_train_norm, scaler = feature_normalization_train(X_train, method='IQR')
+    return X_train_norm, scaler
 
-    return [X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler]
+def normalize_test(X_test, scaler):
+    X_test_norm = feature_normalization_test(X_test, scaler)
+    return X_test_norm
 
-def vet_features(X_vetting, X_test_norm, Y_train, more_prints, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
-    # Preforming the normalization
-    # X_vetting, X_test_norm = feature_normalization(X_train,X_test, method='IQR')
+# def vet_features_and_normalize(all_split_data, more_prints=False):
+#     split2_X_train, split2_X_test, split2_Y_train, split2_Y_test = all_split_data
+#     X_vetting, X_test_norm, scaler = feature_normalization(split2_X_train, split2_X_test, method='IQR')
+#     X_vetting, X_test_norm = vet_features(X_vetting, X_test_norm, split2_Y_train, more_prints, split_name="Group normalization")
+#
+#     return [X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler]
 
-    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
-    if "__participant_key__"  in X_vetting.columns:
+def vet_features(X_vetting, Y_train, N=20, K= 10, threshold=0.8):
+    #See BELOW old version that has more of the process done
+    administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID',
+                               'Group number', 'Recording number', 'Protocol']
+    if "__participant_key__" in X_vetting.columns:
         administrative_features.append("__participant_key__")
     # we find the 20 best feature according to CFS and forward algorithm
-    best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features,more_prints, N, K, threshold)
-    #we keep the administrative features and most connected to label features, in both train and test
-    features_to_keep = administrative_features + best_features
-    X_vetting = X_vetting[features_to_keep]
-    X_test_norm = X_test_norm[features_to_keep]
-    #we try to see the correlation and the pair plot between the features we selected in order to see if we have chosen properly
-    if more_prints: print(X_vetting[best_features].corr())
+    best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features,False, N, K, threshold)
+    # we keep the administrative features and most connected to label features, in both train and test
+    return administrative_features + best_features
 
-    ##!!!!!!!
-
-    # IF YOU WANT TO SEE THE VETTING PROCESS REMOVE THE COMMENT FROM THE FOLLOWING CODE
-
-    ##!!!!!!!
-    #in order to have interpretability for the results, we export to excell with 3 sheets - one with the vetting results, one with the correlation between the features, and one with the pair plot
-
-    # excel_file_path = f"{split_name} vetting data.xlsx"
-    # writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
-    # pd.DataFrame(results_log).to_excel(
-    #     writer,
-    #     sheet_name='Vetting Process Log',
-    #     index=False
-    # )
-    # X_vetting[best_features].corr(method = 'spearman').to_excel(
-    #     writer,
-    #     sheet_name='Correlation Matrix',
-    #     index=True)
-    # writer.close()
-
-    return X_vetting, X_test_norm
+# def vet_features(X_vetting, X_test_norm, Y_train, more_prints, N=20, K= 10, threshold=0.8):
+#     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
+#     if "__participant_key__"  in X_vetting.columns:
+#         administrative_features.append("__participant_key__")
+#     # we find the 20 best feature according to CFS and forward algorithm
+#     best_features, results_log = find_best_features_to_label_combination(X_vetting, Y_train, administrative_features,more_prints, N, K, threshold)
+#     #we keep the administrative features and most connected to label features, in both train and test
+#     features_to_keep = administrative_features + best_features
+#     X_vetting = X_vetting[features_to_keep]
+#     X_test_norm = X_test_norm[features_to_keep]
+#     #we try to see the correlation and the pair plot between the features we selected in order to see if we have chosen properly
+#     if more_prints: print(X_vetting[best_features].corr())
+#
+#     ##!!!!!!!
+#
+#     # IF YOU WANT TO SEE THE VETTING PROCESS REMOVE THE COMMENT FROM THE FOLLOWING CODE
+#
+#     ##!!!!!!!
+#     #in order to have interpretability for the results, we export to excell with 3 sheets - one with the vetting results, one with the correlation between the features, and one with the pair plot
+#
+#     # excel_file_path = f"{split_name} vetting data.xlsx"
+#     # writer = pd.ExcelWriter(excel_file_path, engine='xlsxwriter')
+#     # pd.DataFrame(results_log).to_excel(
+#     #     writer,
+#     #     sheet_name='Vetting Process Log',
+#     #     index=False
+#     # )
+#     # X_vetting[best_features].corr(method = 'spearman').to_excel(
+#     #     writer,
+#     #     sheet_name='Correlation Matrix',
+#     #     index=True)
+#     # writer.close()
+#
+#     return X_vetting, X_test_norm
 
 
 """ 

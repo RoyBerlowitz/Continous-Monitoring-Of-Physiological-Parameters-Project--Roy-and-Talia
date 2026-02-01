@@ -6,7 +6,7 @@ from sklearn.metrics import roc_curve, precision_recall_curve, average_precision
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
 
-from ..EvaluateModels.evaluate_model_functions import closest_point_roc
+from ..EvaluateModels.evaluate_model_functions import closest_point_roc, get_recall_70
 
 
 def find_best_hp_xgboost(X_train, y_train, split_by_group_flag = False, group_indicator = None, subsampling_flg = False):
@@ -70,6 +70,9 @@ def train_xgboost(X_train, y_train, best_hp, time_df, random_state=42, split_by_
     fpr, tpr, roc_thresholds = roc_curve(y_train_encoded, y_probs)
     roc_res = closest_point_roc(fpr, tpr, roc_thresholds)
     model.optimal_threshold_ROC_ = roc_res['threshold']
+
+    precision_70, recall_70, threshold_70 = get_recall_70(precisions, recalls, thresholds)
+    model.threshold_70 = threshold_70
 
     # if you want to print metrics ================================================================
     # print(model.optimal_threshold_ROC_)

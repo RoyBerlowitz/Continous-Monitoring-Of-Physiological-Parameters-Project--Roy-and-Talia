@@ -49,3 +49,44 @@ def prediction_by_second(train_df, test_df, data_files, model_name, classificati
             all_stats = {**test_stats}
             save_all_stats(all_stats, model_name + '_markov_second_classification', recording_dict)
             return all_stats
+
+def prediction_by_second_test(test_df, data_files, model_name, classification_model, classification_flag = SecondModelNames.NO_MODEL, weight_flag = "Gaussian Weight"):
+    test_df = get_handwashing_times(test_df, data_files)
+    if classification_flag == SecondModelNames.NO_MODEL:
+        test_x, test_y = translate_prediction_into_time_point_prediction_with_weights(test_df, weight_flag)
+        test_stats, recording_dict = evaluate_test_by_second_no_model(test_x, test_y, classification_model["threshold_no_median"], classification_model["threshold_with_median"], classification_model["filter_size"])
+        return test_stats
+    else:
+        test_x, test_y = translate_prediction_into_time_point_prediction_for_model(test_df, weight_flag=None)
+        if classification_flag == SecondModelNames.LOGISTIC:
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name+'_LR_second_classification')
+            # all_stats = { **test_stats}
+            # save_all_stats(all_stats, model_name+'_LR_second_classification', recording_dict)
+            return test_stats
+        if classification_flag == SecondModelNames.MARKOV:
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name + '_markov_second_classification')
+            # all_stats = {**test_stats}
+            # save_all_stats(all_stats, model_name + '_markov_second_classification', recording_dict)
+            return test_stats
+    return
+
+
+def prediction_by_second_train(train_df, data_files, model_name, classification_flag = SecondModelNames.NO_MODEL, weight_flag = "Gaussian Weight"):
+    # This the function that preforms the final classification to seconds
+    # we obtain the handwashing seconds for each train and test df
+    train_df = get_handwashing_times(train_df, data_files)
+    # if we choose to classify with no model
+    if classification_flag == SecondModelNames.NO_MODEL:
+        train_x, train_y = translate_prediction_into_time_point_prediction_with_weights (train_df, weight_flag)
+        # we preform the choice of the threshold
+        threshold_no_median, threshold_with_median, filter_size, train_stats = train_for_decision(train_x, train_y, group_indicator =train_x["Group number"] , n_iteration=50, n_jobs=-1)
+        # we save evaluation metrics
+        # all_stats = {**train_stats}
+        # save_all_stats(all_stats, model_name+'_no_model_for_second_classification', recording_dict)
+        return {"threshold_no_median":threshold_no_median, "threshold_with_median":threshold_with_median, "filter_size":filter_size, "train_stats":train_stats}
+    else:
+        train_x, train_y = translate_prediction_into_time_point_prediction_for_model (train_df, weight_flag=None)
+        if classification_flag == SecondModelNames.LOGISTIC:
+            return logistic_regression_for_second_classification(train_x, train_y)
+        if classification_flag == SecondModelNames.MARKOV:
+            return train_markov_model(train_x, train_y)
