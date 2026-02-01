@@ -161,7 +161,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     #we return the best model
     return best_parameters
 
-def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Individual Split", split_by_group_flag = False):
+def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Group Split", split_by_group_flag = False):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()
@@ -217,6 +217,8 @@ def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Individua
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    # Cohen's kappa represenets the model's abillity to predict and not just guess
+    # We believe there is connection between the two metrics, and thus chose to optimize the F1 score instead of just randomly choose several threshold
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     best_idx = np.argmax(f1_scores)
     best_SVM_model.optimal_threshold_PRC_ = thresholds[best_idx]

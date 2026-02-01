@@ -26,7 +26,7 @@ def feature_normalization(X_train,X_test,method='IQR'):
     return X_train_norm, X_test_norm, scaler
 # we changed to 40 to allow adding more features but remaining with maximum 40 to reduce number of features
 def find_best_features_to_label_combination (X_train, Y_train, administrative_features, more_prints, N=40, K= 10, threshold=0.8):
-    #This function tries to find the 20 best features by using a filter method with the CFS metric.
+    #This function tries to find the 40 or less best features by using a filter method with the CFS metric.
     #It takes as an input X_train, which is the matrix that contains the data and the features
     #It also receives Y_train which gives the labels for each window.
     # N is the number of features we want to find and keep at the matrix
@@ -86,7 +86,7 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
                 column_to_add = column
         # we create a stopping rule, which is stopping when there is no improvement in cfs.
         # We want to remain with at least 10 features so we put it as a condition
-        if best_score < previous_best_score and len(best_features) >= 10:
+        if best_score < previous_best_score and len(best_features) >= 20:
             if more_prints: print(f"Iteration {len(best_features) + 1}:")
             if more_prints: print(f"  No Feature Added, with the score {best_score} being worse than the previos score of {previous_best_score}")
             if more_prints: print(f"Current Subset of features: {best_features}")

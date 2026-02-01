@@ -1,6 +1,7 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 
+from .extract_features_helper_functions import get_cnn_embeddings
 from .split_data_helper_functions import *
 
 def split_data(X_features, Y_samples):

@@ -7,12 +7,10 @@ from Functions_part_c.timing_classifying_without_model import calculate_time_poi
 from Functions_part_c.markov_model import prepare_data_for_hmm,train_supervised_hmm
 from Functions_part_b.logistic_regression_model import train_logistic_regression, find_best_hp_logistic_regression
 
-from .choose_thresholds import get_threshold_median, get_absolute_threshold_raw, print_metrics_table
-from sklearn.metrics import f1_score, precision_recall_curve
-from scipy.ndimage import median_filter
+
+import numpy as np
+import pandas as pd
 from sklearn.model_selection import StratifiedGroupKFold
-from joblib import Parallel, delayed
-from sklearn.model_selection import  StratifiedGroupKFold, cross_val_predict
 from sklearn.metrics import precision_recall_curve, average_precision_score
 
 def translate_prediction_into_time_point_prediction_for_model (windows_df, weight_flag = None ):
@@ -197,10 +195,7 @@ def logistic_regression_for_second_classification (seconds_df, y):
     return logistic_model
 
 
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import StratifiedGroupKFold
-from sklearn.metrics import precision_recall_curve
+
 
 
 def train_markov_model(seconds_df, target, n_splits=5):
@@ -238,6 +233,7 @@ def train_markov_model(seconds_df, target, n_splits=5):
         # we predict the probabilities of the model
         probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
         oof_probs[val_idx] = probs[:, 1]
+        print(f"index: {val_idx}, probs: {np.unique(oof_probs)}")
 
     # we find the optimal threshold in terms of maximizing F1 score based on the cross-validation predictions - unbiased data
     precisions, recalls, thresholds = precision_recall_curve(y_full, oof_probs)
