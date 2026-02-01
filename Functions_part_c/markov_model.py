@@ -79,13 +79,15 @@ def train_supervised_hmm(X_train, y_train, lengths):
     # we start by calculating the mean for each label
     means = np.array([X_train[y_train == i].mean(axis=0) for i in [0, 1]])
     # we also find the covariance matrix
-    covariances = np.array([np.var(X_train[y_train == i], axis=0) for i in [0, 1]])
+    # the reason for the 0.001 addition is to make a threshold for the covariance which enhances stabillity and make the model less strict
+    covariances = np.array([np.var(X_train[y_train == i], axis=0) + 1e-3 for i in [0, 1]])
 
     # we find the transition matrix based on the statistic of the data
     transmat = calculate_real_transitions(y_train, lengths)
 
     # we define the markov model, we have two classes so we have 2 components, and the covariance is diagonal by how we defined
-    model = hmm.GMMHMM(n_components=2, covariance_type="diag")
+    # model = hmm.GMMHMM(n_components=2, covariance_type="diag", n_mix = 1)
+    model = hmm.GaussianHMM(n_components=2, covariance_type="diag")
 
     # we start always without handwashing
     model.startprob_ = np.array([1.0, 0.0])

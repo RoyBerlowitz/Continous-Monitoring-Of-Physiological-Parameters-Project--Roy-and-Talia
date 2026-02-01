@@ -62,10 +62,12 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         X_all = X_all.loc[mask]
         y_all = y_all.loc[mask]
 
-        X_all['Group number'] = X_all['Group number']+X_all['Participant ID']
-        print(X_all['Group number'].unique())
+        # --- התיקון: שימוש בעמודה חדשה לפיצול במקום לדרוס את Group number ---
+        X_all['Split_ID'] = X_all['Group number'] + X_all['Participant ID']
+        print(f"Unique Split IDs: {X_all['Split_ID'].unique()}")
 
-        def split_by_group_tuple(X, y, group_tuple, group_col='Group number'):
+        # we enable the splitting by group, by a split ID
+        def split_by_group_tuple(X, y, group_tuple, group_col='Split_ID'):
             test_mask = X[group_col].isin(group_tuple)
 
             X_test = X.loc[test_mask]
@@ -76,7 +78,8 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
             return X_train, X_test, y_train, y_test
 
-        X_train, X_test, y_train, y_test=split_by_group_tuple(X_all, y_all, [grp])
+        # we add the new column to the function and split by that
+        X_train, X_test, y_train, y_test = split_by_group_tuple(X_all, y_all, [grp], group_col='Split_ID')
 
 
         # groups = X_all['Group number'] #'Participant ID',
@@ -87,6 +90,9 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         # y_train = y_all.iloc[train_idx]
         # y_test = y_all.iloc[test_idx]
         print(X_test['Group number'].unique())
+        print(X_test['Split_ID'].unique())
+        X_train = X_train.drop('Split_ID', axis=1)
+        X_test = X_test.drop('Split_ID', axis=1)
 
     ## ---------------- load data files ----------------
     script_directory = os.path.dirname(os.path.abspath(__file__))

@@ -161,7 +161,7 @@ def find_best_SVM_parameters(train_df, train_labels, group_indicator, n_jobs = -
     #we return the best model
     return best_parameters
 
-def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Individual Split", split_by_group_flag = False):
+def train_SVM(train_df, train_labels, best_parameters,time_df, name = "Group Split", split_by_group_flag = False):
     #Here, we preform the SVM on the validation set, according to the SVM we found.
     # we start by adjusting the dimension of the validation labels.
     train_target = train_labels.values.ravel()

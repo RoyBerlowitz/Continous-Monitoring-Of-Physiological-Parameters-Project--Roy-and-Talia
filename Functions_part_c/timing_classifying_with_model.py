@@ -233,6 +233,7 @@ def train_markov_model(seconds_df, target, n_splits=5):
         # we predict the probabilities of the model
         probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
         oof_probs[val_idx] = probs[:, 1]
+        print(f"index: {val_idx}, probs: {np.unique(oof_probs)}")
 
     # we find the optimal threshold in terms of maximizing F1 score based on the cross-validation predictions - unbiased data
     precisions, recalls, thresholds = precision_recall_curve(y_full, oof_probs)

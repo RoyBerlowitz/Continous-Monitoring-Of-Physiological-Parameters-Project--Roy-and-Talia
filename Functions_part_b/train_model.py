@@ -8,7 +8,7 @@ from consts import ModelNames
 from Functions_part_c.window_timing_translator_preprocessing import create_df_for_time_classification
 #from .Random_forest_model import
 
-def choose_hyperparameters(train_df, labels, model=ModelNames.SVM, n_jobs = -1, n_iterations = 50, split_name = "Individual Split", split_by_group_flag = False, wrapper_text = "", subsampling_flg = False):
+def choose_hyperparameters(train_df, labels, model=ModelNames.SVM, n_jobs = -1, n_iterations = 50, split_name = "Group Split", split_by_group_flag = False, wrapper_text = "", subsampling_flg = False):
     # This function is meant to be the Super function for finding the best Hyper-parameters.
     # by defining the model name, we choose on which model we should conduct the search for hyperparameters.
     # split_by_group is meant to ensure we leave (1/number of folds) of the groups out when we work on the group split - to resemble the case

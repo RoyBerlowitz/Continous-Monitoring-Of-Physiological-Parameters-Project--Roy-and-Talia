@@ -117,7 +117,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     # we return the best model
     return best_parameters
 
-def train_random_forest_classifier (train_df, train_labels, best_parameters, time_df, name = "Individual Split", n_jobs = -1, split_by_group_flag = True, group_indicator=None):
+def train_random_forest_classifier (train_df, train_labels, best_parameters, time_df, name = "Group Split", n_jobs = -1, split_by_group_flag = True, group_indicator=None):
     # This function is meant to fit the model with the selected hyperparameters to the data
     # we start by adjusting the dimension of the validation labels.
 
