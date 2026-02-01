@@ -6,7 +6,6 @@ import numpy as np
 import pickle
 import pandas as pd
 
-
 part_a_res_cache_path = "part_a_final_output.pkl"
 with open(part_a_res_cache_path, "rb") as f:
         part_a_res = pickle.load(f)

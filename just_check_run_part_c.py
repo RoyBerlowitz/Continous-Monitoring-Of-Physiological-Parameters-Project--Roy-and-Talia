@@ -5,7 +5,7 @@ import os
 
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
-
+from run_part_a import run_part_a
 from Functions_part_b import (select_features, choose_hyperparameters, train_model,
                               evaluate_model, wrapper_feature_selection)
 from Functions_part_b.select_features import select_features
@@ -25,7 +25,12 @@ n_features_range = [3, 5, 7, 10, 12, 15, 17, 19, 20]
 # the wrapper parameters
 chosen_hp = {ModelNames.RANDOM_FOREST: [wrapper_params_split_2[ModelNames.RANDOM_FOREST], n_features_range, ModelNames.RANDOM_FOREST], ModelNames.XGBOOST: [wrapper_params_split_2[ModelNames.XGBOOST], n_features_range, ModelNames.XGBOOST]}
 
-
+script_path = os.path.abspath(__file__)
+script_directory = os.path.dirname(script_path)
+data_path = os.path.join(script_directory, "data")
+# split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True, more_prints=True, force_recompute_load_data=False,
+#                                     force_recompute_seg=False, force_recompute_features=True,
+#                                     force_recompute_splits=True, force_recompute_vet_features=False)
 
 
 def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute_select_features=True, force_recompute_find_hp=True, force_recompute_train_model=True, force_recompute_test_time_dfs=True, force_recompute_best_th = True, grp = None, force_recompute_evaluate_model=True):
@@ -43,12 +48,12 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     use_wrapper = True
 
     # load part a
-    part_a_res_cache_path = "part_a_final_output.pkl"
+    part_a_res_cache_path = "splits.pkl"
     with open(part_a_res_cache_path, "rb") as f:
         part_a_res = pickle.load(f)
 
     split1_vet_features, split2_vet_features = part_a_res
-    X_train, X_test, y_train, y_test, scaler = split2_vet_features
+    X_train, X_test, y_train, y_test = split2_vet_features
 
     #split test train again. remove all protocol
     resplit_train_test = True
@@ -62,10 +67,12 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         X_all = X_all.loc[mask]
         y_all = y_all.loc[mask]
 
-        X_all['Group number'] = X_all['Group number']+X_all['Participant ID']
-        print(X_all['Group number'].unique())
+        # --- התיקון: שימוש בעמודה חדשה לפיצול במקום לדרוס את Group number ---
+        X_all['Split_ID'] = X_all['Group number'] + X_all['Participant ID']
+        print(f"Unique Split IDs: {X_all['Split_ID'].unique()}")
 
-        def split_by_group_tuple(X, y, group_tuple, group_col='Group number'):
+        # עדכון הפונקציה שתשתמש בעמודה החדשה כברירת מחדל או בקריאה
+        def split_by_group_tuple(X, y, group_tuple, group_col='Split_ID'):  # שינינו את ברירת המחדל ל-Split_ID
             test_mask = X[group_col].isin(group_tuple)
 
             X_test = X.loc[test_mask]
@@ -76,9 +83,70 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
             return X_train, X_test, y_train, y_test
 
-        X_train, X_test, y_train, y_test=split_by_group_tuple(X_all, y_all, [grp])
+        # שליחת העמודה החדשה לפונקציה
+        X_train, X_test, y_train, y_test = split_by_group_tuple(X_all, y_all, [grp], group_col='Split_ID')
 
+        # creating an embedder
+        columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
+                         'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS', 'Acc_SM', 'Mag_SM', 'Gyro_SM']
 
+        columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS',
+                                       'Gyro_Z-AXIS', ]
+        X_train = get_cnn_embeddings(X_train,
+                                     target=y_train,
+                                     group_col="Group number",
+                                     column_list=columns_names_for_embedding,
+                                     test_flag=False,
+                                     model_path='cnn_train_weights.pth',
+                                     embedding_size=16,
+                                     num_epochs=30,
+                                     batch_size=64,
+                                     dropout=0.25,
+                                     steps=8)
+
+        # getting rid of the columns with the vectors of values
+        X_train = X_train.drop(labels=columns_names, axis=1)
+
+        # activating the embedder on the test
+        X_test = get_cnn_embeddings(X_test,
+                                    target=y_test,
+                                    group_col="Group number",
+                                    column_list=columns_names_for_embedding,
+                                    test_flag=True,
+                                    model_path='cnn_train_weights.pth',
+                                    embedding_size=16,
+                                    num_epochs=2,
+                                    batch_size=64)
+
+        # getting rid of the columns with the vectors of values
+        X_test = X_test.drop(labels=columns_names, axis=1)
+        administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
+
+        informative_features =[
+    "cnn_emb_7",
+    "Acc_X-AXIS_acceleration_std",
+    "cnn_emb_2",
+    "Acc_X_Z_CORR",
+    "cnn_emb_13",
+    "cnn_emb_0",
+    "Acc_Z-AXIS_CUSUM+_Feature",
+    "cnn_emb_10",
+    "Acc_Z-AXIS_CUSUM-_Feature",
+    "Gyro_Z-AXIS_AbsCV",
+    "Acc_SM_acceleration_median",
+    "Gyro_SM_velocity_median",
+    "Gyro_Y-AXIS_velocity_median",
+    "Mag_Y-AXIS_median",
+    "Acc_X-AXIS_velocity_skewness",
+    "Mag_MEAN_AXES_CORR",
+    "cnn_emb_6",
+    "Gyro_X-AXIS_CUSUM-_Feature",
+    "Gyro_SM_acceleration_kurtosis",
+    "Acc_Z-AXIS_velocity_skewness"
+]
+        features_to_keep = administrative_features + informative_features
+        X_train = X_train[features_to_keep]
+        X_test = X_test[features_to_keep]
         # groups = X_all['Group number'] #'Participant ID',
         # gss = GroupShuffleSplit(n_splits=1, test_size=0.2)
         # train_idx, test_idx = next(gss.split(X_all, y_all, groups))
@@ -195,15 +263,17 @@ if __name__ == "__main__":
     #            force_recompute_test_time_dfs=True,
     #            force_recompute_best_th = True, )
     grps = ['15A','27A','31A','42A','58A','64A','79A','93A', '15B','27B','31B','42B','58B','64B','79B','93B']
+    #grps = ['15','27','31','42','58','64','79','93',]
+
     # pairs = list(itertools.combinations(grps, 2))
 
     all_res = {}
     for gr in grps:
-        res, gs = run_part_c(save_cache=False, force_recompute_load_data=False, force_recompute_select_features=False,
+        print(f"gs is {gr}")
+        res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False,
                              force_recompute_find_hp=False, force_recompute_train_model=True,
                              # force_recompute_find_hp=False, force_recompute_train_model=False,
                              force_recompute_evaluate_model=True, force_recompute_test_time_dfs=True, grp=gr)
-        print(f"gs is {gs}")
         all_res[tuple(gs)] = res[ModelNames.RANDOM_FOREST]
 
     print(all_res)

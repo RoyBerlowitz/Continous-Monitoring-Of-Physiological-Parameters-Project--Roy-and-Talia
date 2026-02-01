@@ -52,6 +52,8 @@ def train_logistic_regression(X_train, y_train,best_hp, time_df, split_by_group_
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represent both sensitivity and precision and by that hints a lot about the minority group
+    # Cohen's kappa represenets the model's abillity to predict and not just guess
+    # We believe there is connection between the two metrics, and thus chose to optimize the F1 score instead of just randomly choose several threshold
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     best_idx = np.argmax(f1_scores)
     model.optimal_threshold_PRC_ = thresholds[best_idx]

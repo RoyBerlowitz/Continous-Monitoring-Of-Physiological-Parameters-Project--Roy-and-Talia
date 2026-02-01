@@ -113,20 +113,20 @@ def extract_features (X_matrix , Y_vector, data_files, more_prints, test_flag = 
     #                    model_path='cnn_weights.pth',
     #                    embedding_size=16,
     #                    num_epochs=30,
-    #                    batch_size=32)
+    #                    batch_size=64,
+    #                    dropout= 0.3)
     # num_features += 16
     # # getting rid of the columns with the vectors of values
     # X_features = X_features.drop(labels=columns_names, axis=1)
 
 
     #Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
-    cols_to_drop = (X_features == 0).all()
-    zero_cols = X_features.columns[cols_to_drop]
-
-    # we clean the zero columns
-    X_features = X_features.drop(columns=zero_cols)
-    if more_prints: print(f"added {num_features - len(zero_cols)} columns")
-
+    # cols_to_drop = (X_features == 0).all()
+    # zero_cols = X_features.columns[cols_to_drop]
+    #
+    # # we clean the zero columns
+    # if more_prints: print(f"added {num_features - len(zero_cols)} columns")
+    # X_features = X_features.drop(columns=zero_cols)
 
     # administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     # columns_to_keep = [c for c in X_features.columns if c not in administrative_features]

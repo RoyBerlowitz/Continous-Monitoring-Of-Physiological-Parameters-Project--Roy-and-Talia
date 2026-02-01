@@ -130,39 +130,6 @@ def split_data(X_features, Y_samples):
     X_test = df[test_mask]
     y_test = Y_samples[test_mask]
 
-    # creating an embedder
-    columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
-                     'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS', 'Acc_SM', 'Mag_SM', 'Gyro_SM']
-
-    columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',]
-    X_train = get_cnn_embeddings(X_train,
-                       target= y_train,
-                       group_col = "Group number",
-                       column_list = columns_names_for_embedding,
-                       test_flag=False,
-                       model_path='cnn_train_weights.pth',
-                       embedding_size=16,
-                       num_epochs=30,
-                       batch_size=32)
-
-    # getting rid of the columns with the vectors of values
-    X_train = X_train.drop(labels=columns_names, axis=1)
-
-    # activating the embedder on the test
-    X_test = get_cnn_embeddings(X_test,
-                       target= y_test,
-                       group_col = "Group number",
-                       column_list = columns_names_for_embedding,
-                       test_flag=True,
-                       model_path='cnn_train_weights.pth',
-                       embedding_size=16,
-                       num_epochs=30,
-                       batch_size=32)
-
-    # getting rid of the columns with the vectors of values
-    X_test = X_test.drop(labels=columns_names, axis=1)
-
-
     # Clean up before returning
     X_train = X_train.drop(columns="__participant_key__")
     X_test = X_test.drop(columns="__participant_key__")

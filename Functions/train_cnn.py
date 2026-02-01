@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class embedder_cnn (nn.Module):
-    def __init__(self, number_of_channels, number_of_classes, embedding_size):
+    def __init__(self, number_of_channels, number_of_classes, embedding_size, dropout=0.3):
         super(embedder_cnn, self).__init__()
         self.features = nn.Sequential(
             # בלוק 1: תפיסת שינויים מיידיים (Low Level)
@@ -13,19 +13,24 @@ class embedder_cnn (nn.Module):
             nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2),  # חיתוך זמן לחצי
+            nn.Dropout(p=dropout),
 
             # בלוק 2: תבניות בינוניות (Mid Level)
             nn.Conv1d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
             nn.BatchNorm1d(32),
             nn.ReLU(),
             nn.MaxPool1d(kernel_size=2),  # חיתוך זמן לרבע
+            nn.Dropout(p=dropout),
 
             # בלוק 3: תבניות מורכבות (High Level)
             nn.Conv1d(in_channels=32, out_channels=64, kernel_size=3, padding=1),
             nn.BatchNorm1d(64),
             nn.ReLU(),
-            nn.AdaptiveAvgPool1d(1)  # כיווץ כל הזמן שנשאר לנקודה אחת
+            nn.AdaptiveAvgPool1d(1),  # כיווץ כל הזמן שנשאר לנקודה אחת
+            nn.Dropout(p=dropout)
         )
+
+        self.dropout = nn.Dropout(dropout)
 
         self.embedding_layer = nn.Sequential(
             nn.Linear(in_features=64, out_features=embedding_size),
@@ -36,6 +41,7 @@ class embedder_cnn (nn.Module):
     def forward(self, x):
         x = self.features(x)
         x = x.flatten(1)
+        x = self.dropout(x)
         embedding  = F.relu(self.embedding_layer(x))
         output = self.classifier(embedding)
         return output

@@ -676,9 +676,14 @@ def PSD_for_signal(signal, sampling_rate=50):
     from scipy.signal import welch
     # This function receives a signal and calculate its PSD and frequencies.
     # PSD is the measure of signal's power content versus frequency, and it is more useful for cases where the signal is noisy and not harmonic.
-    frequencies, psd = welch(signal, fs=sampling_rate, nperseg=256)
+    # we want to use welch algorithm to achieve a smoother PSD.
+    # to generalize for both sets of samples, we wish to achieve number of samples based on the sampling rate of each sensor
+    samples = np.floor(sampling_rate * 2.5)
+    # for the edge case in which there are less samples in the signal than the number obtained before, we define samples variable as the length of the signal
+    if len(signal) < samples:
+        samples = len(signal)
     # nperseg decides how many samples will be calculated in each iteration of PSD analyzing.
-    # we take the number of samples in the window.
+    frequencies, psd = welch(signal, fs=sampling_rate, nperseg=samples)
     # we get as output the vector of frequencies and the vector of PSD values that fit the matching frequency
     return frequencies, psd
 
@@ -891,7 +896,9 @@ def get_cnn_embeddings(df,
                        model_path='cnn_weights.pth',
                        embedding_size=16,
                        num_epochs=30,
-                       batch_size=32):
+                       batch_size=64,
+                       dropout = 0.3,
+                       steps =6):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mode_str = "Test" if test_flag else "Train"
     print(f"--- CNN Pipeline | Mode: {mode_str} | Device: {device} ---")
@@ -901,7 +908,7 @@ def get_cnn_embeddings(df,
     X_full = prepare_tensor_data(df, column_list)
 
     # Initialize Model Structure
-    model = embedder_cnn(number_of_channels=len(column_list), number_of_classes=2, embedding_size=embedding_size)
+    model = embedder_cnn(number_of_channels=len(column_list), number_of_classes=2, embedding_size=embedding_size, dropout=dropout)
     model.to(device)
 
     # ==========================================
@@ -917,7 +924,7 @@ def get_cnn_embeddings(df,
         num_neg = (y_full == 0).sum()
         num_pos = (y_full == 1).sum()
 
-        # כדי למנוע חלוקה באפס
+        # To avoid dividing by zero
         if num_pos == 0: num_pos = 1
 
         pos_weight = num_neg / num_pos
@@ -947,9 +954,9 @@ def get_cnn_embeddings(df,
 
         # Setup Optimizer
         criterion = nn.CrossEntropyLoss(weight=class_weights)
-        optimizer = torch.optim.AdamW(model.parameters(), lr=0.001)
+        optimizer = torch.optim.AdamW(model.parameters(), lr=0.0005)
         #adding LR scheduler to adjust LR if the model stacks
-        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=3)
+        scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.2, patience=steps)
         # Training Loop
         best_val_loss = float('inf')
 
@@ -980,11 +987,11 @@ def get_cnn_embeddings(df,
             scheduler.step(val_loss)
             new_lr = optimizer.param_groups[0]['lr']
             val_f1 = f1_score(all_targets, all_preds, zero_division=0)
-            lr_msg = f" | LR dropped to {new_lr:.6f}!" if new_lr != old_lr else ""
+            lr_msg = f" | LR dropped to {new_lr:.6f}!\n" if new_lr != old_lr else ""
             #if (epoch + 1) % 5 == 0 or epoch == 0:
             if epoch is not None:
                 print(
-                    f"Epoch {epoch + 1:02d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val F1: {val_f1:.2f}%")
+                    lr_msg + f"Epoch {epoch + 1:02d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val F1: {val_f1:.2f}%")
 
             # Save Checkpoint
             if val_loss < best_val_loss:
