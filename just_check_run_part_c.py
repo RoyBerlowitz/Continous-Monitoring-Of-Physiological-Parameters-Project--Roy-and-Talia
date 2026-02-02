@@ -3,6 +3,19 @@ import pickle
 import time
 import os
 
+# import numpy as np
+# import torch
+# import pandas as pd
+#
+# print("NumPy:", np.__version__)
+# print("Torch:", torch.__version__)
+# print("Pandas:", pd.__version__)
+#
+# a = np.array([1,2,3])
+# t = torch.from_numpy(a)
+# print(t)
+
+
 import pandas as pd
 from sklearn.model_selection import GroupShuffleSplit
 from run_part_a import run_part_a
