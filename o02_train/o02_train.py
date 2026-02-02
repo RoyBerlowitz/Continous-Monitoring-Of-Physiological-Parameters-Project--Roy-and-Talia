@@ -57,7 +57,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
                             'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
     X_train = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding(X_train, y_train, informative_features, group_name),
+        lambda: cnn_embedding_full_workflow(X_train, y_train, informative_features, group_name),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
