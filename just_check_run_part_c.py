@@ -108,9 +108,11 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
         columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS',
                                        'Gyro_Z-AXIS', ]
+        group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
         X_train = get_cnn_embeddings(X_train,
                                      target=y_train,
-                                     group_col="Group number",
+                                     group_col="Group number + Participant ID",
+                                     group_indicator = group_indicator,
                                      column_list=columns_names_for_embedding,
                                      test_flag=False,
                                      model_path='cnn_train_weights.pth',
@@ -126,7 +128,8 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         # activating the embedder on the test
         X_test = get_cnn_embeddings(X_test,
                                     target=y_test,
-                                    group_col="Group number",
+                                    group_col="Group number + participant_ID",
+                                    group_indicator= group_indicator,
                                     column_list=columns_names_for_embedding,
                                     test_flag=True,
                                     model_path='cnn_train_weights.pth',

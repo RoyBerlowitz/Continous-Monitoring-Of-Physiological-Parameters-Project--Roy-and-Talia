@@ -151,16 +151,16 @@ def vet_features_split1(split1, more_prints):
     all_X_tests = pd.concat(all_X_tests)
     all_Y_trains = pd.concat(all_Y_trains)
 
-    all_X_vetted, X_test_norm = vet_features(all_X_trains, all_X_tests, all_Y_trains, more_prints)
+    all_X_vetted, X_test_norm, best_features = vet_features(all_X_trains, all_X_tests, all_Y_trains, more_prints)
 
-    return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests), all_scalers]
+    return [all_X_vetted, X_test_norm,all_Y_trains,pd.concat(all_Y_tests), all_scalers, best_features]
 
 def vet_features_split2(split2, more_prints):
     split2_X_train, split2_X_test, split2_Y_train, split2_Y_test = split2
     X_vetting, X_test_norm, scaler = feature_normalization(split2_X_train, split2_X_test, method='IQR')
-    X_vetting, X_test_norm = vet_features(X_vetting, X_test_norm, split2_Y_train, more_prints, split_name="Group normalization")
+    X_vetting, X_test_norm, best_features = vet_features(X_vetting, X_test_norm, split2_Y_train, more_prints, split_name="Group normalization")
 
-    return [X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler]
+    return [X_vetting, X_test_norm, split2_Y_train, split2_Y_test, scaler, best_features]
 
 def vet_features(X_vetting, X_test_norm, Y_train, more_prints, split_name = "Individual Normalization", N=20, K= 10, threshold=0.8):
     # Preforming the normalization
@@ -198,7 +198,7 @@ def vet_features(X_vetting, X_test_norm, Y_train, more_prints, split_name = "Ind
         index=True)
     writer.close()
 
-    return X_vetting, X_test_norm
+    return X_vetting, X_test_norm, best_features
 
 
 """ 
