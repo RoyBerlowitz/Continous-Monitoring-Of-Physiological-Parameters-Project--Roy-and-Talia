@@ -53,14 +53,15 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
 
     print(f"Starting RFECV (Automatic Feature Selection) for {split_name} with {model_type}...")
 
-    # הגדרת אסטרטגיית ה-CV (הוצאנו מחוץ ללולאה כי RFECV צריך אותה בפנים)
+    # we separate to folds for being able to test the success of each combination of features.
+    # we maintain logic of splitting acording to groups, as it is the same challenge the model will face
     if split_by_group_flag:
         cv_strategy = StratifiedGroupKFold(n_splits=5)
     else:
         cv_strategy = StratifiedKFold(n_splits=5)
 
-    # הגדרת RFECV - הוא יבצע את ה-Backward וימדוד PRC (average_precision)
-    # שים לב: הגדרנו scoring='average_precision' כדי לבחור לפי PRC
+    # the backward tries to maximize the PRC.
+    #we save the best row as the best PRC - this is the metric we evaluate the model by
     selector = RFECV(
         estimator=estimator,
         step=1,
@@ -71,12 +72,10 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         verbose=1
     )
 
-    # הרצת התהליך
-    # ב-RFECV מעבירים את ה-groups ישירות ל-fit
+    # we run the process
     selector.fit(train_df, train_target, groups=None if not split_by_group_flag else group_indicator)
 
-    # חילוץ נתוני הריצה עבור כל כמות פיצ'רים (כדי לשמור לאקסל כמו קודם)
-    # ב-RFECV החדש, התוצאות נשמרות ב-cv_results_
+    # we extract the results
     means = selector.cv_results_['mean_test_score']
     stds = selector.cv_results_['std_test_score']
     n_features_range = range(1, len(means) + 1)
@@ -90,12 +89,12 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
         }
         results.append(row)
 
-    # יצירת ה-DataFrame ושמירה לאקסל
+    # creation of the DF
     results_df = pd.DataFrame(results)
     file_name = f"{split_name}_{model_type}_RFECV_Performance.xlsx"
     results_df.to_excel(file_name, index=False)
 
-    # חילוץ הפיצ'רים שנבחרו בנקודה האופטימלית
+    # we get the chosen features - the set that led to the maximal PRC
     n_optimal = selector.n_features_
     chosen_features = train_df.columns[selector.support_].tolist()
 

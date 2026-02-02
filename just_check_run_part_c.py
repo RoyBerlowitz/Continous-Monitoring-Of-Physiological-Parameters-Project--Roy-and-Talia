@@ -141,28 +141,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         X_test = X_test.drop(labels=columns_names, axis=1)
         administrative_features = ['Split_ID', 'First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
 
-        informative_features =[
-    "cnn_emb_7",
-    "Acc_X-AXIS_acceleration_std",
-    "cnn_emb_2",
-    "Acc_X_Z_CORR",
-    "cnn_emb_13",
-    "cnn_emb_0",
-    "Acc_Z-AXIS_CUSUM+_Feature",
-    "cnn_emb_10",
-    "Acc_Z-AXIS_CUSUM-_Feature",
-    "Gyro_Z-AXIS_AbsCV",
-    "Acc_SM_acceleration_median",
-    "Gyro_SM_velocity_median",
-    "Gyro_Y-AXIS_velocity_median",
-    "Mag_Y-AXIS_median",
-    "Acc_X-AXIS_velocity_skewness",
-    "Mag_MEAN_AXES_CORR",
-    "cnn_emb_6",
-    "Gyro_X-AXIS_CUSUM-_Feature",
-    "Gyro_SM_acceleration_kurtosis",
-    "Acc_Z-AXIS_velocity_skewness"
-]
+        informative_features =['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_X-AXIS_CUSUM-_Feature', 'Acc_SM_frequency_centroid', 'Gyro_SM_velocity_median', 'Mag_MEAN_AXES_CORR', 'Mag_Y-AXIS_median', 'Gyro_X-AXIS_CUSUM+_Feature', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Acc_SM_acceleration_median', 'Acc_Z-AXIS_velocity_skewness', 'Acc_SM_kurtosis', 'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
         features_to_keep = administrative_features + informative_features
         X_train = X_train[features_to_keep]
         X_test = X_test[features_to_keep]

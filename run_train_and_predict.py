@@ -3,6 +3,7 @@ import shutil
 import pickle
 import os
 import re
+import random
 
 from o02_train.o02_train import run_train
 from o02_test.o02_predict import run_predict

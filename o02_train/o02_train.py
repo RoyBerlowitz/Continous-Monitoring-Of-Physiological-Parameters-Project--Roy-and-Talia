@@ -3,7 +3,7 @@ import time
 
 from .Functions import *
 
-def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name=''):
+def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name = "02"):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
@@ -52,12 +52,25 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     y_train = y_train[0:123162]
 
     # ## ==================================== CNN Embedding ==================================== ##
-    # X_train = load_cache(
-    #     "cnn_embedding.pkl",
-    #     lambda: cnn_embedding(X_train, y_train, group_name),
-    #     force_recompute=recompute_functions.cnn_embedding,
-    #     save=save_cache
-    # )
+    columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
+    group_indicator = X_train['Group number'].astype(str) + "_" + X_train['Participant ID'].astype(str)
+    X_train = load_cache(
+        "cnn_embedding.pkl",
+        lambda: cnn_embedding(X_train,
+                            target= y_train,
+                            group_col = "Group number + Participant ID",
+                            group_indicator =  group_indicator,
+                            column_list = columns_names_for_embedding,
+                            test_flag=False,
+                            model_path=group_name+'cnn_weights.pth',
+                            embedding_size=16,
+                            num_epochs=30,
+                            batch_size=64,
+                            dropout= 0.3),
+
+        force_recompute=recompute_functions.cnn_embedding,
+        save=save_cache
+    )
     # print('\033[32mCNN embedding completed\033[0m')
 
 
