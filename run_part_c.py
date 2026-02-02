@@ -37,6 +37,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
     seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
     #seconds_classification_models = [ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
+    seconds_classification_models = [ModelNamesSecondClassification.MARKOV]
 
 
     split_name = 'split2'
@@ -188,7 +189,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     print(f"Total time: {end_time - start_time} sec")
 
     # return  stat_values
-    return model_stats, X_test['Group number'].unique()
+    return model_stats, [grp]
 
 # ========================================================= Run =========================================================
 if __name__ == "__main__":
@@ -205,7 +206,7 @@ if __name__ == "__main__":
 
     all_res = {}
     for gr in grps:
-        res, gs = run_part_c(save_cache=False, force_recompute_load_data=False, force_recompute_select_features=False,
+        res, gs = run_part_c(save_cache=True, force_recompute_load_data=False, force_recompute_select_features=False,
                              force_recompute_find_hp=False, force_recompute_train_model=True,
                              # force_recompute_find_hp=False, force_recompute_train_model=False,
                              force_recompute_evaluate_model=True, force_recompute_test_time_dfs=True, grp=gr)

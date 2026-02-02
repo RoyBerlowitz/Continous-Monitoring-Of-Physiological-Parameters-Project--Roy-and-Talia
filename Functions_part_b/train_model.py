@@ -69,11 +69,11 @@ def train_model(X_selected,y_train, best_parameters, model_name, split_by_group_
     # we call every model's train function. at the end we save the optimal threshold in the ROC curve
     # and the threshold which offers the best F1 in the PRC curve.
     if model_name == ModelNames.SVM:
-        SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag, time_df = df_for_time_classification, group_indicator = group_indicator)
+        SVM_model = train_SVM( train_x, Y_train, best_parameters, name = "Group Split", split_by_group_flag = split_by_group_flag, time_df = df_for_time_classification, group_indicator = group_indicator)
         return SVM_model, df_for_time_classification
     if model_name == ModelNames.RANDOM_FOREST:
         # the finding of threshold is based on the OOB data so no need for k-folds and group flag
-        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Individual Split", split_by_group_flag = split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)
+        random_forest_model = train_random_forest_classifier( train_x, Y_train,best_parameters, name = "Group Split", split_by_group_flag = split_by_group_flag, group_indicator=group_indicator, time_df = df_for_time_classification)
         #random_forest_model = train_random_forest_ensemble(train_x, Y_train,best_parameters,df_for_time_classification, group_indicator, n_splits=5)
         return random_forest_model, df_for_time_classification
     if model_name == ModelNames.LOGISTIC:

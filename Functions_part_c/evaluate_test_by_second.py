@@ -1,9 +1,12 @@
 import pandas as pd
 import os
 import re
+import numpy as np
 
 from .window_timing_translator_preprocessing import apply_smoothing
 from .timing_classifying_without_model import print_metrics_table
+from consts import ModelNamesSecondClassification
+from .markov_model import compute_llr_from_hmm,prepare_data_for_hmm
 
 def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, threshold_with_median, filter_size):
     # This function is meant to get the results for the model
@@ -38,20 +41,32 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
 
     return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
 
-def evaluate_test_by_second_with_model(X_test, y_test, model, model_name):
+def evaluate_test_by_second_with_model(X_test, y_test, model, model_name,classification_flag = ModelNamesSecondClassification.LOGISTIC):
     # we get the results for the model
     test_for_calculation = X_test[["prob_1", "prob_2", "prob_3", "prob_4"]]
-    # we extract the probabilities from the model
-    y_prob = model.predict_proba(test_for_calculation)[:, 1]
-    chosen_threshold = model.optimal_threshold_PRC_
-    # based on the found optimal threshold, we classify each time point
-    predicted_y = (y_prob >= chosen_threshold).astype(int)
+    if classification_flag == ModelNamesSecondClassification.LOGISTIC:
+        # we extract the probabilities from the model
+        y_prob = model.predict_proba(test_for_calculation)[:, 1]
+        chosen_threshold = model.optimal_threshold_PRC_
+        # based on the found optimal threshold, we classify each time point
+        predicted_y = (y_prob >= chosen_threshold).astype(int)
+    elif classification_flag == ModelNamesSecondClassification.MARKOV:
+        X_test = X_test.sort_values(['recording_identifier', 'second'])
+        X_probs, y_true, lengths_test = prepare_data_for_hmm(X_test, y_test)
+        #llr_test = compute_llr_from_hmm(model, X_probs)
+        _, posteriors = model.score_samples(X_probs, lengths_test)
+        epsilon = 1e-15
+        log_posteriors = np.log(posteriors + epsilon)
+        llr_test = log_posteriors[:, 1] - log_posteriors[:, 0]
+        print(f"DEBUG MARKOV TEST: Max LLR={np.max(llr_test):.2f}, Threshold={model.optimal_threshold_PRC_:.2f}")
+        predicted_y = (llr_test >= model.optimal_threshold_PRC_).astype(int)
+
     # we create the results data frame
     result_df = pd.DataFrame({
         'recording_identifier': X_test['recording_identifier'].values,
         'second': X_test['second'].values,
         'prediction': predicted_y,
-        'true_label': y_test.values,
+        'true_label': y_true,
     })
     # to see the per-second classification, we iterate over each recording and create a df to compare the true label to the prediction with and without median filtering
     recording_dict = {}
