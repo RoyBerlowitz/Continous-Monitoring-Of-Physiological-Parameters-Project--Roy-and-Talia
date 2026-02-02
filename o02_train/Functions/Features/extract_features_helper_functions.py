@@ -11,6 +11,7 @@ import os
 import random
 from sklearn.metrics import f1_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+from scipy.stats import entropy
 
 from Functions.train_cnn import embedder_cnn, train_one_epoch
 #from joblib import Parallel, delayed
@@ -690,7 +691,7 @@ def PSD_for_signal(signal, sampling_rate=50):
 
 
 def calculate_frequency_domain_features(data_list, sampling_rate=50):
-    from scipy.stats import entropy
+
 
     data_list = safe_unwrap(data_list)
     if data_list is not None:
