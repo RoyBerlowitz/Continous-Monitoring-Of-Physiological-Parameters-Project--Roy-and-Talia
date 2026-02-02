@@ -6,6 +6,7 @@ import copy as copy
 from sklearn.model_selection import train_test_split
 from Functions import segment_signal, extract_features, split_data, load_cache_or_compute, vet_features_split1, vet_features_split2, load_data, find_best_windows
 from Functions.extract_features_helper_functions import get_cnn_embeddings
+from Functions.vet_features import vet_features
 #from Functions_part_b.filter_feature_selection import select_features
 from Functions_part_b.SVM_classifier import perform_PCA, find_best_SVM_parameters, train_SVM
 from Functions_part_b.train_model import choose_hyperparameters
@@ -85,7 +86,7 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
                        group_col = "Group number + Participant ID",
                         group_indicator= group_indicator,
                        column_list = columns_names_for_embedding,
-                       test_flag=False,
+                       test_flag=True,
                        model_path=group_name+'cnn_weights.pth',
                        embedding_size=16,
                        num_epochs=30,
@@ -106,10 +107,11 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
     print('\033[32mFeature extraction completed\033[0m')
 
     #--------------- Part C: Train & Test ---------------##
-
+    vet_features(X_features, X_features, Y_vector, more_prints, split_name="Group Normalization", N=20, K=10,
+                 threshold=0.8)
     [split1,split2]  = load_cache_or_compute(
         "splits.pkl",
-        lambda: split_data(X_features, Y_vector),
+        lambda: split_data(split2, Y_vector),
         force_recompute=force_recompute_splits,
         save=save_cache
     )

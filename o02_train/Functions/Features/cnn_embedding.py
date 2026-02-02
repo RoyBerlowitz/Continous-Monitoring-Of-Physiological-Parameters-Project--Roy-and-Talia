@@ -8,9 +8,12 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_nam
     columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
                      'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS', 'Acc_SM', 'Mag_SM', 'Gyro_SM']
 
-    columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
+    columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS',
+                                   'Gyro_Z-AXIS']
 
     group_indicator = X_matrix['Group number'].astype(str) + "_" + X_matrix['Participant ID'].astype(str)
+
+    other_params = {"num_epochs":2} if test_flag else {"num_epochs":30,"dropout":0.25,"steps":8}
 
     model_path = Path(__file__).resolve().parent.parent.parent / "run_outputs" / f'{group_name}cnn_train_weights.pth'
 

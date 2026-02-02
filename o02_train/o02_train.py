@@ -74,14 +74,18 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     print('\033[32mFeature normalization completed\033[0m')
 
     ## ==================================== Vetting ==================================== ##
-    chosen_vet_features = load_cache(
-        "vet_features.pkl",
-        lambda: vet_features(X_train, y_train),
-        force_recompute=recompute_functions.vet_features,
-        save=save_cache
-    )
-    X_train = X_train[chosen_vet_features]
-    print('\033[32mFeature vetting completed\033[0m')
+    # The reason the vetting is hidden in the comment is that it has already been executed.
+    # The features that were selected are embodied in extract_features,
+    # which only gives the selected features + the administrative features.
+
+    # chosen_vet_features = load_cache(
+    #     "vet_features.pkl",
+    #     lambda: vet_features(X_train, y_train),
+    #     force_recompute=recompute_functions.vet_features,
+    #     save=save_cache
+    # )
+    # X_train = X_train[chosen_vet_features]
+    # print('\033[32mFeature vetting completed\033[0m')
 
     # #!TODO check normalization
 
@@ -110,7 +114,6 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         ## ==================================== Choose Best HP For Window Models ==================================== ##
         model_best_hp = load_cache(
             f"choose_hyperparameters_{window_model}.pkl",
-            #!TODO save what we kept for each train groups
             lambda: choose_hyperparameters(X_selected, y_train, window_model, split_by_group_flag=True),
             force_recompute=recompute_functions.choose_hyperparameters,
             save=save_cache
