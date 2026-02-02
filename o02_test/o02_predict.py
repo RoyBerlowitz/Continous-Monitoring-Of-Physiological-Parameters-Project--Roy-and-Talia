@@ -3,7 +3,7 @@ import time
 
 from .Functions import *
 
-def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name=''):
+def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name='02'):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]

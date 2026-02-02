@@ -137,6 +137,13 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
     # )
 
     #--------------- Part E: Vetting & Normalization ---------------##
+    #split2
+    split2_vet_features = load_cache_or_compute(
+        "split2_vet_features.pkl",
+        lambda: vet_features_split2(X_features, more_prints),
+        force_recompute=force_recompute_vet_features,
+        save=save_cache
+    )
 
     #split1
     split1_vet_features = load_cache_or_compute(
@@ -146,13 +153,7 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
         save=save_cache
     )
 
-    #split2
-    split2_vet_features = load_cache_or_compute(
-        "split2_vet_features.pkl",
-        lambda: vet_features_split2(split2, more_prints),
-        force_recompute=force_recompute_vet_features,
-        save=save_cache
-    )
+
 
     print('\033[32mFeature vetting completed\033[0m')
 
@@ -169,7 +170,7 @@ data_path = os.path.join(script_directory, "data")
 
 if __name__ == "__main__":
     start_time = time.time()
-    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True, force_recompute_vet_features = True)
+    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=False, force_recompute_vet_features = True)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")

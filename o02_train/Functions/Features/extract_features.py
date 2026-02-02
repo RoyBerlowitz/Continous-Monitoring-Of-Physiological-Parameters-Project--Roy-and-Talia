@@ -101,13 +101,16 @@ def extract_features (X_matrix, Y_vector, data_files, more_prints, test_flag = F
                 num_features -= 1
 
     #getting the embedding vector by a trained cnn
-    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',]
+    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
+    #group_name = '0'+ str(group_name) + '_'
+    #group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
     # X_features = get_cnn_embeddings(X_features,
     #                    target= Y_vector,
-    #                    group_col = "Group number",
+    #                    group_col = "Group number + Participant ID",
+    #                    group_indicator =  group_indicator,
     #                    column_list = columns_names_for_embedding,
     #                    test_flag=test_flag,
-    #                    model_path='cnn_weights.pth',
+    #                    model_path=group_name+'cnn_weights.pth',
     #                    embedding_size=16,
     #                    num_epochs=30,
     #                    batch_size=64,

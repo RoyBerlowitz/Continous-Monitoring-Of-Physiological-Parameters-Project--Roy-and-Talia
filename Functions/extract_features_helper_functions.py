@@ -888,25 +888,20 @@ def prepare_tensor_data(df, column_list):
 
 
 def set_seed(seed=42):
-    """
-    מקבע את כל מקורות האקראיות כדי להבטיח שחזוריות מלאה.
-    כל הרצה תניב בדיוק את אותם משקולות ואותם פיצ'רים באותם אינדקסים.
-    """
+    #This Function set the seeding of the CNN to be the same in each run.
+    #It is crucial to get consistent embedding
+
     random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)  # אם משתמשים ב-Multi-GPU
+    torch.cuda.manual_seed_all(seed)
 
-    # הגדרות קריטיות ל-CNN (Convolutions)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
     print(f"Random Seed set to {seed}")
-
-
-# --- שים את זה בשורה הראשונה של ה-Main שלך ---
 
 
 def get_cnn_embeddings(df,

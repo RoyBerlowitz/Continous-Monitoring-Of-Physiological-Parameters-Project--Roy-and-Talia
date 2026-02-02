@@ -3,6 +3,7 @@ import shutil
 import pickle
 import os
 import re
+import random
 
 from o02_train.o02_train import run_train
 from o02_test.o02_predict import run_predict
@@ -101,6 +102,21 @@ if __name__ == '__main__':
             force_recompute=False,
         )
         print('\033[32mFeature extraction completed\033[0m')
+
+        #!TODO remove once you run all again
+        y_vec[y_vec == 2] = 0
+
+        #Split train & test
+        group_numbers = ['15', '27', '31', '42', '58', '64', '79', '93']
+        random_state = 42  # any integer for reproducibility
+        rng = random.Random(random_state)  # create a local random generator
+        shuffled_lst = group_numbers[:]  # copy so original list stays intact
+        rng.shuffle(shuffled_lst)
+
+        split_idx = int(0.2 * len(shuffled_lst))
+        part_20 = shuffled_lst[:split_idx]  # test
+        part_80 = shuffled_lst[split_idx:]  # train
+        print(f'Test groups are: {part_20}')
         #
         # #
         # #Split train & test
@@ -137,6 +153,39 @@ if __name__ == '__main__':
         # # resave_cache("extract_features.pkl", 'train', X_train_feats)
         # # resave_cache("extract_features.pkl", 'test', X_test_feats)
 
+    print(f'\033[34mStarting on train ==========================================\033[0m')
+    recompute_functions = RecomputeFunctionsConfig(
+                load_data=False,
+                segment_signal=False,
+                extract_features=False,
+                split_data=False,
+                feature_normalization=False,
+                vet_features=False,
+                select_features=False,
+                choose_hyperparameters=False,
+                train_window_model=False,
+                create_test_time_df=False,
+                train_second_model=False,
+                evaluate_models=False
+            )
+    run_train(save_cache=True, recompute_functions=recompute_functions, group_name = str(test_grp))
+
+    print(f'\033[34mStarting on test ==========================================\033[0m')
+    recompute_functions = RecomputeFunctionsConfig(
+        load_data=False,
+        segment_signal=False,
+        extract_features=False,
+        split_data=False,
+        feature_normalization=False,
+        vet_features=False,
+        select_features=False,
+        choose_hyperparameters=False,
+        train_window_model=False,
+        create_test_time_df=False,
+        train_second_model=False,
+        evaluate_models=False,
+    )
+    run_predict(save_cache=True, recompute_functions=recompute_functions, group_name = str(test_grp))
     # print(f'\033[34mStarting on train ==========================================\033[0m')
     # recompute_functions = RecomputeFunctionsConfig(
     #             load_data=False,
