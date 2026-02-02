@@ -74,6 +74,28 @@ if __name__ == '__main__':
     #load all data, segment and extract features BEFORE the train test split so they will not need to be recalced each time
     grps = ['15A', '27A', '31A', '42A', '58A', '64A', '79A', '93A', '15B', '27B', '31B', '42B', '58B', '64B', '79B', '93B']
 
+    data_path = Path(__file__).resolve().parent / "data"
+    data_files = load_cache_2(
+        "load_data.pkl",
+        lambda: load_data(data_path),
+        force_recompute=False
+    )
+    print('\033[32mData loaded\033[0m')
+    ##Segmentation
+    X_matrix, y_vec = load_cache_2(
+        "segment_signal.pkl",
+        lambda: segment_signal(7, 0.25 * 7, data_files),  # params were chosen in Part A by maximizing MU
+        force_recompute=False,
+    )
+    print('\033[32mSegmentation completed\033[0m')
+    # Feature Extraction
+    X_features = load_cache_2(
+        "extract_features.pkl",
+        lambda: extract_features(X_matrix, data_files),
+        force_recompute=False,
+    )
+    print('\033[32mFeature extraction completed\033[0m')
+
     for test_grp in grps:
         test_grp_num = test_grp[0:2]
         test_grp_id = test_grp[2]
@@ -82,27 +104,7 @@ if __name__ == '__main__':
         resplit = True
         if resplit:
             ##Load Data
-            data_path = Path(__file__).resolve().parent / "data"
-            data_files = load_cache_2(
-                "load_data.pkl",
-                lambda: load_data(data_path),
-                force_recompute=False
-            )
-            print('\033[32mData loaded\033[0m')
-            ##Segmentation
-            X_matrix, y_vec = load_cache_2(
-                "segment_signal.pkl",
-                lambda: segment_signal(7, 0.25 * 7, data_files),  # params were chosen in Part A by maximizing MU
-                force_recompute=False,
-            )
-            print('\033[32mSegmentation completed\033[0m')
-            #Feature Extraction
-            X_features = load_cache_2(
-                "extract_features.pkl",
-                lambda: extract_features(X_matrix, data_files),
-                force_recompute=False,
-            )
-            print('\033[32mFeature extraction completed\033[0m')
+
 
             #Split train & test
             #save pickles into 02_trian and 02_test folder pkls
