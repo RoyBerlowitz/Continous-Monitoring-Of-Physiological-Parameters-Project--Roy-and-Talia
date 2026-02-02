@@ -3,7 +3,7 @@ import time
 
 from .Functions import *
 
-def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
+def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name=''):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]

@@ -13,7 +13,7 @@ def cnn_embedding(X_matrix, y_vec, group_name='', test_flag=False):
 
     group_indicator = X_matrix['Group number'].astype(str) + "_" + X_matrix['Participant ID'].astype(str)
 
-    other_params = {"num_epochs":2} if test_flag else {"num_epochs":30,"batch_size":64,"dropout":0.25,"steps":8}
+    other_params = {"num_epochs":2} if test_flag else {"num_epochs":30,"dropout":0.25,"steps":8}
 
     model_path = Path(__file__).resolve().parent.parent.parent / "run_outputs" / f'{group_name}cnn_train_weights.pth'
 

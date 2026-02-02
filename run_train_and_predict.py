@@ -152,7 +152,7 @@ if __name__ == '__main__':
     #             train_second_model=False,
     #             evaluate_models=False,
     #         )
-    # run_train(save_cache=True, recompute_functions=recompute_functions)
+    # run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
     #
     # print(f'\033[34mStarting on test ==========================================\033[0m')
     # recompute_functions = RecomputeFunctionsConfig(
@@ -169,6 +169,6 @@ if __name__ == '__main__':
     #     # train_second_model=False,
     #     # evaluate_models=False,
     # )
-    # run_predict(save_cache=True, recompute_functions=recompute_functions)
+    # run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
     #
     # copy_all_model_outputs(test_grp)
