@@ -75,7 +75,8 @@ def extract_features (X_matrix , Y_vector, data_files, more_prints, test_flag = 
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong LPF on the entire data from a certain recording in a certain sensor
-                new_axis_data = apply_low_pass_filter (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 10)
+                #new_axis_data = apply_low_pass_filter (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 10)
+                new_axis_data = axis_data
                 # Conducting normalization on the entire data from a certain recording in a certain sensor
                 normalized_axis_data = normalize_data(new_axis_data)
                 recording[sensor_name]['data'][axis + unit] = normalized_axis_data
@@ -104,11 +105,13 @@ def extract_features (X_matrix , Y_vector, data_files, more_prints, test_flag = 
                 num_features -= 1
 
     # #getting the embedding vector by a trained cnn
-    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',]
+    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
     #group_name = '0'+ str(group_name) + '_'
+    #group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
     # X_features = get_cnn_embeddings(X_features,
     #                    target= Y_vector,
-    #                    group_col = "Group number",
+    #                    group_col = "Group number + Participant ID",
+    #                    group_indicator =  group_indicator,
     #                    column_list = columns_names_for_embedding,
     #                    test_flag=test_flag,
     #                    model_path=group_name+'cnn_weights.pth',
@@ -130,36 +133,7 @@ def extract_features (X_matrix , Y_vector, data_files, more_prints, test_flag = 
     # if more_prints: print(f"added {num_features - len(zero_cols)} columns")
     # X_features = X_features.drop(columns=zero_cols)
 
-    # administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
-    # columns_to_keep = [c for c in X_features.columns if c not in administrative_features]
-    # X_for_MI = X_features [columns_to_keep]
-    # # 2. חישוב MI בצורה וקטורית (מהיר פי כמה מלולאה)
-    # print("Calculating Mutual Information...")
-    # # הפונקציה מקבלת את כל המטריצה ומחזירה מערך ציונים תואם לעמודות
-    # mi_scores = mutual_info_classif(X_for_MI, Y_vector, random_state=42)
-    #
-    # # יצירת DataFrame מסודר לתוצאות ה-MI
-    # mi_df = pd.DataFrame({
-    #     'Feature': X_for_MI.columns,
-    #     'MI_Score': mi_scores
-    # })
-    #
-    # # אופציונלי: מיון מהגבוה לנמוך (כדי שיהיה קל לקרוא באקסל)
-    # mi_df = mi_df.sort_values(by='MI_Score', ascending=False)
-    #
-    # # 3. ייצוא לאקסל עם שתי לשוניות
-    # output_filename = "features_analysis.xlsx"
-    #
-    # print(f"Saving to {output_filename}...")
-    # # שימוש ב-ExcelWriter כדי לכתוב מספר גיליונות
-    # with pd.ExcelWriter(output_filename, engine='openpyxl') as writer:
-    #     # לשונית 1: הטבלה המלאה
-    #     X_features.to_excel(writer, sheet_name='X_features')
-    #
-    #     # לשונית 2: ציוני ה-MI
-    #     mi_df.to_excel(writer, sheet_name='MI_Scores', index=False)
-    #
-    # print("Done.")
+
 
     return X_features
 

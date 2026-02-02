@@ -890,6 +890,7 @@ def prepare_tensor_data(df, column_list):
 def get_cnn_embeddings(df,
                        target,
                        group_col,
+                       group_indicator,
                        column_list,
                        test_flag=False,  # 'train' or 'test'
                        model_path='cnn_weights.pth',
@@ -925,7 +926,7 @@ def get_cnn_embeddings(df,
 
         # we prepare the target
         y_full = torch.tensor(target.values, dtype=torch.long)
-        groups = df[group_col].values
+        groups = group_indicator.values
         # we count the number of zeros and ones labeld windows
         num_neg = (y_full == 0).sum()
         num_pos = (y_full == 1).sum()
