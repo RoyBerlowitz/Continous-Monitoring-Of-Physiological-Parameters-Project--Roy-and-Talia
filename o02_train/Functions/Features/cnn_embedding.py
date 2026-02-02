@@ -20,7 +20,7 @@ def cnn_embedding(X_matrix, y_vec, group_name='', test_flag=False):
     X_matrix = get_cnn_embeddings(X_matrix,
                                   target=y_vec,
                                   group_col="Group number + Participant ID",
-                                  group_indicator =  group_indicator,
+                                  group_indicator = group_indicator,
                                   column_list=columns_names_for_embedding,
                                   test_flag=test_flag,
                                   model_path=model_path,
