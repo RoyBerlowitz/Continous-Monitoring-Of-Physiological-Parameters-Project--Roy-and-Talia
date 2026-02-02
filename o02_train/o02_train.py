@@ -68,7 +68,21 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
-    # print('\033[32mCNN embedding completed\033[0m')
+
+    administrative_features = ['Split_ID', 'First second of the activity', 'Last second of the activity',
+                               'Participant ID', 'Group number', 'Recording number', 'Protocol']
+
+    informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency',
+                            'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_X-AXIS_CUSUM-_Feature',
+                            'Acc_SM_frequency_centroid', 'Gyro_SM_velocity_median', 'Mag_MEAN_AXES_CORR',
+                            'Mag_Y-AXIS_median', 'Gyro_X-AXIS_CUSUM+_Feature', 'Gyro_Z-AXIS_band_to_tot_energy_ratio',
+                            'Acc_SM_acceleration_median', 'Acc_Z-AXIS_velocity_skewness', 'Acc_SM_kurtosis',
+                            'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
+
+    selected_feats = informative_features + administrative_features
+    columns_to_keep = [c in X_train.columns for c in selected_feats]
+    X_train = X_train[columns_to_keep]
+    print('\033[32mCNN embedding completed\033[0m')
 
 
     ## ==================================== Normalization ==================================== ##

@@ -40,7 +40,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ## ========================================================================================================== ##
 
     ## ==================================== Feature Extraction ==================================== ##
-    X_features = load_cache(
+    X_test = load_cache(
         "extract_features.pkl",
         lambda: extract_features(X_matrix, data_files),
         force_recompute=recompute_functions.extract_features,
@@ -50,8 +50,8 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
 
     # ## ==================================== CNN Embedding ==================================== ##
     columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
-    group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
-    X_features = load_cache(
+    group_indicator = X_test['Group number'].astype(str) + "_" + X_test['Participant ID'].astype(str)
+    X_test = load_cache(
         "cnn_embedding.pkl",
         lambda:     cnn_embedding(X_features,
                       target=y_test,
@@ -68,13 +68,26 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
+    administrative_features = ['Split_ID', 'First second of the activity', 'Last second of the activity',
+                               'Participant ID', 'Group number', 'Recording number', 'Protocol']
+
+    informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency',
+                            'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_X-AXIS_CUSUM-_Feature',
+                            'Acc_SM_frequency_centroid', 'Gyro_SM_velocity_median', 'Mag_MEAN_AXES_CORR',
+                            'Mag_Y-AXIS_median', 'Gyro_X-AXIS_CUSUM+_Feature', 'Gyro_Z-AXIS_band_to_tot_energy_ratio',
+                            'Acc_SM_acceleration_median', 'Acc_Z-AXIS_velocity_skewness', 'Acc_SM_kurtosis',
+                            'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
+
+    selected_feats = informative_features + administrative_features
+    columns_to_keep = [c in X_test.columns for c in selected_feats]
+    X_test = X_test[columns_to_keep]
     print('\033[32mCNN embedding completed\033[0m')
 
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
     X_test = load_cache(
         "feature_normalization.pkl",
-        lambda: normalize_test(X_features, scaler),
+        lambda: normalize_test(X_test, scaler),
         force_recompute=recompute_functions.feature_normalization,
         save=save_cache
     )
