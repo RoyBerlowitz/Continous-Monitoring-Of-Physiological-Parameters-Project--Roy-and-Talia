@@ -3,14 +3,14 @@ import time
 
 from .Functions import *
 
-def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
+def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name=''):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
     window_models = [WindowModelNames.XGBOOST] #talia
     # window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
-    second_models = [SecondModelNames.NO_MODEL, SecondModelNames.LOGISTIC, SecondModelNames.MARKOV]
+    second_models = [SecondModelNames.NO_MODEL, SecondModelNames.MARKOV]
 
     ## ========================================================================================================== ##
     ##                                               PREPROCESSING                                                ##
@@ -48,6 +48,21 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     )
     print('\033[32mFeature extraction completed\033[0m')
 
+    mask42 = X_features['Participant ID'] != 'A'
+    X_features = X_features[mask42]
+    # y_train = y_train[mask42]
+
+    #!TODO
+
+    # ## ==================================== CNN Embedding ==================================== ##
+    # X_features = load_cache(
+    #     "cnn_embedding.pkl",
+    #     lambda: cnn_embedding(X_features, y_test, group_name, test_flag=True),
+    #     force_recompute=recompute_functions.cnn_embedding,
+    #     save=save_cache
+    # )
+    # print('\033[32mCNN embedding completed\033[0m')
+
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
     X_test = load_cache(
@@ -58,23 +73,11 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     )
     print('\033[32mFeature normalization completed\033[0m')
 
-    # ## ==================================== Vetting ==================================== ##
-    # chosen_vet_features = load_pickle("vet_features_train.pkl")
-    # X_test = X_test[chosen_vet_features]
-    # print('\033[32mFeature vetting completed\033[0m')
-    #
-        # ## ==================================== Create Test Seconds Data Frame ==================================== ##
-        # X_test_seconds_dfs[window_model] = load_cache(
-        #     f"test_seconds_df_{window_model}.pkl",
-        #     lambda: create_test_time_df(X_test, trained_window_models[window_model], selected_feats),
-        #     force_recompute=recompute_functions.create_test_time_df,
-        #     save=save_cache
-        # )
-        #
     # ========================================================================================================== ##
     #                                               EVALUATE MODELS                                              ##
     # ========================================================================================================== ##
     for window_model in window_models:
+        model_stats = {}
         selected_feats = load_pickle(f"select_features_{window_model}_train.pkl")
         X_test = X_test[selected_feats+admin_features]
         window_model_trained = load_pickle(f"train_window_model_{window_model}_train.pkl")
@@ -86,7 +89,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
             save=save_cache
         )
 
-        model_stats = load_cache(
+        model_stats['window'] = load_cache(
             f"evaluate_window_model_{window_model}.pkl",
             lambda: evaluate_one_model(window_model_trained, window_model, X_test, y_test),
             force_recompute=recompute_functions.evaluate_models,
@@ -96,16 +99,14 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
 
         for second_model in second_models:
             second_model_trained = load_pickle(f"train_second_model_{window_model}_{second_model}_train.pkl")
-            model_stats = load_cache(
+            model_stats[second_model] = load_cache(
                 f"evaluate_second_model_{window_model}_{second_model}.pkl",
                 lambda: prediction_by_second_test(X_test_seconds_dfs, data_files, window_model, second_model_trained, second_model),
                 force_recompute=recompute_functions.evaluate_models,
                 save=save_cache
             )
             print(f'\033[32mFinished evaluating second model: {window_model}-{second_model}\033[0m')
-            #!TODO add evaluate test
-            ## ==== save model outputs?
-
+        save_second_model_stats(model_stats, window_model)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")

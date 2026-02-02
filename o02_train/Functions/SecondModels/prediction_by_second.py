@@ -56,18 +56,19 @@ def prediction_by_second_test(test_df, data_files, model_name, classification_mo
     if classification_flag == SecondModelNames.NO_MODEL:
         test_x, test_y = translate_prediction_into_time_point_prediction_with_weights(test_df, weight_flag)
         test_stats, recording_dict = evaluate_test_by_second_no_model(test_x, test_y, classification_model["threshold_no_median"], classification_model["threshold_with_median"], classification_model["filter_size"])
+        save_all_stats(test_stats, model_name + '_no_model_for_second_classification', recording_dict)
         return test_stats
     else:
         test_x, test_y = translate_prediction_into_time_point_prediction_for_model(test_df, weight_flag=None)
         if classification_flag == SecondModelNames.LOGISTIC:
             test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name+'_LR_second_classification', classification_flag=classification_flag)
             # all_stats = { **test_stats}
-            # save_all_stats(all_stats, model_name+'_LR_second_classification', recording_dict)
+            save_all_stats(test_stats, model_name+'_LR_second_classification', recording_dict)
             return test_stats
         if classification_flag == SecondModelNames.MARKOV:
             test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name + '_markov_second_classification', classification_flag=classification_flag)
             # all_stats = {**test_stats}
-            # save_all_stats(all_stats, model_name + '_markov_second_classification', recording_dict)
+            save_all_stats(test_stats, model_name + '_markov_second_classification', recording_dict)
             return test_stats
     return
 
