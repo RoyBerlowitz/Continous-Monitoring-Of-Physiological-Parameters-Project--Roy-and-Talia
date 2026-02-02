@@ -18,7 +18,7 @@ def choose_hyperparameters(train_df, labels, model=WindowModelNames.SVM, n_jobs 
     target = copy.deepcopy(labels)
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
     #!TODO change to group number +  participant ID. check all places where split by train happends. And in CNN
-    group_indicator = df_for_hyperparameters['Group number']
+    group_indicator = df_for_hyperparameters['Group number'].astype(str) + "_" + df_for_hyperparameters['Participant ID'].astype(str)
     # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
     df_for_hyperparameters = df_for_hyperparameters[[col for col in df_for_hyperparameters.columns if col not in administrative_features]]
 
@@ -32,8 +32,7 @@ def choose_hyperparameters(train_df, labels, model=WindowModelNames.SVM, n_jobs 
     #     return find_best_hp_logistic_regression(df_for_hyperparameters, target, split_name, split_by_group_flag, group_indicator, wrapper_text, subsampling_flg = subsampling_flg)
 
     if model == WindowModelNames.RANDOM_FOREST:
-        best_Random_Forrest_parameters = find_best_random_forrest_parameters(df_for_hyperparameters, target,group_indicator, n_jobs, n_iterations = n_iterations, split_by_group_flag = split_by_group_flag, subsampling_flg = subsampling_flg)
-        return best_Random_Forrest_parameters
+        return find_best_random_forrest_parameters(df_for_hyperparameters, target,group_indicator, n_jobs, n_iterations = n_iterations, split_by_group_flag = split_by_group_flag, subsampling_flg = subsampling_flg)
 
     if model == WindowModelNames.XGBOOST:
         return find_best_hp_xgboost(df_for_hyperparameters, target, split_by_group_flag, group_indicator, subsampling_flg = subsampling_flg)
@@ -58,7 +57,7 @@ def train_window_model(X_selected, y_train, best_parameters, model_name, split_b
     # we get the group indicator
     group_indicator = None
     if split_by_group_flag:
-        group_indicator = train_x['Group number']
+        group_indicator = train_x['Group number'].astype(str) + "_" + train_x['Participant ID'].astype(str)
 
     # we create the dataframe we will use for the labeling of the seconds
     df_for_time_classification = create_df_for_time_classification(train_x)

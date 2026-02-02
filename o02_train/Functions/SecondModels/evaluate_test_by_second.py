@@ -51,14 +51,19 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classi
         # based on the found optimal threshold, we classify each time point
         predicted_y = (y_prob >= chosen_threshold).astype(int)
     elif classification_flag == SecondModelNames.MARKOV:
+        # we adjust X_test to be sorted correctly, as it is important in markov
         X_test = X_test.sort_values(['recording_identifier', 'second'])
+        # we pre-process the data for markov
         X_probs, y_true, lengths_test = prepare_data_for_hmm(X_test, y_test)
-        # llr_test = compute_llr_from_hmm(model, X_probs)
+        # we compute the log probs exactly as in the train
         _, posteriors = model.score_samples(X_probs, lengths_test)
         epsilon = 1e-15
         log_posteriors = np.log(posteriors + epsilon)
+        # we get the transition log probs
         llr_test = log_posteriors[:, 1] - log_posteriors[:, 0]
+        # we debug to see the max and min LLR and the chosen threshold
         print(f"DEBUG MARKOV TEST: Max LLR={np.max(llr_test):.2f}, Threshold={model.optimal_threshold_PRC_:.2f}")
+        # we obtain the predictions
         predicted_y = (llr_test >= model.optimal_threshold_PRC_).astype(int)
 
     # we create the results data frame

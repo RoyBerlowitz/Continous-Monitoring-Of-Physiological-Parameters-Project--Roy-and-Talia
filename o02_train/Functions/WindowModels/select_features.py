@@ -4,6 +4,7 @@ from sklearn.metrics import make_scorer, cohen_kappa_score, recall_score
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 from sklearn.model_selection import StratifiedGroupKFold,StratifiedKFold
+from pathlib import Path
 
 from ..consts import WindowModelNames
 
@@ -14,7 +15,7 @@ def select_features(X, Y, function_variable: list, split_by_group_flag = False):
     # by setting the selection flag, we choose between filter and wrapper feature selection
     # # the function variables is a list of the variables needed for each feature selection function method.
     #ONLY LEFT  WRAPPER OPTION
-    group_indicator = X['Group number']
+    group_indicator = X['Group number'].astype(str) + "_" + X['Participant ID'].astype(str)
     features = [col for col in X.columns if col not in admin_features]
     X = X[features]
     # Here we need the hyper-parameters for the model, the range of features to choose from and the model type.
@@ -109,7 +110,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
 
     # יצירת ה-DataFrame ושמירה לאקסל
     results_df = pd.DataFrame(results)
-    file_name = f"{model_type}_RFECV_Performance.xlsx"
+    file_name = Path(__file__).resolve().parent.parent.parent / "run_outputs" / f"{model_type}_RFECV_Performance.xlsx"
     results_df.to_excel(file_name, index=False)
 
     # חילוץ הפיצ'רים שנבחרו בנקודה האופטימלית

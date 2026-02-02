@@ -93,7 +93,6 @@ def train_supervised_hmm(X_train, y_train, lengths):
     # model.fit(X_train, lengths)
     return model
 
-
 def compute_llr_from_hmm(model, X):
     """
     Compute per-sample log-likelihood ratio:

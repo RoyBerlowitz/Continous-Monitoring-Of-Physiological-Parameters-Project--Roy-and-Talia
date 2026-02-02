@@ -3,8 +3,9 @@ from xgboost import XGBClassifier
 from .xgboost_model_helper_functions import xgb_grid_search_multi, xgb_random_search_multi, XGBClassifierClassifier
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold, StratifiedKFold
 from sklearn.metrics import roc_curve, precision_recall_curve, average_precision_score
-import numpy as np
 from sklearn.preprocessing import LabelEncoder
+from pathlib import Path
+import numpy as np
 
 from ..EvaluateModels.evaluate_model_functions import closest_point_roc, get_recall_70
 
@@ -17,8 +18,9 @@ def find_best_hp_xgboost(X_train, y_train, split_by_group_flag = False, group_in
 
     # Randomized search
     best_xgb_rand, best_params_rand, results_rand = xgb_random_search_multi(X_train, y_train, split_by_group_flag=split_by_group_flag, group_indicator=group_indicator,subsampling_flg = subsampling_flg)
-    results_rand.to_excel(f'xgboost_results_xgb_rand.xlsx')
-    print(f'Saved xgboost_results_xgb_rand.xlsx')
+    excel_file_name = Path(__file__).resolve().parent.parent.parent / "run_outputs" / 'find_best_hp_xgboost_results_xgb_rand.xlsx'
+    results_rand.to_excel(excel_file_name)
+    print(f'Saved {excel_file_name}')
 
     return best_params_rand
 

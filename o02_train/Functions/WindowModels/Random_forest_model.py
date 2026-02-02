@@ -7,6 +7,7 @@ from sklearn.metrics import roc_curve, cohen_kappa_score, make_scorer, recall_sc
 import numpy as np
 from imblearn.pipeline import Pipeline as ImbPipeline
 from imblearn.under_sampling import RandomUnderSampler
+from pathlib import Path
 
 from ..EvaluateModels.evaluate_model_functions import closest_point_roc, get_recall_70
 
@@ -111,7 +112,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     ]
     cv_results_filtered = cv_results_df[cols_to_save].sort_values(by='rank_test_PRC')
 
-    excel_file_name = 'Random_Forrest_Search_Results.xlsx'
+    excel_file_name = Path(__file__).resolve().parent.parent.parent / "run_outputs" / 'find_best_hp_Random_Forrest_Search_Results.xlsx'
     cv_results_filtered.to_excel(excel_file_name, index=False)
     print(f"\n--- CV Results Saved to: {excel_file_name} ---")
     # we return the best model

@@ -31,7 +31,7 @@ class RecomputeFunctionsConfig:
     load_data: bool = True
     segment_signal: bool = True
     extract_features: bool = True
-    split_data: bool = True
+    cnn_embedding: bool = True
     feature_normalization: bool = True
     vet_features: bool = True
     select_features: bool = True

@@ -11,10 +11,13 @@ from sklearn.metrics import (
     precision_score,
     f1_score
 )
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import os
 import re
+
+from ..consts import SecondModelNames
 
 def evaluate_one_model(model, model_name, X_test, y_test):
     # predict_proba - the prob of each row to be in each class.
@@ -171,10 +174,15 @@ def evaluate_one_model(model, model_name, X_test, y_test):
             'sensitivity': sensitivity,
             'specificity': specificity,
             'precision_score': precision_score_val,
+            'precision': precision_score_val,
             'f1_score': f1,
             'confusion_matrix': confusion_matrx,
             'best_roc_point': best_roc_point,
         })
+
+    save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs' / f'{model_name}_window_model_evaluate_res.xlsx'
+    pd.DataFrame(excel_results).to_excel(save_path, index=False)
+    print(f'Saved {save_path}')
 
     return {
         'excel_rows': excel_results,
@@ -357,3 +365,28 @@ def create_folder_for_saving(split_name):
     os.makedirs(folder_path)
 
     return folder_path
+
+def save_second_model_stats(model_stats, window_model_name):
+    rows_to_save = []
+
+    for model_name in model_stats:
+        if model_name == SecondModelNames.NO_MODEL:
+            d = model_stats[model_name]['test_no_smoothing']
+            d['model_name'] = 'no_smoothing'
+            rows_to_save.append(d)
+            d = model_stats[model_name]['test_with_smoothing']
+            d['model_name'] = 'with_smoothing'
+            rows_to_save.append(d)
+        elif model_name == SecondModelNames.MARKOV:
+            d = model_stats[model_name]
+            d['model_name'] = model_name
+            rows_to_save.append(d)
+        else:
+            for row in model_stats[model_name]['excel_rows']:
+                d = {'model_name':row['model_name'], 'precision':row['precision'], 'specificity':row['specificity'], 'sensitivity':row['sensitivity'], 'accuracy':row['accuracy'], 'f1_score':row['f1_score'], 'cohen_kappa':row['cohen_kappa'], 'confusion_matrix':row['confusion_matrix']}
+                rows_to_save.append(d)
+
+    df = pd.DataFrame(rows_to_save)
+    save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs' / f'{window_model_name}_second_model_evaluate_res.xlsx'
+    df.to_excel(save_path, index=False)
+    print(f'Saved {save_path}')

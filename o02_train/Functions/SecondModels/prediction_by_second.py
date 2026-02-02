@@ -16,7 +16,8 @@ def prediction_by_second(train_df, test_df, data_files, model_name, classificati
         train_x, train_y = translate_prediction_into_time_point_prediction_with_weights (train_df, weight_flag)
         test_x, test_y = translate_prediction_into_time_point_prediction_with_weights (test_df, weight_flag)
         # we preform the choice of the threshold
-        threshold_no_median, threshold_with_median, filter_size, train_stats = train_for_decision(train_x, train_y, group_indicator =train_x["Group number"] , n_iteration=50, n_jobs=-1)
+        group_indicator = train_x['Group number'].astype(str) + "_" + train_x['Participant ID'].astype(str)
+        threshold_no_median, threshold_with_median, filter_size, train_stats = train_for_decision(train_x, train_y, group_indicator=group_indicator , n_iteration=50, n_jobs=-1)
 
         #train predictions
         # y_probs = train_x["weighted_prob"]
@@ -79,7 +80,9 @@ def prediction_by_second_train(train_df, data_files, model_name, classification_
     if classification_flag == SecondModelNames.NO_MODEL:
         train_x, train_y = translate_prediction_into_time_point_prediction_with_weights (train_df, weight_flag)
         # we preform the choice of the threshold
-        threshold_no_median, threshold_with_median, filter_size, train_stats = train_for_decision(train_x, train_y, group_indicator =train_x["Group number"] , n_iteration=50, n_jobs=-1)
+        parts = train_x['recording_identifier'].str.split('_', expand=True)
+        group_indicator = parts[0] + '_' + parts[2]
+        threshold_no_median, threshold_with_median, filter_size, train_stats = train_for_decision(train_x, train_y, group_indicator=group_indicator , n_iteration=50, n_jobs=-1)
         # we save evaluation metrics
         # all_stats = {**train_stats}
         # save_all_stats(all_stats, model_name+'_no_model_for_second_classification', recording_dict)
@@ -90,3 +93,5 @@ def prediction_by_second_train(train_df, data_files, model_name, classification_
             return logistic_regression_for_second_classification(train_x, train_y)
         if classification_flag == SecondModelNames.MARKOV:
             return train_markov_model(train_x, train_y)
+
+    return

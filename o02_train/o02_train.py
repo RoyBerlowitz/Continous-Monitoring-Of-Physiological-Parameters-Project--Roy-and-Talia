@@ -10,7 +10,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
     window_models = [WindowModelNames.XGBOOST] #talia
     # window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
-    second_models = [SecondModelNames.NO_MODEL, SecondModelNames.LOGISTIC, SecondModelNames.MARKOV]
+    second_models = [SecondModelNames.NO_MODEL, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
 
     ## ========================================================================================================== ##
     ##                                               PREPROCESSING                                                ##
@@ -48,8 +48,21 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
     )
     print('\033[32mFeature extraction completed\033[0m')
 
+    #!TODO remove
+    y_train = y_train[0:123162]
+
+    # ## ==================================== CNN Embedding ==================================== ##
+    # X_train = load_cache(
+    #     "cnn_embedding.pkl",
+    #     lambda: cnn_embedding(X_train, y_train, group_name),
+    #     force_recompute=recompute_functions.cnn_embedding,
+    #     save=save_cache
+    # )
+    # print('\033[32mCNN embedding completed\033[0m')
+
+
     ## ==================================== Normalization ==================================== ##
-    [X_train,scaler] = load_cache(
+    [X_train, scaler] = load_cache(
         "feature_normalization.pkl",
         lambda: normalize_train(X_train),
         force_recompute=recompute_functions.feature_normalization,
@@ -65,7 +78,6 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
         force_recompute=recompute_functions.vet_features,
         save=save_cache
     )
-    # save_pickle_to_test(chosen_vet_features, "vet_features_train.pkl")
     X_train = X_train[chosen_vet_features]
     print('\033[32mFeature vetting completed\033[0m')
 
@@ -78,14 +90,11 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
     trained_window_models = {}
     trained_second_models = {}
     X_train_seconds_dfs = {}
-    model_stats = {}
 
     for window_model in window_models:
-        model_stats[window_model] = {}
         trained_second_models[window_model] = {}
         ## ==================================== Wrapper Feature Selection ==================================== ##
         selected_feats = load_cache(
-            #!TODO save seelcted features in each  run
             f"select_features_{window_model}.pkl",
             lambda: select_features(X_train, y_train, models_hp_for_wrapper[window_model], split_by_group_flag=True),
             force_recompute=recompute_functions.select_features,
@@ -134,7 +143,8 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
     #                                               EVALUATE MODELS                                              ##
     # ========================================================================================================== ##
     for window_model in window_models:
-        model_stats = load_cache(
+        model_stats = {}
+        model_stats['window'] = load_cache(
             f"evaluate_window_model_{window_model}.pkl",
             lambda: evaluate_one_model(trained_window_models[window_model], window_model, X_selected, y_train),
             force_recompute=recompute_functions.evaluate_models,
@@ -143,17 +153,15 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
         print(f'\033[32mFinished evaluating model: {window_model}\033[0m')
 
         for second_model in second_models:
-            model_stats = load_cache(
+            model_stats[second_model] = load_cache(
                 f"evaluate_second_model_{window_model}_{second_model}.pkl",
                 lambda: prediction_by_second_test(X_train_seconds_dfs[window_model], data_files, window_model, trained_second_models[window_model][second_model], second_model),
                 force_recompute=recompute_functions.evaluate_models,
                 save=save_cache
             )
             print(f'\033[32mFinished evaluating second model: {window_model}-{second_model}\033[0m')
-    # ## ==================================== Evaluate Test ==================================== ##
 
-            #!TODO add evaluate test
-            ## ==== save model outputs?
+        save_second_model_stats(model_stats, window_model)
 
 
     end_time = time.time()

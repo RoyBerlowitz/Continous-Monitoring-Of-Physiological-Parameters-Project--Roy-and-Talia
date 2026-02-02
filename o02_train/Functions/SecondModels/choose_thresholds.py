@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import math
 from sklearn.model_selection import cross_val_predict, StratifiedGroupKFold
-from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score, cohen_kappa_score
+from sklearn.metrics import precision_recall_curve, f1_score, precision_score, recall_score, accuracy_score, cohen_kappa_score, confusion_matrix
 from .window_timing_translator_preprocessing import apply_smoothing
 from joblib import Parallel, delayed
 
@@ -19,6 +19,10 @@ def print_metrics_table(y_true, y_pred, title):
     f1 = f1_score(y_true, y_pred, zero_division=0)
     # we extract cohen's kappa
     kappa = cohen_kappa_score(y_true, y_pred)
+    # Confusion Matrix
+    confusion_matrx = confusion_matrix(y_true, y_pred)
+    TN, FP, FN, TP = confusion_matrx.ravel()
+    specificity = TN / (TN + FP) if (TN + FP) > 0 else 0.0
 
     print(f"\n--- {title} ---")
     print(f"{'Metric':<15} | {'Value':<10}")
@@ -29,7 +33,7 @@ def print_metrics_table(y_true, y_pred, title):
     print(f"{'F1 Score':<15} | {f1:.4f}")
     print(f"{'Cohen Kappa':<15} | {kappa:.4f}")
 
-    return {'Precision':p, 'Sensitivity':s, 'Accuracy':a, 'F1 Score':f1, 'Cohen Kappa':kappa}
+    return {'precision':p, 'specificity':specificity, 'sensitivity':s, 'accuracy':a, 'f1_score':f1, 'cohen_kappa':kappa, 'confusion_matrix':confusion_matrx}
 
 
 def get_absolute_threshold_raw(y_true, y_probs):
