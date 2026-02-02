@@ -54,7 +54,9 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     # models = [ModelNames.XGBOOST] #talia
 
     seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
-    #seconds_classification_models = [ModelNamesSecondClassification.LOGISTIC, ModelNamesSecondClassification.MARKOV]
+    seconds_classification_models = [ModelNamesSecondClassification.MARKOV]
+    #seconds_classification_models = [ModelNamesSecondClassification.NO_MODEL,ModelNamesSecondClassification.LOGISTIC]
+
 
 
     split_name = 'split2'
@@ -84,8 +86,8 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         X_all['Split_ID'] = X_all['Group number'] + X_all['Participant ID']
         print(f"Unique Split IDs: {X_all['Split_ID'].unique()}")
 
-        # עדכון הפונקציה שתשתמש בעמודה החדשה כברירת מחדל או בקריאה
-        def split_by_group_tuple(X, y, group_tuple, group_col='Split_ID'):  # שינינו את ברירת המחדל ל-Split_ID
+        # we enable the splitting by group, by a split ID
+        def split_by_group_tuple(X, y, group_tuple, group_col='Split_ID'):
             test_mask = X[group_col].isin(group_tuple)
 
             X_test = X.loc[test_mask]
@@ -96,8 +98,9 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
             return X_train, X_test, y_train, y_test
 
-        # שליחת העמודה החדשה לפונקציה
+        # we add the new column to the function and split by that
         X_train, X_test, y_train, y_test = split_by_group_tuple(X_all, y_all, [grp], group_col='Split_ID')
+
 
         # creating an embedder
         columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
@@ -133,7 +136,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
 
         # getting rid of the columns with the vectors of values
         X_test = X_test.drop(labels=columns_names, axis=1)
-        administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
+        administrative_features = ['Split_ID', 'First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
 
         informative_features =[
     "cnn_emb_7",
@@ -167,7 +170,6 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
         # X_test = X_all.iloc[test_idx]
         # y_train = y_all.iloc[train_idx]
         # y_test = y_all.iloc[test_idx]
-        print(X_test['Group number'].unique())
 
     ## ---------------- load data files ----------------
     script_directory = os.path.dirname(os.path.abspath(__file__))
@@ -263,7 +265,7 @@ def run_part_c(save_cache=False, force_recompute_load_data=True, force_recompute
     print(f"Total time: {end_time - start_time} sec")
 
     # return  stat_values
-    return model_stats, X_test['Group number'].unique()
+    return model_stats, [grp]
 
 # ========================================================= Run =========================================================
 if __name__ == "__main__":
@@ -276,6 +278,7 @@ if __name__ == "__main__":
     #            force_recompute_test_time_dfs=True,
     #            force_recompute_best_th = True, )
     grps = ['15A','27A','31A','42A','58A','64A','79A','93A', '15B','27B','31B','42B','58B','64B','79B','93B']
+    grps = ['42B', '93B', '64B', '79B', '15A', '27A', '31A', '42A', '58A', '64A', '79A', '93A', '15B', '27B', '31B',  '58B']
     #grps = ['15','27','31','42','58','64','79','93',]
 
     # pairs = list(itertools.combinations(grps, 2))

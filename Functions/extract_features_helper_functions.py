@@ -831,32 +831,31 @@ def add_derivative_features(df, column_list, num_features, more_prints):
     return df_new, num_features
 
 ##-------Embedding by CNN - feature -------##
-# --- Helper to fix array lengths ---
+
 def pad_or_trim(data, target_len):
-    """
-    Ensures the array is exactly target_len long.
-    - If shorter: Pads with zeros at the end.
-    - If longer: Truncates from the end.
-    """
-    # Force data to be 1D array before length check
+
+    #Ensures the array is exactly target_len long.
+    #- If shorter: Pads with zeros at the end.
+    #- If longer: Truncates from the end.
+
+    # Forces data to be 1D array before length check
     data = np.array(data).ravel()
 
     if len(data) == target_len:
         return data
+    # if data is longer than the target length - we trim it
     if len(data) > target_len:
         return data[:target_len]
     else:
-        # Pad with zeros
+        # if data is shorter than the target length - we pad with zeros
         return np.pad(data, (0, target_len - len(data)), 'constant')
 
 
-# --- Helper: Convert DataFrame columns (arrays) to Tensor ---
 def prepare_tensor_data(df, column_list):
-    """Stacks array columns into a (N, Channels, Time) tensor."""
+    #This function tacks array columns into a (N, Channels, Time) tensor, to fit them to the CNN model
     x_data = []
 
-    # 1. Determine the common target length
-    # We take the median length of the first column to be robust against outliers
+    # Firstly, we determine the common target length
     first_col_arrays = df[column_list[0]].values
 
     # Use ravel() here to ensure we get the length of the actual 1D signal
@@ -866,19 +865,19 @@ def prepare_tensor_data(df, column_list):
     if not lengths:
         raise ValueError("No valid arrays found in DataFrame to determine length.")
 
+    # We take the median length of the first column to be robust against outliers
     target_len = int(np.median(lengths))
-    # print(f"Aligning all windows to length: {target_len}")
 
     for col in column_list:
         if col not in df.columns:
             raise ValueError(f"Column {col} missing from DataFrame")
 
-        # 2. Apply pad_or_trim to every cell in the column
+        # Here, we apply pad_or_trim to every cell in the column
         col_values = df[col].values
 
         # Use pad_or_trim which now internally handles the flattening
         processed_col = [pad_or_trim(x, target_len) for x in col_values]
-
+        # we stack the columns
         col_stack = np.stack(processed_col)
         x_data.append(col_stack)
 
@@ -899,72 +898,83 @@ def get_cnn_embeddings(df,
                        batch_size=64,
                        dropout = 0.3,
                        steps =6):
+    # CNN is a powerful weapon to get a hidden and non-intuitive relation withing the time space
+    # we will train the CNN on the raw data of the gyroscope and accelerometer, for they are the more influential,
+    # and the magnetometer had different sampling frequency  which would make its addition requires interpolation - so we gave up on this.
+    # we use the  embedding values as features for our model
+
+    # first, we use GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mode_str = "Test" if test_flag else "Train"
     print(f"--- CNN Pipeline | Mode: {mode_str} | Device: {device} ---")
 
-    # 1. Prepare Full Data Tensor (for everyone)
+    # Than we repare the Full Data Tensor
     print("Preparing data tensors...")
     X_full = prepare_tensor_data(df, column_list)
 
-    # Initialize Model Structure
+    # we initialize Model Structure
     model = embedder_cnn(number_of_channels=len(column_list), number_of_classes=2, embedding_size=embedding_size, dropout=dropout)
     model.to(device)
 
     # ==========================================
     # LOGIC BRANCH: TRAINING MODE
     # ==========================================
+    # if the test flag is set as False, meaning we need to train the model
     if not test_flag:
         print(f"Training mode detected. Splitting data by Group: '{group_col}'...")
 
-        # Prepare targets
+        # we prepare the target
         y_full = torch.tensor(target.values, dtype=torch.long)
         groups = df[group_col].values
-
+        # we count the number of zeros and ones labeld windows
         num_neg = (y_full == 0).sum()
         num_pos = (y_full == 1).sum()
 
         # To avoid dividing by zero
         if num_pos == 0: num_pos = 1
-
+        # we calculate the weight of each class - as we need to fit the loss to radically imbalanced data
         pos_weight = num_neg / num_pos
         class_weights = torch.tensor([1.0, float(pos_weight)]).to(device)
 
         print(f"Imbalance Detected: Neg={num_neg}, Pos={num_pos}. Using Class Weights: {class_weights.cpu().numpy()}")
 
-        # --- Group Shuffle Split (Train vs Validation) ---
+        # we use Group Shuffle Split (Train vs Validation)
+        # we want to imitate the final task of predicting based on unknown user -
+        # so we divide to train and val in this context based on the groups, so each time we check the success on unknow group.
         gss = GroupShuffleSplit(n_splits=1, test_size=0.2, random_state=42)
         try:
+            # if there are several groups as expected
             train_idx, val_idx = next(gss.split(X_full, y_full, groups))
         except StopIteration:
+            # if for some reason all the data is associated with only one group - we split it randomly
             print("Warning: Only 1 group found. Using simple random split instead of group split.")
             indices = np.arange(len(X_full))
             np.random.shuffle(indices)
             split_point = int(0.8 * len(X_full))
             train_idx, val_idx = indices[:split_point], indices[split_point:]
 
-        # Create DataLoaders
+        # we transform the data for tensors
         train_ds = TensorDataset(X_full[train_idx], y_full[train_idx])
         val_ds = TensorDataset(X_full[val_idx], y_full[val_idx])
-
+        # we create data loaders
         train_loader = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
         val_loader = DataLoader(val_ds, batch_size=batch_size, shuffle=False)
 
         print(f"Train samples: {len(train_idx)} | Validation samples: {len(val_idx)}")
 
-        # Setup Optimizer
+        # we set the Optimizer and Loss function, with the weighting of classes
         criterion = nn.CrossEntropyLoss(weight=class_weights)
         optimizer = torch.optim.AdamW(model.parameters(), lr=0.0005)
         #adding LR scheduler to adjust LR if the model stacks
         scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.2, patience=steps)
-        # Training Loop
+        # we start with infinite loss - so in any case we will get better loss
         best_val_loss = float('inf')
-
+        # Training Loop
         for epoch in range(num_epochs):
-            # Train
+            # we activate the train one epoch functionn
             train_loss = train_one_epoch(train_loader, model, optimizer, criterion, device)
 
-            # Validation
+            # we preform the check over the validatiob
             model.eval()
             val_loss = 0.0
             all_preds = []
@@ -979,21 +989,22 @@ def get_cnn_embeddings(df,
                     _, predicted = torch.max(outputs, 1)
                     all_preds.extend(predicted.cpu().numpy())
                     all_targets.extend(target.cpu().numpy())
-
+            # we get the final loss
             val_loss /= len(val_loader)
             #val_acc = 100 * correct / total
-            # adjusting the LR if for 3 epochs there is no imporvement
+            # adjusting the LR if for 3 epochs there is no improvement
             old_lr = optimizer.param_groups[0]['lr']
             scheduler.step(val_loss)
             new_lr = optimizer.param_groups[0]['lr']
+            # we calculate the validation F1 score
             val_f1 = f1_score(all_targets, all_preds, zero_division=0)
+            # to keep track on the LR, we print a message indicating a change
             lr_msg = f" | LR dropped to {new_lr:.6f}!\n" if new_lr != old_lr else ""
-            #if (epoch + 1) % 5 == 0 or epoch == 0:
             if epoch is not None:
                 print(
                     lr_msg + f"Epoch {epoch + 1:02d} | Train Loss: {train_loss:.4f} | Val Loss: {val_loss:.4f} | Val F1: {val_f1:.2f}%")
 
-            # Save Checkpoint
+            # We save the model weights only when the loss is lower - so we get the weights from the lowest validation loss point
             if val_loss < best_val_loss:
                 best_val_loss = val_loss
                 torch.save(model.state_dict(), model_path)
@@ -1008,28 +1019,28 @@ def get_cnn_embeddings(df,
         raise FileNotFoundError(f"Model weights not found at {model_path}. Run with test_flag=False first!")
 
     # print(f"Loading weights from {model_path} for feature extraction...")
+    # whether it is a test or after training, we load the pre-trained weights for the achieving of the embedding
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
 
     # ==========================================
     # FEATURE EXTRACTION (INFERENCE)
     # ==========================================
-    # print("Extracting embeddings...")
-
+    # we get the loader of all data
     extract_loader = DataLoader(TensorDataset(X_full), batch_size=batch_size, shuffle=False)
-
+    # we add the embedding from all the data
     all_embeddings = []
     with torch.no_grad():
         for batch in extract_loader:
             data = batch[0].to(device)
             emb = model.get_embedding(data)
             all_embeddings.append(emb)
-
+    # we stack the embedding for each point
     final_embeddings_matrix = np.vstack(all_embeddings)
 
     emb_cols = [f'cnn_emb_{i}' for i in range(embedding_size)]
+    # we add each value of the embedding as a feature to the data matrix
     emb_df = pd.DataFrame(final_embeddings_matrix, columns=emb_cols, index=df.index)
-
     result_df = pd.concat([df, emb_df], axis=1)
 
     print(f"Done. Added {embedding_size} embedding features.")

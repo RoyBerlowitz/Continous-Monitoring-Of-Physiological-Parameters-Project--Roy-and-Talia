@@ -4,7 +4,7 @@ import numpy as np
 
 from Functions_part_c.window_timing_translator_preprocessing import calculate_window_times
 from Functions_part_c.timing_classifying_without_model import calculate_time_point_weights
-from Functions_part_c.markov_model import prepare_data_for_hmm,train_supervised_hmm
+from Functions_part_c.markov_model import prepare_data_for_hmm,train_supervised_hmm, compute_llr_from_hmm
 from Functions_part_b.logistic_regression_model import train_logistic_regression, find_best_hp_logistic_regression
 
 
@@ -27,8 +27,7 @@ def translate_prediction_into_time_point_prediction_for_model (windows_df, weigh
 
         dupes = recording_data.duplicated(subset=['First second of the activity']).sum()
         if dupes > 0:
-            print(f"🚨 Recording {recording} has {dupes} duplicate windows!")
-            # פתרון זמני:
+            print(f" Recording {recording} has {dupes} duplicate windows!")
             recording_data = recording_data.drop_duplicates(subset=['First second of the activity'])
 
         # we go over all the complete seconds from the start to end of each recording
@@ -231,9 +230,19 @@ def train_markov_model(seconds_df, target, n_splits=5):
         fold_model = train_supervised_hmm(X_train_fold, y_train_fold, lengths_train_fold)
 
         # we predict the probabilities of the model
-        probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
-        oof_probs[val_idx] = probs[:, 1]
-        print(f"index: {val_idx}, probs: {np.unique(oof_probs)}")
+        # probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
+        # oof_probs[val_idx] = probs[:, 1]
+
+        #llr = compute_llr_from_hmm(fold_model, X_val_fold)
+        #oof_probs[val_idx] = llr
+        epsilon = 1e-15
+
+        log_prob, posteriors = fold_model.score_samples(X_val_fold, lengths_val_fold)
+        log_posteriors = np.log(posteriors + epsilon)
+        llr_markov = log_posteriors[:, 1] - log_posteriors[:, 0]
+        oof_probs[val_idx] = llr_markov
+
+        print(f"Mean oof_probs: {np.mean(oof_probs)}, Max: {np.max(oof_probs)}, Min: {np.min(oof_probs)}")
 
     # we find the optimal threshold in terms of maximizing F1 score based on the cross-validation predictions - unbiased data
     precisions, recalls, thresholds = precision_recall_curve(y_full, oof_probs)
