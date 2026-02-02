@@ -118,8 +118,7 @@ def extract_features (X_matrix , Y_vector, data_files, more_prints, test_flag = 
     #                    embedding_size=16,
     #                    num_epochs=30,
     #                    batch_size=64,
-    #                    dropout= 0.3,
-    #                    group_name = group_name)
+    #                    dropout= 0.3)
     # num_features += 16
     # # getting rid of the columns with the vectors of values
     # X_features = X_features.drop(labels=columns_names, axis=1)

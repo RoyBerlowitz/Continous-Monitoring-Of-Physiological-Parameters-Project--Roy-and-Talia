@@ -6,7 +6,7 @@ import numpy as np
 from .window_timing_translator_preprocessing import apply_smoothing
 from .timing_classifying_without_model import print_metrics_table
 from consts import ModelNamesSecondClassification
-from .markov_model import compute_llr_from_hmm,prepare_data_for_hmm
+from .markov_model import prepare_data_for_hmm
 
 def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, threshold_with_median, filter_size):
     # This function is meant to get the results for the model

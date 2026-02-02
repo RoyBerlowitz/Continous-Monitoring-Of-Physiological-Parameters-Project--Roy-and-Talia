@@ -79,18 +79,18 @@ def run_part_a(data_path, save_cache=False, more_prints=False, force_recompute_l
     columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
                      'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS','Mag_SM','Acc_SM', 'Gyro_SM' ]
     group_name = '0'+ str(2) + '_'
+    group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
     X_features = get_cnn_embeddings(X_features,
                        target= Y_vector,
-                       group_col = "Group number",
-                        group_indicator= X_features["Group number"],
+                       group_col = "Group number + Participant ID",
+                        group_indicator= group_indicator,
                        column_list = columns_names_for_embedding,
                        test_flag=False,
                        model_path=group_name+'cnn_weights.pth',
                        embedding_size=16,
                        num_epochs=30,
                        batch_size=64,
-                       dropout= 0.3,
-                       group_name = group_name)
+                       dropout= 0.3)
     # num_features += 16
     # getting rid of the columns with the vectors of values
     X_features = X_features.drop(labels=columns_names, axis=1)
@@ -169,7 +169,7 @@ data_path = os.path.join(script_directory, "data")
 
 if __name__ == "__main__":
     start_time = time.time()
-    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=True, force_recompute_splits=True, force_recompute_vet_features = True)
+    split1_dfs, split2_dfs = run_part_a(data_path, save_cache=True,more_prints=True, force_recompute_load_data=False, force_recompute_seg=False, force_recompute_features=False, force_recompute_splits=True, force_recompute_vet_features = True)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")
