@@ -117,7 +117,7 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     # we return the best model
     return best_parameters
 
-def train_random_forest_classifier (train_df, train_labels, best_parameters, time_df, name = "Individual Split", n_jobs = -1, split_by_group_flag = True, group_indicator=None):
+def train_random_forest_classifier (train_df, train_labels, best_parameters, time_df, name = "Group Split", n_jobs = -1, split_by_group_flag = True, group_indicator=None):
     # This function is meant to fit the model with the selected hyperparameters to the data
     # we start by adjusting the dimension of the validation labels.
 
@@ -187,6 +187,8 @@ def train_random_forest_classifier (train_df, train_labels, best_parameters, tim
 
     # Here we find the optimal threshold, which is the point which gives the best F1 score.
     # F1 score represnt both senstivity and precision and by that hints a lot about the minority group
+    # Cohen's kappa represenets the model's abillity to predict and not just guess
+    # We believe there is connection between the two metrics, and thus chose to optimize the F1 score instead of just randomly choose several threshold
     f1_scores = (2 * precisions * recalls) / (precisions + recalls + 1e-10)
     best_idx = np.argmax(f1_scores)
     best_Random_Forest_Model.optimal_threshold_PRC_ = thresholds[min(best_idx, len(thresholds) - 1)]

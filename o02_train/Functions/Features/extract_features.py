@@ -1,5 +1,5 @@
 import copy
-
+from sklearn.feature_selection import mutual_info_classif
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -7,7 +7,7 @@ from .extract_features_helper_functions import *
 
 ##-------Main function - extract features-------##
 
-def extract_features (X_matrix , data_files, more_prints=False):
+def extract_features (X_matrix, Y_vector, data_files, more_prints, test_flag = False):
     if more_prints: print ("extracting features again ...")
 
     num_features = 0
@@ -89,9 +89,6 @@ def extract_features (X_matrix , data_files, more_prints=False):
     #We extract the SR, Area Under Graph, etc
     X_features, num_features = add_time_dependent_features(X_features, columns_names, num_features)
 
-    # adding the imf traits - wasn't efficient computationally
-    #X_features, num_features = EMD_properties(X_features, columns_names, num_features, more_prints)
-
     # Adding derivative-oriented features - the kurtosis, median and std of the velocity and acceleration in each window for Gyro and Acc
     X_features, num_features = add_derivative_features(X_features, columns_names, num_features, more_prints)
 
@@ -103,14 +100,29 @@ def extract_features (X_matrix , data_files, more_prints=False):
             if "SM" in column:
                 num_features -= 1
 
-    # getting rid of the columns with the vectors of values
-    X_features = X_features.drop(labels=columns_names, axis=1)
-
-    #Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
-    cols_to_drop = (X_features == 0).all()
-    zero_cols = X_features.columns[cols_to_drop]
-    X_features = X_features.drop(columns=zero_cols)
-    if more_prints: print(f"added {num_features - len(zero_cols)} columns")
+    #getting the embedding vector by a trained cnn
+    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',]
+    # X_features = get_cnn_embeddings(X_features,
+    #                    target= Y_vector,
+    #                    group_col = "Group number",
+    #                    column_list = columns_names_for_embedding,
+    #                    test_flag=test_flag,
+    #                    model_path='cnn_weights.pth',
+    #                    embedding_size=16,
+    #                    num_epochs=30,
+    #                    batch_size=64,
+    #                    dropout= 0.3)
+    # num_features += 16
+    # # getting rid of the columns with the vectors of values
+    # X_features = X_features.drop(labels=columns_names, axis=1)
+    #
+    # # Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
+    # cols_to_drop = (X_features == 0).all()
+    # zero_cols = X_features.columns[cols_to_drop]
+    #
+    # # we clean the zero columns
+    # if more_prints: print(f"added {num_features - len(zero_cols)} columns")
+    # X_features = X_features.drop(columns=zero_cols)
 
     return X_features
 

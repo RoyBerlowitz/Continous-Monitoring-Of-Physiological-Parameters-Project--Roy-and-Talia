@@ -59,12 +59,12 @@ def prediction_by_second_test(test_df, data_files, model_name, classification_mo
     else:
         test_x, test_y = translate_prediction_into_time_point_prediction_for_model(test_df, weight_flag=None)
         if classification_flag == SecondModelNames.LOGISTIC:
-            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name+'_LR_second_classification')
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name+'_LR_second_classification', classification_flag=classification_flag)
             # all_stats = { **test_stats}
             # save_all_stats(all_stats, model_name+'_LR_second_classification', recording_dict)
             return test_stats
         if classification_flag == SecondModelNames.MARKOV:
-            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name + '_markov_second_classification')
+            test_stats, recording_dict = evaluate_test_by_second_with_model(test_x, test_y, classification_model, model_name + '_markov_second_classification', classification_flag=classification_flag)
             # all_stats = {**test_stats}
             # save_all_stats(all_stats, model_name + '_markov_second_classification', recording_dict)
             return test_stats
