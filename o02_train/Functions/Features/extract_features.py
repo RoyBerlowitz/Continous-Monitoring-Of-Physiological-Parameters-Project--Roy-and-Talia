@@ -7,7 +7,7 @@ from .extract_features_helper_functions import *
 
 ##-------Main function - extract features-------##
 
-def extract_features (X_matrix, Y_vector, data_files, more_prints, test_flag = False):
+def extract_features (X_matrix, data_files, more_prints=False):
     if more_prints: print ("extracting features again ...")
 
     num_features = 0
