@@ -94,17 +94,3 @@ def train_supervised_hmm(X_train, y_train, lengths):
     # model.fit(X_train, lengths)
     return model
 
-
-def compute_llr_from_hmm(model, X):
-    """
-    Compute per-sample log-likelihood ratio:
-    log P(X | state=1) - log P(X | state=0)
-    """
-    mean0, mean1 = model.means_
-    cov0, cov1 = model.covars_
-
-    logp0 = multivariate_normal.logpdf(X, mean=mean0, cov=np.diag(cov0))
-    logp1 = multivariate_normal.logpdf(X, mean=mean1, cov=np.diag(cov1))
-
-    llr = logp1 - logp0
-    return llr

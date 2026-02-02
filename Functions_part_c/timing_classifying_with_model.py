@@ -229,17 +229,22 @@ def train_markov_model(seconds_df, target, n_splits=5):
         # we train the hidden markov model on the folds data
         fold_model = train_supervised_hmm(X_train_fold, y_train_fold, lengths_train_fold)
 
-        # we predict the probabilities of the model
-        # probs = fold_model.predict_proba(X_val_fold, lengths_val_fold)
-        # oof_probs[val_idx] = probs[:, 1]
 
-        #llr = compute_llr_from_hmm(fold_model, X_val_fold)
-        #oof_probs[val_idx] = llr
+        # we define a tiny epsilon to avoid to total collapse of the code
         epsilon = 1e-15
 
+        # We use score_samples to perform sequence-level inference using the HMM,
+        # meaning that state estimation is performed jointly over the entire sequence
+        # rather than classifying each second independently.
         log_prob, posteriors = fold_model.score_samples(X_val_fold, lengths_val_fold)
+
+        # The posteriors represent P(z_t = k | X_1:T).
+        # We transform them to log-space for numerical stability and thresholding.
         log_posteriors = np.log(posteriors + epsilon)
+
+        # Compute the log-posterior odds (log-likelihood ratio) between the two states.
         llr_markov = log_posteriors[:, 1] - log_posteriors[:, 0]
+        # we save the probabillity
         oof_probs[val_idx] = llr_markov
 
         print(f"Mean oof_probs: {np.mean(oof_probs)}, Max: {np.max(oof_probs)}, Min: {np.min(oof_probs)}")
