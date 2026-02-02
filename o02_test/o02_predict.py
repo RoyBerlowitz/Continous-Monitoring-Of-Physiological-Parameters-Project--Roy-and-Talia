@@ -49,12 +49,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     print('\033[32mFeature extraction completed\033[0m')
 
     # ## ==================================== CNN Embedding ==================================== ##
-    informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency',
-                            'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_X-AXIS_CUSUM-_Feature',
-                            'Acc_SM_frequency_centroid', 'Gyro_SM_velocity_median', 'Mag_MEAN_AXES_CORR',
-                            'Mag_Y-AXIS_median', 'Gyro_X-AXIS_CUSUM+_Feature', 'Gyro_Z-AXIS_band_to_tot_energy_ratio',
-                            'Acc_SM_acceleration_median', 'Acc_Z-AXIS_velocity_skewness', 'Acc_SM_kurtosis',
-                            'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
+    informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
     X_test = load_cache(
         "cnn_embedding.pkl",
         lambda: cnn_embedding(X_test, y_test, informative_features, group_name, test_flag=True),

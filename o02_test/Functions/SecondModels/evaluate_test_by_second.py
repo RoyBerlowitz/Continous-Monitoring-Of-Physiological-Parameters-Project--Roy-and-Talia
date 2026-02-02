@@ -95,7 +95,7 @@ def save_all_stats(all_stats, model_name, recording_dict):
     df_main.index.name = "res_type"
 
     #!TODO asdfadf
-    # למחוק שורה 100 ו-81 בהגשה הסופית, אבל לשמור על 80 במהלך ההגשות העד סופיות
+    # למחוק שורה 78 ו-80 בהגשה הסופית, אבל לשמור על 80 במהלך ההגשות העד סופיות
     # we want to create several sheets, one with the metrics and others with the classification per second
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         # the main sheet is the metric sheet
@@ -139,8 +139,8 @@ def save_all_stats(all_stats, model_name, recording_dict):
 
     pred_df_final = final_df.drop(columns=["true_label", "recording_identifier"], errors='ignore')
     save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs'
-    pred_df_final.to_csv(f"{save_path}/02_train_pred.csv", index=False)
-    real_df_final.to_csv(f"{save_path}/02_train_label.csv", index=False)
+    pred_df_final.to_excel(f"{save_path}/02_train_pred.xlsx", index=False)
+    real_df_final.to_excel(f"{save_path}/02_train_label.xlsx", index=False)
 
     print(f"--- All results and recordings saved to: {file_path} ---")
 def create_folder_for_saving(split_name):
