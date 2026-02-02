@@ -94,7 +94,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig()):
     for window_model in window_models:
         trained_second_models[window_model] = {}
         ## ==================================== Wrapper Feature Selection ==================================== ##
-        selected_feats = load_cache(
+        [selected_feats,_] = load_cache(
             f"select_features_{window_model}.pkl",
             lambda: select_features(X_train, y_train, models_hp_for_wrapper[window_model], split_by_group_flag=True),
             force_recompute=recompute_functions.select_features,

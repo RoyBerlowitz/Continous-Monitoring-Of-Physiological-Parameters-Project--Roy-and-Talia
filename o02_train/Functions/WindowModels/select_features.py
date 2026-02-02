@@ -121,7 +121,7 @@ def select_features_wrapper(train_df, train_labels, frozen_params,
     print(f"--- Best PRC Score: {max(means):.4f} ---")
     print(f"--- Results saved to: {file_name} ---")
 
-    return chosen_features
+    return chosen_features, n_optimal
 
     """ THIS is THE FORMER IMPLEMENTATION OF RFE IF THE NEW ONE WILL BE WORSE"""
     # print(f"Starting Wrapper Comparison for {split_name} with {model_type}...")

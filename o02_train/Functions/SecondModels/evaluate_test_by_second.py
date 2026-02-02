@@ -1,10 +1,11 @@
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import os
 import re
 
 from .window_timing_translator_preprocessing import apply_smoothing
-from .markov_model import compute_llr_from_hmm,prepare_data_for_hmm
+from .markov_model import prepare_data_for_hmm
 from .timing_classifying_without_model import print_metrics_table
 from ..consts import SecondModelNames
 
@@ -86,8 +87,8 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classi
 def save_all_stats(all_stats, model_name, recording_dict):
     # this function meant to save the results
     # creation of the folder and the path
-    folder_name = create_folder_for_saving(model_name)
-    file_path = f"{folder_name}/model_results.xlsx"
+    # folder_name = create_folder_for_saving(model_name)
+    file_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs' / f"{model_name}_model_results.xlsx"
 
     # the main df with the statistics
     df_main = pd.DataFrame.from_dict(all_stats, orient="index")
@@ -137,8 +138,9 @@ def save_all_stats(all_stats, model_name, recording_dict):
     real_df_final = final_df[cols_to_keep].copy()
 
     pred_df_final = final_df.drop(columns=["true_label", "recording_identifier"], errors='ignore')
-    pred_df_final.to_excel("02_train_pred.xslx", index=False)
-    real_df_final.to_excel("02_train_label", index=False)
+    save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs'
+    pred_df_final.to_excel(f"{save_path}/02_train_pred.xlsx", index=False)
+    real_df_final.to_excel(f"{save_path}/02_train_label.xlsx", index=False)
 
     print(f"--- All results and recordings saved to: {file_path} ---")
 def create_folder_for_saving(split_name):
