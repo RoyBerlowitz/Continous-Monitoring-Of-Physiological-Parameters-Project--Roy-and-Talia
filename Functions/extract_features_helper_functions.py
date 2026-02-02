@@ -11,6 +11,7 @@ from sklearn.model_selection import GroupShuffleSplit
 import os
 from sklearn.metrics import f1_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
+import random
 
 #from joblib import Parallel, delayed
 
@@ -886,7 +887,28 @@ def prepare_tensor_data(df, column_list):
     return torch.tensor(x_array, dtype=torch.float32)
 
 
-# --- MAIN FUNCTION ---
+def set_seed(seed=42):
+    """
+    מקבע את כל מקורות האקראיות כדי להבטיח שחזוריות מלאה.
+    כל הרצה תניב בדיוק את אותם משקולות ואותם פיצ'רים באותם אינדקסים.
+    """
+    random.seed(seed)
+    os.environ['PYTHONHASHSEED'] = str(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # אם משתמשים ב-Multi-GPU
+
+    # הגדרות קריטיות ל-CNN (Convolutions)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+    print(f"Random Seed set to {seed}")
+
+
+# --- שים את זה בשורה הראשונה של ה-Main שלך ---
+
+
 def get_cnn_embeddings(df,
                        target,
                        group_col,
@@ -904,7 +926,10 @@ def get_cnn_embeddings(df,
     # and the magnetometer had different sampling frequency  which would make its addition requires interpolation - so we gave up on this.
     # we use the  embedding values as features for our model
 
-    # first, we use GPU if available
+    # first, we use the set_seed function to make sure the weights always initated in the same manner
+    set_seed(42)
+
+    # we use GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mode_str = "Test" if test_flag else "Train"
     print(f"--- CNN Pipeline | Mode: {mode_str} | Device: {device} ---")
