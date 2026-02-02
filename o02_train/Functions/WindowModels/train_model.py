@@ -17,7 +17,6 @@ def choose_hyperparameters(train_df, labels, model=WindowModelNames.SVM, n_jobs 
     df_for_hyperparameters = copy.deepcopy(train_df)
     target = copy.deepcopy(labels)
     administrative_features = ['First second of the activity', 'Last second of the activity', 'Participant ID', 'Group number','Recording number', 'Protocol']
-    #!TODO change to group number +  participant ID. check all places where split by train happends. And in CNN
     group_indicator = df_for_hyperparameters['Group number'].astype(str) + "_" + df_for_hyperparameters['Participant ID'].astype(str)
     # we don't want the administrative features to be a part of the model, so we remove them from the hyperparameteres loop.
     df_for_hyperparameters = df_for_hyperparameters[[col for col in df_for_hyperparameters.columns if col not in administrative_features]]

@@ -30,7 +30,7 @@ def load_cache_2(cache_path, compute_fn, force_recompute=False, save=True):
     return result
 
 def resave_cache(cache_path, extension, data):
-    cache_path = os.path.join(f'./o02_{extension}/pkls', cache_path)
+    cache_path = os.path.join(f'o02_{extension}', 'pkls', cache_path)
     with open(cache_path, "wb") as f:
         pickle.dump(data, f)
 
