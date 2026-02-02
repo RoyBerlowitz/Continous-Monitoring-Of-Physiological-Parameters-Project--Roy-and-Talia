@@ -73,7 +73,6 @@ if __name__ == '__main__':
 
     #load all data, segment and extract features BEFORE the train test split so they will not need to be recalced each time
     grps = ['15A', '27A', '31A', '42A', '58A', '64A', '79A', '93A', '15B', '27B', '31B', '42B', '58B', '64B', '79B', '93B']
-    test_grp = '42B'# grps[0]
 
     for test_grp in grps:
         test_grp_num = test_grp[0:2]
@@ -105,7 +104,6 @@ if __name__ == '__main__':
             )
             print('\033[32mFeature extraction completed\033[0m')
 
-            #
             #Split train & test
             #save pickles into 02_trian and 02_test folder pkls
             #data_files

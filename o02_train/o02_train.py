@@ -48,9 +48,6 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     )
     print('\033[32mFeature extraction completed\033[0m')
 
-    #!TODO remove
-    y_train = y_train[0:123162]
-
     # ## ==================================== CNN Embedding ==================================== ##
     columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
     group_indicator = X_train['Group number'].astype(str) + "_" + X_train['Participant ID'].astype(str)

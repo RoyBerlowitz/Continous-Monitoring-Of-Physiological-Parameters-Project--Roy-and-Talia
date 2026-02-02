@@ -48,12 +48,6 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     )
     print('\033[32mFeature extraction completed\033[0m')
 
-    mask42 = X_features['Participant ID'] != 'A'
-    X_features = X_features[mask42]
-    # y_train = y_train[mask42]
-
-    #!TODO
-
     # ## ==================================== CNN Embedding ==================================== ##
     columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
     group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
