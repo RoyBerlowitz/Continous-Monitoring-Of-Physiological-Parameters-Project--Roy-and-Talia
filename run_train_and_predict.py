@@ -111,8 +111,8 @@ if __name__ == '__main__':
             #data_files
             data_files_80 = {k: v for k, v in data_files.items() if (k.split('_')[0] != test_grp_num or (k.split('_')[0] == test_grp_num and k.split('_')[2] != test_grp_id))}
             data_files_20 = {k: v for k, v in data_files.items() if (k.split('_')[0] == test_grp_num and k.split('_')[2] == test_grp_id)}
-            resave_cache("load_data.pkl",'train',data_files_80)
-            resave_cache("load_data.pkl",'test',data_files_20)
+            # resave_cache("load_data.pkl",'train',data_files_80)
+            # resave_cache("load_data.pkl",'test',data_files_20)
             # segmentation
             test_mask = (X_matrix['Group number'] == test_grp_num) & (X_matrix['Participant ID'] == test_grp_id)
             X_train = X_matrix.loc[~test_mask].copy()
@@ -123,8 +123,8 @@ if __name__ == '__main__':
             mask = X_test['Protocol'] != 1
             X_test = X_test[mask]
             y_test = y_test[mask]
-            resave_cache("segment_signal.pkl", 'train', [X_train, y_train])
-            resave_cache("segment_signal.pkl", 'test', [X_test, y_test])
+            # resave_cache("segment_signal.pkl", 'train', [X_train, y_train])
+            # resave_cache("segment_signal.pkl", 'test', [X_test, y_test])
             # # X_features
             test_mask = (X_features['Group number'] == test_grp_num) & (X_features['Participant ID'] == test_grp_id)
             X_train_feats = X_features.loc[~test_mask].copy()
@@ -132,8 +132,8 @@ if __name__ == '__main__':
             #remove protocol from test
             mask = X_test_feats['Protocol'] != 1
             X_test_feats = X_test_feats[mask]
-            resave_cache("extract_features.pkl", 'train', X_train_feats)
-            resave_cache("extract_features.pkl", 'test', X_test_feats)
+            # resave_cache("extract_features.pkl", 'train', X_train_feats)
+            # resave_cache("extract_features.pkl", 'test', X_test_feats)
 
         print(f'\033[34mStarting on train ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -150,7 +150,8 @@ if __name__ == '__main__':
                     train_second_model=True,
                     evaluate_models=True,
                 )
-        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
+        #gave it X,y datafiles directly so will run faster
+        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, data_files=data_files_80, X_train=X_train, y_train=y_train)
 
         print(f'\033[34mStarting on test ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -167,6 +168,6 @@ if __name__ == '__main__':
             # train_second_model=False,
             # evaluate_models=False,
         )
-        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features)
+        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features, data_files=data_files_20, X_test=X_test,y_test=y_test)
 
         copy_all_model_outputs(test_grp)

@@ -3,7 +3,7 @@ import time
 
 from .Functions import *
 informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
-def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), informative_features =informative_features , group_name='02'):
+def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), informative_features =informative_features , group_name='02', data_files=None, X_test=None, y_test=None):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
@@ -15,39 +15,41 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ## ========================================================================================================== ##
     ##                                               PREPROCESSING                                                ##
     ## ========================================================================================================== ##
+    if data_files is None and X_test is None and y_test is None:
+        print('Test getting data from pkls')
+        ## ==================================== Load Data ==================================== ##
+        data_path = Path(__file__).resolve().parent.parent / "data"
+        data_files = load_cache(
+            "load_data.pkl",
+            lambda: load_data(data_path),
+            force_recompute=recompute_functions.load_data,
+            save=save_cache
+        )
+        print('\033[32mData loaded\033[0m')
 
-    ## ==================================== Load Data ==================================== ##
-    data_path = Path(__file__).resolve().parent.parent / "data"
-    data_files = load_cache(
-        "load_data.pkl",
-        lambda: load_data(data_path),
-        force_recompute=recompute_functions.load_data,
-        save=save_cache
-    )
-    print('\033[32mData loaded\033[0m')
+        ## ==================================== Segmentation ==================================== ##
+        X_matrix, y_test = load_cache(
+            "segment_signal.pkl",
+            lambda: segment_signal(7, 0.25 * 7, data_files), #params were chosen in Part A by maximizing MU
+            force_recompute=recompute_functions.segment_signal,
+            save=save_cache
+        )
+        print('\033[32mSegmentation completed\033[0m')
 
-    ## ==================================== Segmentation ==================================== ##
-    X_matrix, y_test = load_cache(
-        "segment_signal.pkl",
-        lambda: segment_signal(7, 0.25 * 7, data_files), #params were chosen in Part A by maximizing MU
-        force_recompute=recompute_functions.segment_signal,
-        save=save_cache
-    )
-    print('\033[32mSegmentation completed\033[0m')
+        ## ========================================================================================================== ##
+        ##                                                FEATURES                                                    ##
+        ## ========================================================================================================== ##
 
-    ## ========================================================================================================== ##
-    ##                                                FEATURES                                                    ##
-    ## ========================================================================================================== ##
-
-    ## ==================================== Feature Extraction ==================================== ##
-    X_test = load_cache(
-        "extract_features.pkl",
-        lambda: extract_features(X_matrix, data_files),
-        force_recompute=recompute_functions.extract_features,
-        save=save_cache
-    )
-    print('\033[32mFeature extraction completed\033[0m')
-
+        ## ==================================== Feature Extraction ==================================== ##
+        X_test = load_cache(
+            "extract_features.pkl",
+            lambda: extract_features(X_matrix, data_files),
+            force_recompute=recompute_functions.extract_features,
+            save=save_cache
+        )
+        print('\033[32mFeature extraction completed\033[0m')
+    else:
+        print('Test Getting data from func params')
     # ## ==================================== CNN Embedding ==================================== ##
     #informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
     #informative_features = [ 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']

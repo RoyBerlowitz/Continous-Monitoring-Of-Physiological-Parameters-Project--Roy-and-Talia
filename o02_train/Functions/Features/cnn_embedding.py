@@ -34,7 +34,7 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_nam
                                'Participant ID', 'Group number', 'Recording number', 'Protocol']
     if not test_flag:
         #save model into test folder pkls
-        model_path_test = Path(__file__).resolve().parent.parent.parent.parent / "o02_test" / "pkls" / f'{group_name}cnn_train_weights.pth'
+        model_path_test = Path(__file__).resolve().parent.parent.parent.parent / "o02_test" / "run_outputs" / f'{group_name}cnn_train_weights.pth'
         shutil.copy2(model_path, model_path_test)
         print(f"Copied from {model_path} to {model_path_test}")
         # we activate it only if we are not in test, to avoid choosing based on test
