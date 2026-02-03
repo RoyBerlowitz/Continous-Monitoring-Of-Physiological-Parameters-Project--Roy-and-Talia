@@ -151,7 +151,7 @@ if __name__ == '__main__':
                     evaluate_models=True,
                 )
         #gave it X,y datafiles directly so will run faster
-        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, data_files=data_files_80, X_train=X_train, y_train=y_train)
+        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, data_files=data_files_80, X_train=X_train_feats, y_train=y_train)
 
         print(f'\033[34mStarting on test ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -168,6 +168,6 @@ if __name__ == '__main__':
             # train_second_model=False,
             # evaluate_models=False,
         )
-        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features, data_files=data_files_20, X_test=X_test,y_test=y_test)
+        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features, data_files=data_files_20, X_test=X_test_feats,y_test=y_test)
 
         copy_all_model_outputs(test_grp)
