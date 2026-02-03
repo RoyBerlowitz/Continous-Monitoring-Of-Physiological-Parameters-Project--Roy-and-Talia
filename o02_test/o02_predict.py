@@ -57,7 +57,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
                             'Gyro_Y-AXIS_velocity_median', 'Acc_X-AXIS_velocity_median', 'Gyro_X_Z_CORR', 'cnn_emb_8']
     X_test = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding(X_test, y_test, informative_features, group_name, test_flag=True),
+        lambda: cnn_embedding_full_workflow(X_test, y_test, informative_features, group_name, test_flag=True),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
