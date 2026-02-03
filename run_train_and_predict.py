@@ -140,17 +140,17 @@ if __name__ == '__main__':
                     load_data=False,
                     segment_signal=False,
                     extract_features=False,
-                    feature_normalization=False,
-                    cnn_embedding=False,
+                    feature_normalization=True,
+                    cnn_embedding=True,
                     vet_features=False,
-                    select_features=False,
-                    choose_hyperparameters=False,
-                    train_window_model=False,
-                    create_test_time_df=False,
-                    train_second_model=False,
-                    evaluate_models=False,
+                    select_features=True,
+                    choose_hyperparameters=True,
+                    train_window_model=True,
+                    create_test_time_df=True,
+                    train_second_model=True,
+                    evaluate_models=True,
                 )
-        run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
+        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
 
         print(f'\033[34mStarting on test ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -167,6 +167,6 @@ if __name__ == '__main__':
             # train_second_model=False,
             # evaluate_models=False,
         )
-        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp)
+        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features)
 
         copy_all_model_outputs(test_grp)

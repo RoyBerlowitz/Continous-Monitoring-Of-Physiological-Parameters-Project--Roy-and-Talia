@@ -7,8 +7,8 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
-    window_models = [WindowModelNames.XGBOOST] #talia
-    # window_models = [WindowModelNames.RANDOM_FOREST] #roee
+    #window_models = [WindowModelNames.XGBOOST] #talia
+    window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
     second_models = [SecondModelNames.NO_MODEL, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
 
@@ -49,15 +49,16 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     print('\033[32mFeature extraction completed\033[0m')
 
     # ## ==================================== CNN Embedding ==================================== ##
-    informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
-    X_train = load_cache(
+    #informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
+    informative_features = [ 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
+    X_train, chosen_features = load_cache(
         "cnn_embedding.pkl",
         lambda: cnn_embedding_full_workflow(X_train, y_train, informative_features, group_name),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
-
+    print(chosen_features)
     ## ==================================== Normalization ==================================== ##
     [X_train, scaler] = load_cache(
         "feature_normalization.pkl",
@@ -167,7 +168,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")
 
-    return
+    return chosen_features
 
 # ========================================================= Run =========================================================
 # if __name__ == "__main__":

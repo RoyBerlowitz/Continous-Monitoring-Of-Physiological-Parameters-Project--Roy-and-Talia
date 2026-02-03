@@ -50,7 +50,7 @@ def find_best_features_to_label_combination (X_train, Y_train, administrative_fe
     #This function tries to find the 40 or less best features by using a filter method with the CFS metric.
     #It takes as an input X_train, which is the matrix that contains the data and the features
     #It also receives Y_train which gives the labels for each window.
-    # N is the number of features we want to find and keep at the matrix
+    # N is the maximal number of features we want to find and keep at the matrix
     candidate_columns = X_train.columns
     #We are removing the administrative columns, as we don't want the model to classify based on them - the exact features_names initialized in the vet_features functions.
     candidate_columns = [

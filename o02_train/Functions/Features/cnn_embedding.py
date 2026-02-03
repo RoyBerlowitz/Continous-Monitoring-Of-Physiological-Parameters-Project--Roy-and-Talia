@@ -2,6 +2,7 @@ from pathlib import Path
 import shutil
 
 from .extract_features_helper_functions import get_cnn_embeddings
+from .vet_features import  find_best_features_to_label_combination
 
 def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_name='', test_flag=False):
     # creating an embedder
@@ -29,21 +30,25 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_nam
                                   num_epochs=30,
                                   dropout=0.3,
                                   )
-
+    administrative_features = ['First second of the activity', 'Last second of the activity',
+                               'Participant ID', 'Group number', 'Recording number', 'Protocol']
     if not test_flag:
         #save model into test folder pkls
         model_path_test = Path(__file__).resolve().parent.parent.parent.parent / "o02_test" / "pkls" / f'{group_name}cnn_train_weights.pth'
         shutil.copy2(model_path, model_path_test)
         print(f"Copied from {model_path} to {model_path_test}")
+        # we activate it only if we are not in test, to avoid choosing based on test
+        emb_columns_for_vetting = [f"cnn_emb_{i}" for i in range(16)]
+        df_for_vetting = X_matrix[emb_columns_for_vetting]
+        best_emb_features, _ = find_best_features_to_label_combination(df_for_vetting, y_vec, administrative_features,
+                                                                       more_prints=True, N=4, K=10, threshold=0.8)
+
+        for feature in best_emb_features:
+            informative_features.append(feature)
 
     # getting rid of the columns with the vectors of values
     X_matrix = X_matrix.drop(labels=columns_names, axis=1)
 
-    administrative_features = ['First second of the activity', 'Last second of the activity',
-                               'Participant ID', 'Group number', 'Recording number', 'Protocol']
-
-    selected_feats = informative_features + administrative_features
-    columns_to_keep = [c in X_matrix.columns for c in selected_feats]
-    X_matrix = X_matrix[columns_to_keep]
-
-    return X_matrix
+    valid_columns = [c for c in informative_features + administrative_features if c in X_matrix.columns]
+    X_matrix = X_matrix[valid_columns]
+    return X_matrix, informative_features
