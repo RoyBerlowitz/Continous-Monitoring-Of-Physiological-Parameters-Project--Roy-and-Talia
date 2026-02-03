@@ -48,7 +48,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     )
     print('\033[32mFeature extraction completed\033[0m')
 
-    # ## ==================================== CNN Embedding ==================================== ##
+    ## ==================================== CNN Embedding ==================================== ##
     informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency',
                             'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_X-AXIS_CUSUM-_Feature',
                             'Acc_SM_frequency_centroid', 'Gyro_SM_velocity_median', 'Mag_MEAN_AXES_CORR',
@@ -62,6 +62,8 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
+    # valid_columns = [c for c in informative_features + admin_features if c in X_train.columns]
+    # X_train = X_train[valid_columns]
 
     ## ==================================== Normalization ==================================== ##
     [X_train, scaler] = load_cache(
