@@ -15,7 +15,8 @@ def aggregate_run_outputs(
         target_run=None,
         exclude_model_rows=False,
         include_train=False,
-        include_hyperparams=True
+        include_hyperparams=True,
+        grouplen=None,
 ):
     """
     Aggregates Test results, (optional) Train results, and (optional) Hyperparameter pickles.
@@ -34,7 +35,8 @@ def aggregate_run_outputs(
                 run_list.append({
                     'path': entry,
                     'group': match.group('group'),
-                    'run_num': int(match.group('run'))
+                    'run_num': int(match.group('run')),
+                    'grouplen': len(str(match.group('group')))
                 })
 
     if not run_list:
@@ -49,6 +51,9 @@ def aggregate_run_outputs(
         if target_run is None:
             raise ValueError("Target run number required for 'specific' mode.")
         df_runs = df_runs[df_runs['run_num'] == int(target_run)]
+
+    if grouplen:
+        df_runs = df_runs[df_runs['grouplen'] == int(grouplen)]
 
     # 3. Process Excel and Pickle Files
     excel_name = f"{model_name}_second_model_evaluate_res.xlsx"
@@ -109,4 +114,6 @@ def aggregate_run_outputs(
 if __name__ == "__main__":
     full_run_model_outputs_path = Path(__file__).resolve().parent / "full_run_model_outputs"
     window_model = WindowModelNames.XGBOOST
-    aggregate_run_outputs(full_run_model_outputs_path, window_model, exclude_model_rows=True)#, target_run=1, mode='specific' )
+    grouplen = 2 #2=big groups 3=individual None=all
+    print(f'Running for model {window_model} and group name length of {grouplen}')
+    aggregate_run_outputs(full_run_model_outputs_path, window_model, exclude_model_rows=True, grouplen=grouplen)#, target_run=1, mode='specific' )
