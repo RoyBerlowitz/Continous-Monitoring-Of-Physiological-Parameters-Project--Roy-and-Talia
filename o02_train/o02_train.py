@@ -7,8 +7,8 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
-    window_models = [WindowModelNames.XGBOOST] #talia
-    # window_models = [WindowModelNames.RANDOM_FOREST] #roee
+    #window_models = [WindowModelNames.XGBOOST] #talia
+    window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
     second_models = [SecondModelNames.NO_MODEL, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
 
@@ -116,7 +116,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         ## ==================================== Choose Best HP For Window Models ==================================== ##
         model_best_hp = load_cache(
             f"choose_hyperparameters_{window_model}.pkl",
-            lambda: choose_hyperparameters(X_selected, y_train, window_model, split_by_group_flag=True),
+            lambda: choose_hyperparameters(X_selected, y_train, window_model, n_iterations=20, split_by_group_flag=True),
             force_recompute=recompute_functions.choose_hyperparameters,
             save=save_cache
         )
