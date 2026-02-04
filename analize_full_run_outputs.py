@@ -90,6 +90,7 @@ def aggregate_run_outputs(
                     pkl_data.append(temp_df)
 
     # 4. Final Exports
+    metrics = ["precision", "specificity", "sensitivity", "accuracy", "f1_score", "cohen_kappa",]
     results = []
     now = datetime.now()
     formatted_time = now.strftime("%m-%d_%Hh%Mm%Ssec")
@@ -97,12 +98,24 @@ def aggregate_run_outputs(
     os.makedirs(folder_path, exist_ok=True)
 
     if test_dfs:
-        pd.concat(test_dfs, ignore_index=True).to_excel(f"{folder_path}/agg_test_{mode}_{formatted_time}.xlsx", index=False)
+        test_dfs = pd.concat(test_dfs, ignore_index=True)
+        test_dfs.to_excel(f"{folder_path}/agg_test_{mode}_{formatted_time}.xlsx", index=False)
         results.append("Test Excel created")
 
+        summary_df = (test_dfs.groupby("model_name")[metrics].agg(["mean", "std"]))
+        summary_df.columns = [f"{metric}_{stat}" for metric, stat in summary_df.columns]
+        summary_df.to_excel(f"{folder_path}/metrics_test_{mode}_{formatted_time}.xlsx")
+        results.append("Test metrics Excel created")
+
     if train_dfs:
-        pd.concat(train_dfs, ignore_index=True).to_excel(f"{folder_path}/agg_train_{mode}_{formatted_time}.xlsx", index=False)
+        train_dfs = pd.concat(train_dfs, ignore_index=True)
+        train_dfs.to_excel(f"{folder_path}/agg_train_{mode}_{formatted_time}.xlsx", index=False)
         results.append("Train Excel created")
+
+        summary_df = (train_dfs.groupby("model_name")[metrics].agg(["mean", "std"]))
+        summary_df.columns = [f"{metric}_{stat}" for metric, stat in summary_df.columns]
+        summary_df.to_excel(f"{folder_path}/metrics_train_{mode}_{formatted_time}.xlsx")
+        results.append("Train metrics Excel created")
 
     if pkl_data:
         pd.concat(pkl_data, ignore_index=True).to_excel(f"{folder_path}/agg_hyperparams_{mode}_{formatted_time}.xlsx", index=False)
