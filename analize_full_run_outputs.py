@@ -114,4 +114,6 @@ def aggregate_run_outputs(
 if __name__ == "__main__":
     full_run_model_outputs_path = Path(__file__).resolve().parent / "full_run_model_outputs"
     window_model = WindowModelNames.XGBOOST
-    aggregate_run_outputs(full_run_model_outputs_path, window_model, exclude_model_rows=True, target_run=1, mode='specific', grouplen=2 )
+    grouplen = 2 #2=big groups 3=individual None=all
+    print(f'Running for model {window_model} and group name length of {grouplen}')
+    aggregate_run_outputs(full_run_model_outputs_path, window_model, exclude_model_rows=True, grouplen=grouplen)#, target_run=1, mode='specific' )

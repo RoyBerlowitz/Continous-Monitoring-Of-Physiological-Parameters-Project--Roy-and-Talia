@@ -71,8 +71,13 @@ def copy_all_model_outputs(group_name):
 
 if __name__ == '__main__':
 
+    split_to_big_groups = True
+
     #load all data, segment and extract features BEFORE the train test split so they will not need to be recalced each time
     grps = ['15A', '27A', '31A', '42A', '58A', '64A', '79A', '93A', '15B', '27B', '31B', '42B', '58B', '64B', '79B', '93B']
+    grp_grps = ['15', '27', '31', '42', '58', '64', '79', '93']
+    if split_to_big_groups:
+        grps = grp_grps
 
     data_path = Path(__file__).resolve().parent / "data"
     data_files = load_cache_2(
@@ -97,8 +102,9 @@ if __name__ == '__main__':
     print('\033[32mFeature extraction completed\033[0m')
 
     for test_grp in grps:
-        test_grp_num = test_grp[0:2]
-        test_grp_id = test_grp[2]
+        if not split_to_big_groups:
+            test_grp_num = test_grp[0:2]
+            test_grp_id = test_grp[2]
         print(f'Test groups is: {test_grp}')
 
         resplit = True
@@ -109,31 +115,58 @@ if __name__ == '__main__':
             #Split train & test
             #save pickles into 02_trian and 02_test folder pkls
             #data_files
-            data_files_80 = {k: v for k, v in data_files.items() if (k.split('_')[0] != test_grp_num or (k.split('_')[0] == test_grp_num and k.split('_')[2] != test_grp_id))}
-            data_files_20 = {k: v for k, v in data_files.items() if (k.split('_')[0] == test_grp_num and k.split('_')[2] == test_grp_id)}
-            # resave_cache("load_data.pkl",'train',data_files_80)
-            # resave_cache("load_data.pkl",'test',data_files_20)
-            # segmentation
-            test_mask = (X_matrix['Group number'] == test_grp_num) & (X_matrix['Participant ID'] == test_grp_id)
-            X_train = X_matrix.loc[~test_mask].copy()
-            y_train = y_vec.loc[~test_mask].copy()
-            X_test = X_matrix.loc[test_mask].copy()
-            y_test = y_vec.loc[test_mask].copy()
-            # remove protocol from test
-            mask = X_test['Protocol'] != 1
-            X_test = X_test[mask]
-            y_test = y_test[mask]
-            # resave_cache("segment_signal.pkl", 'train', [X_train, y_train])
-            # resave_cache("segment_signal.pkl", 'test', [X_test, y_test])
-            # # X_features
-            test_mask = (X_features['Group number'] == test_grp_num) & (X_features['Participant ID'] == test_grp_id)
-            X_train_feats = X_features.loc[~test_mask].copy()
-            X_test_feats = X_features.loc[test_mask].copy()
-            #remove protocol from test
-            mask = X_test_feats['Protocol'] != 1
-            X_test_feats = X_test_feats[mask]
-            # resave_cache("extract_features.pkl", 'train', X_train_feats)
-            # resave_cache("extract_features.pkl", 'test', X_test_feats)
+            if split_to_big_groups:
+                data_files_80 = {k: v for k, v in data_files.items() if k.split('_')[0] != test_grp}
+                data_files_20 = {k: v for k, v in data_files.items() if k.split('_')[0] == test_grp}
+                # resave_cache("load_data.pkl",'train',data_files_80)
+                # resave_cache("load_data.pkl",'test',data_files_20)
+                # segmentation
+                test_mask = X_matrix['Group number'] == test_grp
+                X_train = X_matrix.loc[~test_mask].copy()
+                y_train = y_vec.loc[~test_mask].copy()
+                X_test = X_matrix.loc[test_mask].copy()
+                y_test = y_vec.loc[test_mask].copy()
+                # remove protocol from test
+                mask = X_test['Protocol'] != 1
+                X_test = X_test[mask]
+                y_test = y_test[mask]
+                # resave_cache("segment_signal.pkl", 'train', [X_train, y_train])
+                # resave_cache("segment_signal.pkl", 'test', [X_test, y_test])
+                # # X_features
+                test_mask = X_features['Group number'] == test_grp
+                X_train_feats = X_features.loc[~test_mask].copy()
+                X_test_feats = X_features.loc[test_mask].copy()
+                # remove protocol from test
+                mask = X_test_feats['Protocol'] != 1
+                X_test_feats = X_test_feats[mask]
+                # resave_cache("extract_features.pkl", 'train', X_train_feats)
+                # resave_cache("extract_features.pkl", 'test', X_test_feats)
+            else:
+                data_files_80 = {k: v for k, v in data_files.items() if (k.split('_')[0] != test_grp_num or (k.split('_')[0] == test_grp_num and k.split('_')[2] != test_grp_id))}
+                data_files_20 = {k: v for k, v in data_files.items() if (k.split('_')[0] == test_grp_num and k.split('_')[2] == test_grp_id)}
+                # resave_cache("load_data.pkl",'train',data_files_80)
+                # resave_cache("load_data.pkl",'test',data_files_20)
+                # segmentation
+                test_mask = (X_matrix['Group number'] == test_grp_num) & (X_matrix['Participant ID'] == test_grp_id)
+                X_train = X_matrix.loc[~test_mask].copy()
+                y_train = y_vec.loc[~test_mask].copy()
+                X_test = X_matrix.loc[test_mask].copy()
+                y_test = y_vec.loc[test_mask].copy()
+                # remove protocol from test
+                mask = X_test['Protocol'] != 1
+                X_test = X_test[mask]
+                y_test = y_test[mask]
+                # resave_cache("segment_signal.pkl", 'train', [X_train, y_train])
+                # resave_cache("segment_signal.pkl", 'test', [X_test, y_test])
+                # # X_features
+                test_mask = (X_features['Group number'] == test_grp_num) & (X_features['Participant ID'] == test_grp_id)
+                X_train_feats = X_features.loc[~test_mask].copy()
+                X_test_feats = X_features.loc[test_mask].copy()
+                #remove protocol from test
+                mask = X_test_feats['Protocol'] != 1
+                X_test_feats = X_test_feats[mask]
+                # resave_cache("extract_features.pkl", 'train', X_train_feats)
+                # resave_cache("extract_features.pkl", 'test', X_test_feats)
 
         print(f'\033[34mStarting on train ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -151,7 +184,7 @@ if __name__ == '__main__':
                     evaluate_models=True,
                 )
         #gave it X,y datafiles directly so will run faster
-        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, data_files=data_files_80, X_train=X_train, y_train=y_train)
+        chosen_features = run_train(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, data_files=data_files_80, X_train=X_train_feats, y_train=y_train)
 
         print(f'\033[34mStarting on test ==========================================\033[0m')
         recompute_functions = RecomputeFunctionsConfig(
@@ -168,6 +201,6 @@ if __name__ == '__main__':
             # train_second_model=False,
             # evaluate_models=False,
         )
-        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features, data_files=data_files_20, X_test=X_test,y_test=y_test)
+        run_predict(save_cache=True, recompute_functions=recompute_functions, group_name=test_grp, informative_features=chosen_features, data_files=data_files_20, X_test=X_test_feats,y_test=y_test)
 
         copy_all_model_outputs(test_grp)
