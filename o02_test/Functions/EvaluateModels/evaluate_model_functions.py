@@ -371,8 +371,8 @@ def save_second_model_stats(model_stats, window_model_name):
 
     for model_name in model_stats:
         if model_name == SecondModelNames.NO_MODEL:
-            #d = model_stats[model_name]['test_no_smoothing']
-            #d['model_name'] = 'no_smoothing'
+            d = model_stats[model_name]['test_no_smoothing']
+            d['model_name'] = 'no_smoothing'
             rows_to_save.append(d)
             d = model_stats[model_name]['test_with_smoothing']
             d['model_name'] = 'with_smoothing'

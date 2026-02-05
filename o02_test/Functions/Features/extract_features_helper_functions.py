@@ -13,7 +13,7 @@ from sklearn.metrics import f1_score
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from scipy.stats import entropy
 
-from .train_cnn import embedder_cnn, train_one_epoch
+from Functions.train_cnn import embedder_cnn, train_one_epoch
 #from joblib import Parallel, delayed
 
 ##-------Part B: Feature Extraction - Helper Functions-------

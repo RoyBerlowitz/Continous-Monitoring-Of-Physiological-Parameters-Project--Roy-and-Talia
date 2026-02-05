@@ -34,20 +34,22 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
     # we look for the parameters that will award us with the best combination between good prediction and no overfitting.
     # all the parameters are randomly chosen as integers from a declined range
 
-    params_ranges = {'Random_Forest__n_estimators': randint(100, 500),
-                     # how many trees in the ensemble give us the best result
-                     'Random_Forest__max_depth': randint(10, 41),
-                     # we look for the best depth, and limit the depth to prevent overfitting
-                     'Random_Forest__min_samples_split': randint(20, 100),
-                     # the minimal amount of sample to split - to prevent overfitting while catching the data patterns
-                     'Random_Forest__max_samples': uniform(0.5, 0.4),
-                     # max sample determine which percent of the data will be transmitted to each tree
-                     'Random_Forest__min_samples_leaf': randint(10, 100),
-                     # the minimal amount of sample in final leave - to prevent overfitting while catching the data patterns
-                     'Random_Forest__class_weight': ['balanced', 'balanced_subsample']
-                     # class weight is examined to be between balanced_subsample and balanced which to under the level of balance we should create in the model
-                     }
+    # params_ranges = {'Random_Forest__n_estimators': randint(100, 500), #how many trees in the ensemble give us the best result
+    #                  'Random_Forest__max_depth': randint(10, 41), # we look for the best depth, and limit the depth to prevent overfitting
+    #                  'Random_Forest__min_samples_split': randint(20, 100), #the minimal amount of sample to split - to prevent overfitting while catching the data patterns
+    #                  'Random_Forest__max_samples': uniform(0.5, 0.4), #max sample determine which percent of the data will be transmitted to each tree
+    #                  'Random_Forest__min_samples_leaf': randint(10, 100), #the minimal amount of sample in final leave - to prevent overfitting while catching the data patterns
+    #                  'Random_Forest__class_weight': ['balanced', 'balanced_subsample']     # class weight is examined to be between balanced_subsample and balanced which to under the level of balance we should create in the model
+    #                 }
 
+    params_ranges = {
+        'Random_Forest__n_estimators': [240, 280, 320, 360],  # Focused range around median 269
+        'Random_Forest__max_depth': [26, 28, 30, 32],  # Stable depth
+        'Random_Forest__min_samples_split': [30, 40, 50, 60],  # Precision-focused split
+        'Random_Forest__max_samples': [0.75, 0.78, 0.82],  # Optimal data fraction
+        'Random_Forest__min_samples_leaf': [15, 20, 25, 30],  # Smaller leaves for better precision
+        'Random_Forest__class_weight': ['balanced']  # The winner strategy
+    }
     # we add scoring metrics we will examine in the Excel.
     # we chose AUC, Accuracy, F1_score, PRC, specificity, precision, and sensitivity
     # We added also cohen's kappa as it is more informative regarding the bias of the model towards the majority group

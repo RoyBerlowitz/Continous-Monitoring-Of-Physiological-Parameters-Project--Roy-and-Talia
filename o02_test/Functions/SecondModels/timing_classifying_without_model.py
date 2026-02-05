@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import math
+from Functions_part_c.window_timing_translator_preprocessing import calculate_window_times
 from .choose_thresholds import get_threshold_median, get_absolute_threshold_raw, print_metrics_table
 from sklearn.metrics import f1_score, precision_recall_curve
 from scipy.ndimage import median_filter
@@ -120,60 +121,6 @@ def translate_prediction_into_time_point_prediction_with_weights (windows_df, we
     seconds_target = seconds_df['label']
     seconds_df = seconds_df.drop(columns=['label'])
     return seconds_df, seconds_target
-
-def translate_prediction_into_time_point_prediction_with_weights_no_label (windows_df, weight_flag = "Gaussian Weight" ):
-    #FUNC like above just for test when there arent the labels
-    # here, we take the actual data and translate it to seconds, with the matching weights
-    # we start by obtaining all the unique recording identifier, as this will be done on each ientifier seperately
-    recordings =  windows_df['recording_identifier'].unique()
-    # we will create a new df which is based on seconds instead of windows
-    seconds_df = []
-    # we iterate over all the recording
-    for recording in recordings:
-        # we obtain each recording data
-        recording_data = windows_df[windows_df['recording_identifier'] == recording]
-        # we go over all the complete seconds from the start to end of each recording
-        # recording_seconds = range(int(math.floor(recording_data['window_starting_point'].min())), int(math.floor(recording_data['window_ending_point'].max() + 1)))
-        recording_seconds = range(int(math.floor(recording_data['First second of the activity'].min())), int(math.floor(recording_data['Last second of the activity'].max() + 1)))
-        # creates a dict whose keys are the seconds and the assigned values are None
-        dict_of_sec_vals = dict.fromkeys(recording_seconds)
-
-        # we iterate over every row of the recording data, which in that context is a window
-        for index, row in recording_data.iterrows():
-            # we find the weights for each second in the window
-            # window_time_list = calculate_time_point_weights (row["window_times"], row['window_starting_point'], row['window_ending_point'], weights_method = weight_flag)
-            window_time_list = calculate_time_point_weights(row["window_times"], row['First second of the activity'], row['Last second of the activity'], weights_method = weight_flag)
-            # we get the probability which was already predicted by model
-            window_prob = row["window_probability"]
-            for sec_dict in window_time_list:
-                second = sec_dict["time_point"]
-                weight = sec_dict["weight"]
-                coverage = sec_dict["coverage"]
-                # if this is the first time we see this second - we create the dict
-                if dict_of_sec_vals[second] is None:
-                    dict_of_sec_vals[second] = {"contribution": 0, "weight": 0}
-                # the contribution is actually our numerator in the weighted average calculation.
-                # we add the weight times how much of the second was in the window, times the probability
-                dict_of_sec_vals[second]["contribution"] += weight * coverage * window_prob
-                # the contribution is actually our denominator in the weighted average calculation.
-                # we add the weight times how much of the second was in the window
-                dict_of_sec_vals[second]["weight"] += weight * coverage
-        # we go over the dict keys which is the seconds of the recording
-        for second in dict_of_sec_vals.keys():
-            # if we do not have information or window in the sec - we classify as zero, thus zero weight
-            if (second not in dict_of_sec_vals) or (not dict_of_sec_vals[second]) or (dict_of_sec_vals[second]["weight"] == 0):
-                weighted_prob = 0
-            else:
-                # for each second, we calculate the weighted average probabillity
-                weighted_prob = dict_of_sec_vals[second]["contribution"] / dict_of_sec_vals[second]["weight"]
-            # we add the data for each second
-            # seconds_df.append({"recording_identifier": recording,"second": second, "weighted_prob": weighted_prob, "label": label, 'Group number': row["Group number"]})
-            seconds_df.append({"recording_identifier": recording, "second": second, "weighted_prob": weighted_prob, 'Group number': recording_data["c"]})
-    # we obtain the seconds df and second target, and return it
-    seconds_df = pd.DataFrame(seconds_df)
-    # seconds_target = seconds_df['label']
-    # seconds_df = seconds_df.drop(columns=['label'])
-    return seconds_df #, seconds_target
 
 def train_for_decision (X_sec, y_sec, group_indicator, n_iteration =50, n_jobs = -1 ):
     # this function is intended to help find the optimal threshold, the best working point in regard of maximizing the F1 score.

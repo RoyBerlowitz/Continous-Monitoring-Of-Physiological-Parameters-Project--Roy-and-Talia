@@ -2,6 +2,7 @@ import pandas as pd
 import math
 import numpy as np
 
+from Functions_part_c.window_timing_translator_preprocessing import calculate_window_times
 from .timing_classifying_without_model import calculate_time_point_weights
 from .markov_model import prepare_data_for_hmm,train_supervised_hmm
 from .logistic_regression_model import train_logistic_regression, find_best_hp_logistic_regression

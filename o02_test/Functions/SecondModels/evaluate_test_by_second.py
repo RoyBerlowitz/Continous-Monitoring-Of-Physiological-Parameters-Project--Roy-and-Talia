@@ -37,45 +37,10 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
         recording_dict[recording] = smoothing_temp_df[smoothing_temp_df['recording_identifier'] == recording].copy()
 
     # we get the metrics for with and without smoothing
-    no_smoothing = print_metrics_table(y_test, pred_y_no_median_filter,"Metrics Table For Chosen Threshold Before Median Filtering - Validation")
-    with_smoothing = print_metrics_table(y_test, smoothed_prediction, "Metrics Table For Chosen Threshold After Median Filtering - Validation")
+    no_smoothing = print_metrics_table(y_test, pred_y_no_median_filter,"Metrics Table For Chosen Threshold Before Median Filtering TEST")
+    with_smoothing = print_metrics_table(y_test, smoothed_prediction, "Metrics Table For Chosen Threshold After Median Filtering TEST")
 
-    #chose smoothing
-    #return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
-    return {'test_with_smoothing': with_smoothing}, recording_dict
-
-
-def apply_median_on_test(X_test, threshold_no_median, threshold_with_median, filter_size):
-    # This function is meant to get the results for the model
-    y_probs = X_test["weighted_prob"]
-    # we compute the labels with the threshold found for the without-filtering scheme
-    pred_y_no_median_filter =  (y_probs >= threshold_no_median).astype(int)
-    # we compute the labels with the threshold found for the with-filtering scheme
-    pred_y_with_median_filter =  (y_probs >= threshold_with_median).astype(int)
-    smoothing_temp_df = pd.DataFrame({
-        'second': X_test['second'].values,
-        'recording_identifier': X_test['recording_identifier'].values,
-        'prediction': pred_y_with_median_filter,
-        'no_median_prediction': pred_y_no_median_filter,
-    })
-    # we preform the smoothing
-    res_df = apply_smoothing(smoothing_temp_df, filter_size)
-    csv_save_path = Path(__file__).resolve().parent.parent.parent
-
-    for recording_id, group in res_df.groupby("recording_identifier"):
-        out_df = group.copy()
-
-        out_df["Start"] = out_df["second"]
-        out_df["End"] = out_df["second"] + 1
-        out_df["Label"] = out_df["smoothed_prediction"]
-
-        out_df = out_df[["Start", "End", "Label"]]
-
-        out_df.to_csv(
-            f"{csv_save_path}/{recording_id}_pred.csv",
-            index=False
-        )
-    return res_df
+    return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
 
 def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classification_flag = SecondModelNames.LOGISTIC):
     # we get the results for the model
@@ -116,7 +81,7 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classi
         # we extract the per-second results
         recording_dict[recording] = result_df[result_df['recording_identifier'] == recording].copy()
     # these are the results of classification
-    results = print_metrics_table(y_test, predicted_y, f"Metrics Table For Chosen Threshold for {model_name}  - Validation")
+    results = print_metrics_table(y_test, predicted_y, f"Metrics Table For Chosen Threshold for {model_name}  - TEST")
     return results, recording_dict
 
 def save_all_stats(all_stats, model_name, recording_dict):
@@ -129,6 +94,8 @@ def save_all_stats(all_stats, model_name, recording_dict):
     df_main = pd.DataFrame.from_dict(all_stats, orient="index")
     df_main.index.name = "res_type"
 
+    #!TODO asdfadf
+    # למחוק שורה 100 ו-81 בהגשה הסופית, אבל לשמור על 80 במהלך ההגשות העד סופיות
     # we want to create several sheets, one with the metrics and others with the classification per second
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         # the main sheet is the metric sheet
@@ -155,15 +122,22 @@ def save_all_stats(all_stats, model_name, recording_dict):
 
         final_df = pd.concat(all_recordings_list, ignore_index=True)
 
+        #!TODO
+        # למחוק את החלק הזה בהגשה הסופית
+        cols_to_keep = [c for c in ["Start", "End", "true_label", "recording_identifier"] if c in final_df.columns]
+        real_df_final = final_df[cols_to_keep].copy()
 
+        pred_df_final = final_df.drop(columns=["true_label"], errors='ignore')
 
-    cols_to_keep = [c for c in ["Start", "End", "true_label", "recording_identifier"] if c in final_df.columns]
+        pred_df_final.to_excel(writer, sheet_name="02_train_pred", index=False)
+        real_df_final.to_excel(writer, sheet_name="02_train_label", index=False)
+
+    # להשתמש בגרסא הבאה להגשה
+    # !TODO csv
+    cols_to_keep = [c for c in ["Start", "End", "true_label"] if c in final_df.columns]
     real_df_final = final_df[cols_to_keep].copy()
-    real_df_final.rename(columns={'true_label': 'label'}, inplace=True)
 
-
-    pred_df_final = final_df.drop(columns=["true_label", "no_median_prediction"], errors='ignore')
-    real_df_final.rename(columns={'prediction': 'label'}, inplace=True)
+    pred_df_final = final_df.drop(columns=["true_label", "recording_identifier"], errors='ignore')
     save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs'
     pred_df_final.to_csv(f"{save_path}/02_train_pred.csv", index=False)
     real_df_final.to_csv(f"{save_path}/02_train_label.csv", index=False)

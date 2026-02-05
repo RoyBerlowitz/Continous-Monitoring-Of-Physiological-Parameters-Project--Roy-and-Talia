@@ -36,7 +36,6 @@ def load_pickle(cache_path):
         raise Exception("Cache file not found.")
 
 def save_pickle_to_test(data, cache_path):
-    cache_path = Path(__file__).resolve().parent.parent.parent / '02_test' / 'pkls' / cache_path
+    cache_path = Path(__file__).resolve().parent.parent.parent / 'o02_test' / 'pkls' / cache_path
     with open(cache_path, "wb") as f:
         pickle.dump(data, f)
-
