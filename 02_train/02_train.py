@@ -44,8 +44,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     )
     print('\033[32mFeature extraction completed\033[0m')
     print((X_train['Group number']+X_train['Participant ID']).unique()) #!TODO
-    print(X_train['Acc_SM_MAD'])
-    # return
+
     ## ==================================== CNN Embedding ==================================== ##
     X_train = load_cache(
         "cnn_embedding.pkl",
@@ -53,8 +52,6 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
-    print(X_train['Acc_SM_MAD'])
-    return
     print('\033[32mCNN embedding completed\033[0m')
 
     ## ==================================== Normalization ==================================== ##
