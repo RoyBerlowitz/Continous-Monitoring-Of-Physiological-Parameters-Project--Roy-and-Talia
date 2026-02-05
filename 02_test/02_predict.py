@@ -41,7 +41,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ## ==================================== Feature Extraction ==================================== ##
     X_test = load_cache(
         "extract_features.pkl",
-        lambda: extract_features(X_matrix, data_files),
+        lambda: extract_features(X_matrix, data_files, more_prints=True),
         force_recompute=recompute_functions.extract_features,
         save=save_cache
     )
@@ -55,6 +55,10 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
+
+    test_mask = (X_test['Group number'] == '31') & (X_matrix['Participant ID'] == 'A')
+
+    X_test = X_test.loc[~test_mask].copy()
 
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
@@ -72,7 +76,9 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     for window_model in window_models:
         model_stats = {}
         selected_feats = load_pickle(f"select_features_{window_model}_train.pkl")
-        X_test = X_test[selected_feats+admin_features]
+        features_to_keep = selected_feats+admin_features
+        features_to_keep.remove("Protocol")
+        X_test = X_test[features_to_keep]
         window_model_trained = load_pickle(f"train_window_model_{window_model}_train.pkl")
 
         X_test_seconds_dfs = load_cache(
@@ -101,17 +107,12 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
 if __name__ == "__main__":
 
     recompute_functions = RecomputeFunctionsConfig(
-        # load_data=False,
-        # segment_signal=False,
-        # extract_features=False,
-        # cnn_embedding=False,
-        # feature_normalization=False,
-        # vet_features=False,
-        # select_features=False,
-        # choose_hyperparameters=False,
-        # train_window_model=False,
-        # create_test_time_df=False,
-        # train_second_model=False,
-        # evaluate_models=False,
+        load_data=False,
+        segment_signal=False,
+        extract_features=False,
+        cnn_embedding=False,
+        feature_normalization=False,
+        create_test_time_df=True,
+        evaluate_models=True,
     )
     run_predict(save_cache=True, recompute_functions=recompute_functions)

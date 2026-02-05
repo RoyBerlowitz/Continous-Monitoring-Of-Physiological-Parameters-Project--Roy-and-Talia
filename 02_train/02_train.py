@@ -50,7 +50,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     ## ==================================== CNN Embedding ==================================== ##
     X_train = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding_full_workflow(X_train, y_train, group_name, test_flag=False),
+        lambda: cnn_embedding_full_workflow(X_train, y_train, group_name, test_flag=True),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
@@ -110,7 +110,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         ## ==================================== Train Window Models ==================================== ##
         trained_window_models[window_model], X_train_seconds_dfs[window_model] = load_cache(
             f"train_window_model_{window_model}.pkl",
-            lambda: train_window_model(X_selected, y_train, model_best_hp, window_model, split_by_group_flag=True),
+            lambda: train_window_model(X_selected, y_train, model_best_hp, window_model, split_by_group_flag=False),
             force_recompute=recompute_functions.train_window_model,
             save=save_cache
         )
@@ -131,29 +131,29 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
             save_pickle_to_test(trained_second_models[window_model][second_model], f"train_second_model_{window_model}_{second_model}_train.pkl")
             print(f'\033[32mFinished training second model: {window_model}-{second_model}\033[0m')
 
-    # # ========================================================================================================== ##
-    # #                                               EVALUATE MODELS                                              ##
-    # # ========================================================================================================== ##
-    # for window_model in window_models:
-    #     model_stats = {}
-    #     model_stats['window'] = load_cache(
-    #         f"evaluate_window_model_{window_model}.pkl",
-    #         lambda: evaluate_one_model(trained_window_models[window_model], window_model, X_selected, y_train),
-    #         force_recompute=recompute_functions.evaluate_models,
-    #         save=save_cache
-    #     )
-    #     print(f'\033[32mFinished evaluating model: {window_model}\033[0m')
-    #
-    #     for second_model in second_models:
-    #         model_stats[second_model] = load_cache(
-    #             f"evaluate_second_model_{window_model}_{second_model}.pkl",
-    #             lambda: prediction_by_second_test(X_train_seconds_dfs[window_model], data_files, window_model, trained_second_models[window_model][second_model], second_model),
-    #             force_recompute=recompute_functions.evaluate_models,
-    #             save=save_cache
-    #         )
-    #         print(f'\033[32mFinished evaluating second model: {window_model}-{second_model}\033[0m')
-    #
-    #     save_second_model_stats(model_stats, window_model)
+    # ========================================================================================================== ##
+    #                                               EVALUATE MODELS                                              ##
+    # ========================================================================================================== ##
+    for window_model in window_models:
+        model_stats = {}
+        model_stats['window'] = load_cache(
+            f"evaluate_window_model_{window_model}.pkl",
+            lambda: evaluate_one_model(trained_window_models[window_model], window_model, X_selected, y_train),
+            force_recompute=recompute_functions.evaluate_models,
+            save=save_cache
+        )
+        print(f'\033[32mFinished evaluating model: {window_model}\033[0m')
+
+        for second_model in second_models:
+            model_stats[second_model] = load_cache(
+                f"evaluate_second_model_{window_model}_{second_model}.pkl",
+                lambda: prediction_by_second_test(X_train_seconds_dfs[window_model], data_files, window_model, trained_second_models[window_model][second_model], second_model),
+                force_recompute=recompute_functions.evaluate_models,
+                save=save_cache
+            )
+            print(f'\033[32mFinished evaluating second model: {window_model}-{second_model}\033[0m')
+
+        save_second_model_stats(model_stats, window_model)
 
 
     end_time = time.time()
@@ -168,14 +168,14 @@ if __name__ == "__main__":
         load_data=False,
         segment_signal=False,
         extract_features=False,
-        # cnn_embedding=False,
-        # feature_normalization=False,
+        cnn_embedding=False,
+        feature_normalization=False,
         vet_features=False,
-        # select_features=False,
-        # choose_hyperparameters=False,
-        # train_window_model=False,
-        # create_test_time_df=False,
-        # train_second_model=False,
-        # evaluate_models=False,
+        select_features=False,
+        choose_hyperparameters=False,
+        train_window_model=False,
+        create_test_time_df=False,
+        train_second_model=True,
+        evaluate_models=True,
     )
     run_train(save_cache=True, recompute_functions=recompute_functions)
