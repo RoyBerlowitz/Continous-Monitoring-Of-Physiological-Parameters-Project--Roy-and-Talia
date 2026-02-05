@@ -42,7 +42,6 @@ def find_best_random_forrest_parameters (train_df, train_labels, group_indicator
                      'Random_Forest__class_weight': ['balanced', 'balanced_subsample']     # class weight is examined to be between balanced_subsample and balanced which to under the level of balance we should create in the model
                     }
 
-
     # we add scoring metrics we will examine in the Excel.
     # we chose AUC, Accuracy, F1_score, PRC, specificity, precision, and sensitivity
     # We added also cohen's kappa as it is more informative regarding the bias of the model towards the majority group

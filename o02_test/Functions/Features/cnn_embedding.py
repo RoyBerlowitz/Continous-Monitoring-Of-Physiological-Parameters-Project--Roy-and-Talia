@@ -11,11 +11,13 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_nam
 
     columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS',
                                    'Gyro_Z-AXIS']
-    # group indicator for the seperation of val and test
+
     group_indicator = X_matrix['Group number'].astype(str) + "_" + X_matrix['Participant ID'].astype(str)
-    # the path in which it will be saved
+
+    other_params = {"num_epochs":2} if test_flag else {"num_epochs":30,"dropout":0.25,"steps":8}
+
     model_path = Path(__file__).resolve().parent.parent.parent / "run_outputs" / f'{group_name}cnn_train_weights.pth'
-    # we use the CNN embedding function
+
     X_matrix = get_cnn_embeddings(X_matrix,
                                   target=y_vec,
                                   group_col="Group number + Participant ID",
@@ -28,19 +30,18 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, informative_features, group_nam
                                   num_epochs=30,
                                   dropout=0.3,
                                   )
-    # those are the administrative features we would like to keep.
     administrative_features = ['First second of the activity', 'Last second of the activity',
                                'Participant ID', 'Group number', 'Recording number', 'Protocol']
-    if not test_flag == "False":
+    if not test_flag:
         #save model into test folder pkls
-        model_path_test = Path(__file__).resolve().parent.parent.parent.parent / "o02_test" / "pkls" / f'{group_name}cnn_train_weights.pth'
+        model_path_test = Path(__file__).resolve().parent.parent.parent.parent / "o02_test" / "run_outputs" / f'{group_name}cnn_train_weights.pth'
         shutil.copy2(model_path, model_path_test)
         print(f"Copied from {model_path} to {model_path_test}")
         # we activate it only if we are not in test, to avoid choosing based on test
         emb_columns_for_vetting = [f"cnn_emb_{i}" for i in range(16)]
         df_for_vetting = X_matrix[emb_columns_for_vetting]
         best_emb_features, _ = find_best_features_to_label_combination(df_for_vetting, y_vec, administrative_features,
-                                                                       more_prints=True, N=4, K=10, threshold=0.8)
+                                                                       more_prints=True, N=5, K=10, threshold=0.8)
 
         for feature in best_emb_features:
             informative_features.append(feature)

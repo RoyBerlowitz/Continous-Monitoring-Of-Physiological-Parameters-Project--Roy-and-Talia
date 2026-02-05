@@ -2,8 +2,7 @@ from pathlib import Path
 import time
 
 from .Functions import *
-informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
-def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), informative_features =informative_features , group_name='02', data_files=None, X_test=None, y_test=None):
+def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(),  group_name='02', data_files=None, X_test=None, y_test=None):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
@@ -54,9 +53,9 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     #informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
     #informative_features = [ 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
 
-    X_test, chosen_features = load_cache(
+    X_test = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding_full_workflow(X_test, y_test, informative_features, group_name, test_flag=True),
+        lambda: cnn_embedding_full_workflow(X_test, y_test, group_name, test_flag=True),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )

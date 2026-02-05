@@ -100,12 +100,32 @@ def extract_features (X_matrix, data_files, more_prints=False):
             if "SM" in column:
                 num_features -= 1
 
-    # The rest of the extraction is in the cnn_embedding file, which is crucial for the removal of the window sample data,
-    # the removal of zero columns and the complete pictue of features
-    # for the later added embedding
-    num_features += 16
-    if more_prints: print(f"added {num_features} columns")
-
+    #getting the embedding vector by a trained cnn
+    # columns_names_for_embedding = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS']
+    #group_name = '0'+ str(group_name) + '_'
+    #group_indicator = X_features['Group number'].astype(str) + "_" + X_features['Participant ID'].astype(str)
+    # X_features = get_cnn_embeddings(X_features,
+    #                    target= Y_vector,
+    #                    group_col = "Group number + Participant ID",
+    #                    group_indicator =  group_indicator,
+    #                    column_list = columns_names_for_embedding,
+    #                    test_flag=test_flag,
+    #                    model_path=group_name+'cnn_weights.pth',
+    #                    embedding_size=16,
+    #                    num_epochs=30,
+    #                    batch_size=64,
+    #                    dropout= 0.3)
+    # num_features += 16
+    # # getting rid of the columns with the vectors of values
+    # X_features = X_features.drop(labels=columns_names, axis=1)
+    #
+    # # Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
+    # cols_to_drop = (X_features == 0).all()
+    # zero_cols = X_features.columns[cols_to_drop]
+    #
+    # # we clean the zero columns
+    # if more_prints: print(f"added {num_features - len(zero_cols)} columns")
+    # X_features = X_features.drop(columns=zero_cols)
 
     return X_features
 
