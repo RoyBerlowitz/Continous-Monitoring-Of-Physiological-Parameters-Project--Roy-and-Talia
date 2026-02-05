@@ -41,10 +41,10 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, group_name='', test_flag=False)
     # getting rid of the columns with the vectors of values
     X_matrix = X_matrix.drop(labels=columns_names, axis=1)
 
-    # Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
-    cols_to_drop = (X_matrix == 0).all()
-    zero_cols = X_matrix.columns[cols_to_drop]
-
-    # we clean the zero columns
-    X_matrix = X_matrix.drop(columns=zero_cols)
+    # # Now we want to remove columns in which all the values are zeros, as they won't contribute and may damage the feature vetting
+    # cols_to_drop = (X_matrix == 0).all()
+    # zero_cols = X_matrix.columns[cols_to_drop]
+    #
+    # # we clean the zero columns
+    # X_matrix = X_matrix.drop(columns=zero_cols)
     return X_matrix

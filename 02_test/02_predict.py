@@ -56,10 +56,6 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     )
     print('\033[32mCNN embedding completed\033[0m')
 
-    test_mask = (X_test['Group number'] == '31') & (X_matrix['Participant ID'] == 'A')
-
-    X_test = X_test.loc[~test_mask].copy()
-
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
     X_test = load_cache(
@@ -107,11 +103,11 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
 if __name__ == "__main__":
 
     recompute_functions = RecomputeFunctionsConfig(
-        load_data=False,
-        segment_signal=False,
-        extract_features=False,
-        cnn_embedding=False,
-        feature_normalization=False,
+        load_data=True,
+        segment_signal=True,
+        extract_features=True,
+        cnn_embedding=True,
+        feature_normalization=True,
         create_test_time_df=True,
         evaluate_models=True,
     )
