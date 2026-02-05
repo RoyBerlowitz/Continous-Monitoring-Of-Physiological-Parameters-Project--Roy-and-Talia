@@ -40,13 +40,14 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
     no_smoothing = print_metrics_table(y_test, pred_y_no_median_filter,"Metrics Table For Chosen Threshold Before Median Filtering - Validation")
     with_smoothing = print_metrics_table(y_test, smoothed_prediction, "Metrics Table For Chosen Threshold After Median Filtering - Validation")
 
-    #chose smoothing
-    #return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
+    # chose smoothing
+    # return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
     return {'test_with_smoothing': with_smoothing}, recording_dict
 
 
+
 def apply_median_on_test(X_test, threshold_no_median, threshold_with_median, filter_size):
-    # This function is meant to get the results for the model
+    # This function is meant to get the results for the model - When no real labels available
     y_probs = X_test["weighted_prob"]
     # we compute the labels with the threshold found for the without-filtering scheme
     pred_y_no_median_filter =  (y_probs >= threshold_no_median).astype(int)
