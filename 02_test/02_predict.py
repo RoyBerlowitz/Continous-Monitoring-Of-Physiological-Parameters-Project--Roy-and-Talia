@@ -1,16 +1,15 @@
 from pathlib import Path
 import time
 
+import pandas as pd
+
 from Functions_all import *
 
 def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name='02'):
     start_time = time.time()
 
-    window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
-    # window_models = [WindowModelNames.XGBOOST] #talia
-    window_models = [WindowModelNames.RANDOM_FOREST] #roee
-
-    second_models = [SecondModelNames.NO_MODEL]#, SecondModelNames.MARKOV]
+    window_models = [WindowModelNames.RANDOM_FOREST] #WindowModelNames.XGBOOST didnt use
+    second_models = [SecondModelNames.NO_MODEL] #SecondModelNames.MARKOV, SecondModelNames.LOGISTIC didnt use
 
     ## ========================================================================================================== ##
     ##                                               PREPROCESSING                                                ##
@@ -41,24 +40,33 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ## ==================================== Feature Extraction ==================================== ##
     X_test = load_cache(
         "extract_features.pkl",
-        lambda: extract_features(X_matrix, data_files, more_prints=True),
+        lambda: extract_features(X_matrix, data_files),
         force_recompute=recompute_functions.extract_features,
         save=save_cache
     )
     print('\033[32mFeature extraction completed\033[0m')
+    # print((X_test['Acc_SM_MAD']==0).all())
+    # return
 
-    # ## ==================================== CNN Embedding ==================================== ##
+    ## ==================================== CNN Embedding ==================================== ##
+    csv_path = Path(__file__).resolve().parent / "run_outputs" / 'embedding_csv.csv'
+    X_test = pd.read_csv(csv_path)
+    X_test['Group number'] = X_test['Group number'].astype(str)
+
+    X_test['Recording number'] = (
+        X_test['Recording number']
+        .astype(int)
+        .astype(str)
+        .str.zfill(2)
+    )
+    X_test = X_test.drop(['Unnamed: 0'], axis=1)
     X_test = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding_full_workflow(X_test, [], group_name, test_flag=True),
-        force_recompute=recompute_functions.cnn_embedding,
+        lambda: X_test,#cnn_embedding_full_workflow(X_test, [], group_name, test_flag=True),
+        force_recompute=True, #recompute_functions.cnn_embedding,
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
-
-    test_mask = (X_test['Group number'] == '31') & (X_matrix['Participant ID'] == 'A')
-
-    X_test = X_test.loc[~test_mask].copy()
 
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
@@ -111,8 +119,8 @@ if __name__ == "__main__":
         segment_signal=False,
         extract_features=False,
         cnn_embedding=False,
-        feature_normalization=False,
-        create_test_time_df=True,
-        evaluate_models=True,
+        # feature_normalization=False,
+        # create_test_time_df=True,
+        # evaluate_models=True,
     )
     run_predict(save_cache=True, recompute_functions=recompute_functions)

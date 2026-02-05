@@ -6,10 +6,8 @@ from Functions_all import *
 def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name = "02"):
     start_time = time.time()
 
-    window_models = [WindowModelNames.XGBOOST] #talia
-    window_models = [WindowModelNames.RANDOM_FOREST] #roee
-
-    second_models = [SecondModelNames.NO_MODEL]#, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
+    window_models = [WindowModelNames.RANDOM_FOREST] #WindowModelNames.XGBOOST didnt use
+    second_models = [SecondModelNames.NO_MODEL] #SecondModelNames.MARKOV, SecondModelNames.LOGISTIC didnt use
 
     ## ========================================================================================================== ##
     ##                                               PREPROCESSING                                                ##
@@ -46,14 +44,17 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     )
     print('\033[32mFeature extraction completed\033[0m')
     print((X_train['Group number']+X_train['Participant ID']).unique()) #!TODO
-
+    print(X_train['Acc_SM_MAD'])
+    # return
     ## ==================================== CNN Embedding ==================================== ##
     X_train = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding_full_workflow(X_train, y_train, group_name, test_flag=True),
+        lambda: cnn_embedding_full_workflow(X_train, y_train, group_name),
         force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
+    print(X_train['Acc_SM_MAD'])
+    return
     print('\033[32mCNN embedding completed\033[0m')
 
     ## ==================================== Normalization ==================================== ##
@@ -175,7 +176,7 @@ if __name__ == "__main__":
         choose_hyperparameters=False,
         train_window_model=False,
         create_test_time_df=False,
-        train_second_model=True,
+        train_second_model=False,
         evaluate_models=True,
     )
     run_train(save_cache=True, recompute_functions=recompute_functions)
