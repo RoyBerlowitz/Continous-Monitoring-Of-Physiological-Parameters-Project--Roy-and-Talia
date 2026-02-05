@@ -37,14 +37,15 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
         recording_dict[recording] = smoothing_temp_df[smoothing_temp_df['recording_identifier'] == recording].copy()
 
     # we get the metrics for with and without smoothing
-    no_smoothing = print_metrics_table(y_test, pred_y_no_median_filter,"Metrics Table For Chosen Threshold Before Median Filtering TEST")
-    with_smoothing = print_metrics_table(y_test, smoothed_prediction, "Metrics Table For Chosen Threshold After Median Filtering TEST")
+    no_smoothing = print_metrics_table(y_test, pred_y_no_median_filter,"Metrics Table For Chosen Threshold Before Median Filtering - Validation")
+    with_smoothing = print_metrics_table(y_test, smoothed_prediction, "Metrics Table For Chosen Threshold After Median Filtering - Validation")
 
-    return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
-
+    # chose smoothing
+    # return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
+    return {'test_with_smoothing': with_smoothing}, recording_dict
 
 def apply_median_on_test(X_test, threshold_no_median, threshold_with_median, filter_size):
-    # This function is meant to get the results for the model
+    # This function is meant to get the results for the model - When no real labels available
     y_probs = X_test["weighted_prob"]
     # we compute the labels with the threshold found for the without-filtering scheme
     pred_y_no_median_filter =  (y_probs >= threshold_no_median).astype(int)
@@ -114,7 +115,7 @@ def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classi
         # we extract the per-second results
         recording_dict[recording] = result_df[result_df['recording_identifier'] == recording].copy()
     # these are the results of classification
-    results = print_metrics_table(y_test, predicted_y, f"Metrics Table For Chosen Threshold for {model_name}  - TEST")
+    results = print_metrics_table(y_test, predicted_y, f"Metrics Table For Chosen Threshold for {model_name}  - Validation")
     return results, recording_dict
 
 def save_all_stats(all_stats, model_name, recording_dict):
@@ -127,8 +128,6 @@ def save_all_stats(all_stats, model_name, recording_dict):
     df_main = pd.DataFrame.from_dict(all_stats, orient="index")
     df_main.index.name = "res_type"
 
-    #!TODO asdfadf
-    # למחוק שורה 100 ו-81 בהגשה הסופית, אבל לשמור על 80 במהלך ההגשות העד סופיות
     # we want to create several sheets, one with the metrics and others with the classification per second
     with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
         # the main sheet is the metric sheet
@@ -155,22 +154,12 @@ def save_all_stats(all_stats, model_name, recording_dict):
 
         final_df = pd.concat(all_recordings_list, ignore_index=True)
 
-        #!TODO
-        # למחוק את החלק הזה בהגשה הסופית
-        cols_to_keep = [c for c in ["Start", "End", "true_label", "recording_identifier"] if c in final_df.columns]
-        real_df_final = final_df[cols_to_keep].copy()
-
-        pred_df_final = final_df.drop(columns=["true_label"], errors='ignore')
-
-        pred_df_final.to_excel(writer, sheet_name="02_train_pred", index=False)
-        real_df_final.to_excel(writer, sheet_name="02_train_label", index=False)
-
-    # להשתמש בגרסא הבאה להגשה
-    # !TODO csv
     cols_to_keep = [c for c in ["Start", "End", "true_label"] if c in final_df.columns]
     real_df_final = final_df[cols_to_keep].copy()
+    real_df_final.rename(columns={'true_label': 'label'}, inplace=True)
 
-    pred_df_final = final_df.drop(columns=["true_label", "recording_identifier"], errors='ignore')
+    pred_df_final = final_df.drop(columns=["true_label", "recording_identifier", "no_median_prediction"], errors='ignore')
+    real_df_final.rename(columns={'prediction': 'label'}, inplace=True)
     save_path = Path(__file__).resolve().parent.parent.parent / 'run_outputs'
     pred_df_final.to_csv(f"{save_path}/02_train_pred.csv", index=False)
     real_df_final.to_csv(f"{save_path}/02_train_label.csv", index=False)
