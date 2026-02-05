@@ -6,8 +6,8 @@ from Functions_train import *
 def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name = "02"):
     start_time = time.time()
 
-    window_models = [WindowModelNames.XGBOOST] #talia
-    # window_models = [WindowModelNames.RANDOM_FOREST] #roee
+    # window_models = [WindowModelNames.XGBOOST] #talia
+    window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
     second_models = [SecondModelNames.NO_MODEL]#, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
 
@@ -168,14 +168,14 @@ if __name__ == "__main__":
         load_data=False,
         segment_signal=False,
         extract_features=False,
-        cnn_embedding=False,
-        feature_normalization=False,
+        # cnn_embedding=False,
+        # feature_normalization=False,
         vet_features=False,
-        select_features=False,
-        choose_hyperparameters=False,
-        train_window_model=False,
-        create_test_time_df=False,
-        train_second_model=False,
-        evaluate_models=False,
+        # select_features=False,
+        # choose_hyperparameters=False,
+        # train_window_model=False,
+        # create_test_time_df=False,
+        # train_second_model=False,
+        # evaluate_models=False,
     )
     run_train(save_cache=True, recompute_functions=recompute_functions)
