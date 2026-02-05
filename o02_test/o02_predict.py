@@ -28,7 +28,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
         print('\033[32mData loaded\033[0m')
 
         ## ==================================== Segmentation ==================================== ##
-        X_matrix, y_test = load_cache(
+        X_matrix = load_cache(
             "segment_signal.pkl",
             lambda: segment_signal(7, 0.25 * 7, data_files), #params were chosen in Part A by maximizing MU
             force_recompute=recompute_functions.segment_signal,
@@ -54,13 +54,18 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     #informative_features = ['cnn_emb_2', 'cnn_emb_6', 'cnn_emb_5', 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'cnn_emb_8', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
     #informative_features = [ 'Gyro_Y-AXIS_dominant_frequency', 'Gyro_Y-AXIS_CUSUM-_Feature', 'Acc_X-AXIS_acceleration_std', 'Acc_X_Z_CORR', 'Gyro_SM_velocity_median', 'Gyro_Y-AXIS_CUSUM+_Feature', 'Acc_SM_dominant_frequency', 'Mag_Y-AXIS_median', 'Gyro_Z-AXIS_band_to_tot_energy_ratio', 'Mag_MEAN_AXES_CORR', 'Acc_SM_acceleration_median', 'Acc_X-AXIS_velocity_skewness', 'Acc_Z-AXIS_velocity_median', 'Acc_SM_frequency_centroid', 'Acc_Z-AXIS_CUSUM+_Feature', 'Gyro_Y-AXIS_velocity_median']
 
-    X_test, chosen_features = load_cache(
+    X_test = load_cache(
         "cnn_embedding.pkl",
-        lambda: cnn_embedding_full_workflow(X_test, y_test, informative_features, group_name, test_flag=True),
-        force_recompute=recompute_functions.cnn_embedding,
+        lambda: cnn_embedding_full_workflow(X_test, [], informative_features, group_name, test_flag=True),
+        force_recompute=True, #recompute_functions.cnn_embedding,
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
+
+    csv_path = Path(__file__).resolve().parent / "run_outputs" / 'embedding_csv.csv'
+    X_test.to_csv(csv_path)
+    print(X_test['Acc_SM_MAD'])
+    return
 
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")

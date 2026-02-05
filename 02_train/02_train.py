@@ -43,7 +43,6 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
         save=save_cache
     )
     print('\033[32mFeature extraction completed\033[0m')
-    print((X_train['Group number']+X_train['Participant ID']).unique()) #!TODO
 
     ## ==================================== CNN Embedding ==================================== ##
     X_train = load_cache(
@@ -174,6 +173,6 @@ if __name__ == "__main__":
         train_window_model=False,
         create_test_time_df=False,
         train_second_model=False,
-        evaluate_models=True,
+        evaluate_models=False,
     )
     run_train(save_cache=True, recompute_functions=recompute_functions)

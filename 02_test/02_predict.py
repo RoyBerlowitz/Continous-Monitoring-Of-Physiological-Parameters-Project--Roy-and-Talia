@@ -1,8 +1,6 @@
 from pathlib import Path
 import time
 
-import pandas as pd
-
 from Functions_all import *
 
 def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name='02'):
@@ -15,7 +13,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ##                                               PREPROCESSING                                                ##
     ## ========================================================================================================== ##
     ## ==================================== Load Data ==================================== ##
-    data_path = Path(__file__).resolve().parent.parent / "data_test" #!TODO
+    data_path = Path(__file__).resolve().parent.parent / "data"
     data_files = load_cache(
         "load_data.pkl",
         lambda: load_data(data_path),
@@ -45,25 +43,12 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
         save=save_cache
     )
     print('\033[32mFeature extraction completed\033[0m')
-    # print((X_test['Acc_SM_MAD']==0).all())
-    # return
 
     ## ==================================== CNN Embedding ==================================== ##
-    csv_path = Path(__file__).resolve().parent / "run_outputs" / 'embedding_csv.csv'
-    X_test = pd.read_csv(csv_path)
-    X_test['Group number'] = X_test['Group number'].astype(str)
-
-    X_test['Recording number'] = (
-        X_test['Recording number']
-        .astype(int)
-        .astype(str)
-        .str.zfill(2)
-    )
-    X_test = X_test.drop(['Unnamed: 0'], axis=1)
     X_test = load_cache(
         "cnn_embedding.pkl",
-        lambda: X_test,#cnn_embedding_full_workflow(X_test, [], group_name, test_flag=True),
-        force_recompute=True, #recompute_functions.cnn_embedding,
+        lambda: cnn_embedding_full_workflow(X_test, [], group_name, test_flag=True),
+        force_recompute=recompute_functions.cnn_embedding,
         save=save_cache
     )
     print('\033[32mCNN embedding completed\033[0m')
@@ -114,13 +99,5 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
 # ========================================================= Run =========================================================
 if __name__ == "__main__":
 
-    recompute_functions = RecomputeFunctionsConfig(
-        load_data=False,
-        segment_signal=False,
-        extract_features=False,
-        cnn_embedding=False,
-        # feature_normalization=False,
-        # create_test_time_df=True,
-        # evaluate_models=True,
-    )
+    recompute_functions = RecomputeFunctionsConfig()
     run_predict(save_cache=True, recompute_functions=recompute_functions)
