@@ -1,8 +1,8 @@
 import pandas as pd
 import numpy as np
 from .window_timing_translator_preprocessing import get_handwashing_times, apply_smoothing
-from .timing_classifying_without_model import translate_prediction_into_time_point_prediction_with_weights, train_for_decision, print_metrics_table
-from .evaluate_test_by_second import evaluate_test_by_second_no_model,evaluate_test_by_second_with_model, save_all_stats
+from .timing_classifying_without_model import translate_prediction_into_time_point_prediction_with_weights, train_for_decision, print_metrics_table, translate_prediction_into_time_point_prediction_with_weights_no_label
+from .evaluate_test_by_second import evaluate_test_by_second_no_model,evaluate_test_by_second_with_model, save_all_stats, apply_median_on_test
 from .timing_classifying_with_model import translate_prediction_into_time_point_prediction_for_model, logistic_regression_for_second_classification, train_markov_model
 from ..consts import SecondModelNames
 
@@ -71,6 +71,12 @@ def prediction_by_second_test(test_df, data_files, model_name, classification_mo
             save_all_stats(test_stats, model_name + '_markov_second_classification', recording_dict)
             return test_stats
     return
+
+def prediction_test_each_second(test_df, data_files, model_name, classification_model, classification_flag = SecondModelNames.NO_MODEL, weight_flag = "Gaussian Weight"):
+    #We chose to use median smoothing
+    # FUNC like above just for test when there arent the labels
+    test_x = translate_prediction_into_time_point_prediction_with_weights_no_label(test_df, weight_flag)
+    return apply_median_on_test(test_x, classification_model["threshold_no_median"], classification_model["threshold_with_median"], classification_model["filter_size"])
 
 
 def prediction_by_second_train(train_df, data_files, model_name, classification_flag = SecondModelNames.NO_MODEL, weight_flag = "Gaussian Weight"):

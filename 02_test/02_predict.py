@@ -1,14 +1,14 @@
 from pathlib import Path
 import time
 
-from Functions_train import *
+from Functions_all import *
 
 def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name='02'):
     start_time = time.time()
 
     window_models = [WindowModelNames.XGBOOST, WindowModelNames.RANDOM_FOREST]
-    window_models = [WindowModelNames.XGBOOST] #talia
-    # window_models = [WindowModelNames.RANDOM_FOREST] #roee
+    # window_models = [WindowModelNames.XGBOOST] #talia
+    window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
     second_models = [SecondModelNames.NO_MODEL]#, SecondModelNames.MARKOV]
 
@@ -16,7 +16,7 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
     ##                                               PREPROCESSING                                                ##
     ## ========================================================================================================== ##
     ## ==================================== Load Data ==================================== ##
-    data_path = Path(__file__).resolve().parent.parent / "data_3" #!TODO
+    data_path = Path(__file__).resolve().parent.parent / "data_test" #!TODO
     data_files = load_cache(
         "load_data.pkl",
         lambda: load_data(data_path),
@@ -46,21 +46,15 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
         save=save_cache
     )
     print('\033[32mFeature extraction completed\033[0m')
-    #!TODO
-    # print(X_test['Acc_X-AXIS'])
-    columns_names = ['Acc_X-AXIS', 'Acc_Y-AXIS', 'Acc_Z-AXIS', 'Gyro_X-AXIS', 'Gyro_Y-AXIS', 'Gyro_Z-AXIS',
-                     'Mag_X-AXIS', 'Mag_Y-AXIS', 'Mag_Z-AXIS', 'Acc_SM', 'Mag_SM', 'Gyro_SM']
-    X_test = X_test.drop(labels=columns_names, axis=1)
-    # return
+
     # ## ==================================== CNN Embedding ==================================== ##
-    #!TODO
-    # X_test = load_cache(
-    #     "cnn_embedding.pkl",
-    #     lambda: cnn_embedding_full_workflow(X_test, y_test, group_name, test_flag=True),
-    #     force_recompute=recompute_functions.cnn_embedding,
-    #     save=save_cache
-    # )
-    # print('\033[32mCNN embedding completed\033[0m')
+    X_test = load_cache(
+        "cnn_embedding.pkl",
+        lambda: cnn_embedding_full_workflow(X_test, [], group_name, test_flag=True),
+        force_recompute=recompute_functions.cnn_embedding,
+        save=save_cache
+    )
+    print('\033[32mCNN embedding completed\033[0m')
 
     ## ==================================== Normalization ==================================== ##
     scaler = load_pickle("normalization_train_scaler.pkl")
@@ -88,19 +82,15 @@ def run_predict(save_cache=False, recompute_functions=RecomputeFunctionsConfig()
             save=save_cache
         )
 
-        print(X_test_seconds_dfs.columns)
-        print(X_test_seconds_dfs.iloc[0])
-        return
         for second_model in second_models:
             second_model_trained = load_pickle(f"train_second_model_{window_model}_{second_model}_train.pkl")
             model_stats[second_model] = load_cache(
                 f"evaluate_second_model_{window_model}_{second_model}.pkl",
-                lambda: prediction_by_second_test(X_test_seconds_dfs, data_files, window_model, second_model_trained, second_model),
+                lambda: prediction_test_each_second(X_test_seconds_dfs, data_files, window_model, second_model_trained, second_model),
                 force_recompute=recompute_functions.evaluate_models,
                 save=save_cache
             )
             print(f'\033[32mFinished evaluating second model: {window_model}-{second_model}\033[0m')
-        # save_second_model_stats(model_stats, window_model)
 
     end_time = time.time()
     print(f"Total time: {end_time - start_time} sec")

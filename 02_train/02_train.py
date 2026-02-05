@@ -1,12 +1,12 @@
 from pathlib import Path
 import time
 
-from Functions_train import *
+from Functions_all import *
 
 def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), group_name = "02"):
     start_time = time.time()
 
-    # window_models = [WindowModelNames.XGBOOST] #talia
+    window_models = [WindowModelNames.XGBOOST] #talia
     window_models = [WindowModelNames.RANDOM_FOREST] #roee
 
     second_models = [SecondModelNames.NO_MODEL]#, SecondModelNames.MARKOV] #SecondModelNames.LOGISTIC, decided not to use
@@ -47,7 +47,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
     print('\033[32mFeature extraction completed\033[0m')
     print((X_train['Group number']+X_train['Participant ID']).unique()) #!TODO
 
-    # # ## ==================================== CNN Embedding ==================================== ##
+    ## ==================================== CNN Embedding ==================================== ##
     X_train = load_cache(
         "cnn_embedding.pkl",
         lambda: cnn_embedding_full_workflow(X_train, y_train, group_name, test_flag=False),
@@ -114,7 +114,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
             force_recompute=recompute_functions.train_window_model,
             save=save_cache
         )
-        save_pickle_to_test(trained_window_models[window_model], f"train_window_model_{window_model}_train.joblib")
+        save_pickle_to_test(trained_window_models[window_model], f"train_window_model_{window_model}_train.pkl")
         print(f'\033[32mFinished training model: {window_model}\033[0m')
 
         # # ========================================================================================================== ##

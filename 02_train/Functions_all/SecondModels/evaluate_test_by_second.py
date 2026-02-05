@@ -42,6 +42,39 @@ def evaluate_test_by_second_no_model(X_test, y_test, threshold_no_median, thresh
 
     return {'test_no_smoothing': no_smoothing, 'test_with_smoothing': with_smoothing}, recording_dict
 
+
+def apply_median_on_test(X_test, threshold_no_median, threshold_with_median, filter_size):
+    # This function is meant to get the results for the model
+    y_probs = X_test["weighted_prob"]
+    # we compute the labels with the threshold found for the without-filtering scheme
+    pred_y_no_median_filter =  (y_probs >= threshold_no_median).astype(int)
+    # we compute the labels with the threshold found for the with-filtering scheme
+    pred_y_with_median_filter =  (y_probs >= threshold_with_median).astype(int)
+    smoothing_temp_df = pd.DataFrame({
+        'second': X_test['second'].values,
+        'recording_identifier': X_test['recording_identifier'].values,
+        'prediction': pred_y_with_median_filter,
+        'no_median_prediction': pred_y_no_median_filter,
+    })
+    # we preform the smoothing
+    res_df = apply_smoothing(smoothing_temp_df, filter_size)
+    csv_save_path = Path(__file__).resolve().parent.parent.parent
+
+    for recording_id, group in res_df.groupby("recording_identifier"):
+        out_df = group.copy()
+
+        out_df["Start"] = out_df["second"]
+        out_df["End"] = out_df["second"] + 1
+        out_df["Label"] = out_df["smoothed_prediction"]
+
+        out_df = out_df[["Start", "End", "Label"]]
+
+        out_df.to_csv(
+            f"{csv_save_path}/{recording_id}_pred.csv",
+            index=False
+        )
+    return res_df
+
 def evaluate_test_by_second_with_model(X_test, y_test, model, model_name, classification_flag = SecondModelNames.LOGISTIC):
     # we get the results for the model
     test_for_calculation = X_test[["prob_1", "prob_2", "prob_3", "prob_4"]]
