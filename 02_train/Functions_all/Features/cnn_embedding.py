@@ -16,7 +16,6 @@ def cnn_embedding_full_workflow(X_matrix, y_vec, group_name='', test_flag=False)
 
     # the path in which the CNN model weights will be saved
     model_path = Path(__file__).resolve().parent.parent.parent / "run_outputs" / f'{group_name}cnn_train_weights.pth'
-    print(model_path)
 
     # we use the CNN embedding function
     X_matrix = get_cnn_embeddings(X_matrix,
