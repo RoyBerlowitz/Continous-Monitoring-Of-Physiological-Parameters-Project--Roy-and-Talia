@@ -114,7 +114,7 @@ def run_train(save_cache=False, recompute_functions=RecomputeFunctionsConfig(), 
             force_recompute=recompute_functions.train_window_model,
             save=save_cache
         )
-        save_pickle_to_test(trained_window_models[window_model], f"train_window_model_{window_model}_train.joblib")
+        save_pickle_to_test(trained_window_models[window_model], f"train_window_model_{window_model}_train.pkl")
         print(f'\033[32mFinished training model: {window_model}\033[0m')
 
         # # ========================================================================================================== ##
