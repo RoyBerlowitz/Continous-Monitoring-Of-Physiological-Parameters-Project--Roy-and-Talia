@@ -33,7 +33,8 @@ def extract_features (X_matrix, data_files, more_prints=False):
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong baseline wander on the entire data from a certain recording in a certain sensor
-                new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
+                # new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
+                new_axis_data = axis_data
                 recording[sensor_name]['data'][axis + unit] = new_axis_data
 
 
