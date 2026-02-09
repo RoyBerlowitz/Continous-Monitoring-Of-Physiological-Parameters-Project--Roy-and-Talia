@@ -33,8 +33,7 @@ def extract_features (X_matrix, data_files, more_prints=False):
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong baseline wander on the entire data from a certain recording in a certain sensor
-                # new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
-                new_axis_data = axis_data
+                new_axis_data = fix_baseline_wander (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 0.5)
                 recording[sensor_name]['data'][axis + unit] = new_axis_data
 
 
@@ -74,9 +73,9 @@ def extract_features (X_matrix, data_files, more_prints=False):
             for axis in ["X-AXIS", "Y-AXIS", "Z-AXIS"]:
                 axis_data = recording[sensor_name]['data'][axis + unit].values
                 #Conductiong LPF on the entire data from a certain recording in a certain sensor
-                new_axis_data = apply_low_pass_filter (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 10)
+                # new_axis_data = apply_low_pass_filter (axis_data, sampling_frequency, filter_order =5 , cutoff_frequency = 10)
                 # Conducting normalization on the entire data from a certain recording in a certain sensor
-                normalized_axis_data = normalize_data(new_axis_data)
+                normalized_axis_data = normalize_data(axis_data)
                 recording[sensor_name]['data'][axis + unit] = normalized_axis_data
 
     #Now, let's find the magnitude again, this time normalized.
